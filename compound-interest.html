@@ -432,6 +432,38 @@
       line-height: 1.5;
       text-align: center;
     }
+
+    /* ---- "Waarom werkt dit zo?" explanation card ---- */
+    .explainer {
+      max-width: 600px;
+      width: 100%;
+      margin: 34px auto 8px;
+      padding: 28px 30px;
+      border-radius: 16px;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #22c55e, #3b82f6, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      font-size: 0.98rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+      margin: 0 0 16px;
+    }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer b.early { color: var(--early-color); }
+    .explainer b.late { color: var(--late-color); }
+    .explainer b.accent { color: var(--accent-color); }
   </style>
 </head>
 <body>
@@ -573,6 +605,22 @@
 <div class="footnote">
   Maandelijks samengesteld. Rendementen zijn illustratief, geen voorspelling — echte markten fluctueren. De kern: de <b>curve</b>, niet de inleg, doet het zware werk, dus <b>tijd in de markt</b> telt zwaarder dan het bedrag.
 </div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Samengestelde interest is <b class="accent">exponentiële groei</b>: elk jaar wordt je saldo vermenigvuldigd met (1&nbsp;+&nbsp;rendement). Niet alleen je inleg groeit mee, maar ook de rente die je eerder verdiende levert zélf weer rente op. Dat is <b>rente-op-rente</b> — en het is precies dit sneeuwbaleffect dat de curve steeds steiler maakt.
+  </p>
+  <p>
+    Daarom telt <b>tijd</b> zwaarder dan het ingelegde bedrag. Een euro die je vroeg inlegt, maakt veel méér verdubbelingen mee dan een euro die je laat inlegt. De <b class="early">vroege spaarder</b> stopt er minder geld in, maar elke euro krijgt veel meer jaren om te groeien — terwijl de <b class="late">late spaarder</b> dat verloren begin nooit meer inhaalt.
+  </p>
+  <p>
+    Een handige vuistregel is de <b>regel van 72</b>: deel 72 door het rendementspercentage en je weet ongeveer na hoeveel jaar je geld verdubbelt. Bij ongeveer 7% rendement is dat dus ruwweg elke 10 jaar. Een paar extra verdubbelingen aan het begin is enorm, omdat ze pas helemaal aan het eind hun volle gewicht laten zien.
+  </p>
+  <p>
+    De kernintuïtie: bij samengestelde groei doet de <b>curve</b> het werk, niet de grootte van de storting. Oftewel — <b>"tijd in de markt"</b> verslaat <b>"meer inleggen"</b>.
+  </p>
+</section>
 
 <script>
   // ---- Elements ----

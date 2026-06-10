@@ -350,6 +350,46 @@
       0% { transform: translateY(0) scale(1); opacity: 0.8; }
       100% { transform: translateY(-20px) scale(0.5); opacity: 0; }
     }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 600px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(59, 130, 246, 0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #3b82f6, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(34, 197, 94, 0.06);
+      border-left: 3px solid var(--bacteria-color);
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--bacteria-color); font-weight: 700; }
+    .explainer em { color: var(--accent-color); font-style: normal; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -764,5 +804,27 @@
   }
   animateParticles();
 </script>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Exponentiële groei betekent steeds <strong>verdubbelen</strong>: na <em>t</em> minuten zijn er 2<sup>t</sup> bacteriën.
+    Bij elke stap wordt de vorige totale hoeveelheid er gewoon nóg een keer bovenop gelegd. Het gevolg is verrassend: de
+    allerlaatste verdubbeling voegt precies zoveel toe als de hele geschiedenis daarvóór bij elkaar.
+  </p>
+  <p>
+    Daarom is de pot op minuut 59 nog maar <strong>halfvol</strong> en op minuut 60 ineens helemaal vol. Het probleem
+    ziet er bijna tot het einde onschuldig uit en lijkt dan in één klap te ontploffen. Ons gevoel verwacht lineaire groei
+    &mdash; netjes stapje voor stapje &mdash; maar de werkelijkheid blijft versnellen.
+  </p>
+  <p>
+    Dat verklaart ook waarom extra capaciteit zo weinig tijd oplevert. Drie potten erbij is <em>4&times;</em> zoveel ruimte,
+    maar omdat de hoeveelheid elke minuut verdubbelt, is 4&times; slechts twee verdubbelingen. Je wint er dus maar zo'n
+    <strong>2 minuten</strong> mee. Een lineaire oplossing kan exponentiële groei simpelweg niet bijhouden.
+  </p>
+  <p>
+    Kortom: bij exponentiële processen is &ldquo;tijd&rdquo; geen goede maat voor &ldquo;voortgang&rdquo;.
+  </p>
+</section>
 </body>
 </html>

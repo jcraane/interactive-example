@@ -293,6 +293,33 @@
       0%, 100% { box-shadow: 0 0 30px rgba(250,204,21,0.10); }
       50% { box-shadow: 0 0 48px rgba(250,204,21,0.22); }
     }
+
+    .explainer {
+      max-width: 560px;
+      margin: 44px auto 0;
+      padding: 26px 28px;
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.4rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, var(--groupA-color), var(--groupB-color), var(--combined-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      font-size: 0.95rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+      margin: 0 0 14px;
+      text-align: left;
+    }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer b { color: white; }
+    .explainer .a-txt { color: var(--groupA-color); font-weight: 700; }
+    .explainer .b-txt { color: var(--groupB-color); font-weight: 700; }
+    .explainer .c-txt { color: var(--combined-color); font-weight: 700; }
   </style>
 </head>
 <body>
@@ -391,6 +418,31 @@
     </div>
   </div>
 </div>
+
+<section class="explainer glass">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    De omkering ontstaat door een <b>verborgen, verstorende variabele</b>: de groep waarin een
+    leerling zit. <span class="a-txt">Klas A</span> en <span class="b-txt">klas B</span> verschillen
+    niet alleen in studie-uren, ze liggen ook op heel andere plekken in de grafiek. Toch geldt
+    bínnen elke klas hetzelfde: meer uren betekent een hoger cijfer &mdash; een nette
+    <b>positieve trend</b>.
+  </p>
+  <p>
+    Maar gooi je alle punten op &eacute;&eacute;n hoop, dan wordt de <span class="c-txt">algehele
+    lijn</span> niet bepaald door de helling bínnen elke wolk, maar door <b>waar</b> de twee
+    wolken ten opzichte van elkaar liggen. Ligt de klas met veel studie-uren toevallig lager,
+    dan kan de gecombineerde lijn omlaag wijzen terwijl beide klassen omhoog lopen.
+  </p>
+  <p>
+    Het is dus puur een kwestie van <b>aggregeren</b>: een gemiddelde over ongelijke groepen
+    kan een richting suggereren die in geen enkele groep echt bestaat.
+  </p>
+  <p>
+    De praktische les: wees voorzichtig met conclusies uit samengevoegde data. Splits altijd
+    uit naar relevante subgroepen &mdash; anders trek je precies de verkeerde conclusie.
+  </p>
+</section>
 
 <script>
   // ---------- Plot geometry ----------

@@ -326,6 +326,48 @@
       text-align: center;
     }
     .intro strong { color: #fff; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 560px;
+      width: 100%;
+      margin: 40px auto 0;
+      padding: 24px 26px;
+      border-radius: 16px;
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 3px solid transparent;
+      border-image: linear-gradient(135deg, #a855f7, #ec4899, #2dd4bf) 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .explainer h2 {
+      font-size: 1.4rem;
+      margin: 0 0 14px;
+      text-align: center;
+      background: linear-gradient(135deg, #a855f7, #ec4899, #2dd4bf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p { margin: 0 0 14px; }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer strong { color: #fff; }
+    .explainer .accent { color: var(--accent-2); font-weight: 700; }
+    .explainer code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.88em;
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: #e9d5ff;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -408,6 +450,14 @@
 </div>
 
 <div id="insight" class="insight"></div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>De truc is dat het niet om <strong>personen</strong> gaat, maar om <strong>paren</strong>. Bij <code>n</code> mensen zijn er <code>n·(n−1)/2</code> mogelijke paren die een verjaardag kunnen delen. Bij 23 mensen zijn dat al <span class="accent">253 paren</span> — heel veel kansen op een match, ook al voelt 23 als een klein groepje.</p>
+  <p>Onze intuïtie faalt omdat we onszelf met de rest vergelijken: dat zijn maar <code>n−1</code> vergelijkingen. In werkelijkheid telt <strong>elk paar</strong> mee. Het aantal paren groeit <strong>kwadratisch</strong>, niet lineair — verdubbel je de groep, dan verviervoudigt het aantal paren bijna.</p>
+  <p>Wiskundig reken je het andersom uit. De kans dat <strong>niemand</strong> samenvalt is <code>(365/365)·(364/365)·(363/365)·…</code>, met voor elke extra persoon één factor minder vrije dagen. De kans op <span class="accent">minstens één</span> match is <code>1</code> min dat product — en dat product daalt verrassend snel naar nul.</p>
+  <p>Kort samengevat: <strong>"iemand deelt jóuw verjaardag"</strong> is zeldzaam, maar <strong>"twee willekeurige mensen delen er één"</strong> is dat helemaal niet. En dat laatste is precies wat we hier meten.</p>
+</section>
 
 <script>
   const slider = document.getElementById('sizeSlider');
