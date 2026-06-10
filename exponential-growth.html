@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Bacteria Riddle: Percentages</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --jar-color: #cbd5e1;
+      --bacteria-color: #22c55e;
+      --accent-color: #3b82f6;
+      --graph-line: #ef4444;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(34,197,94,0.06) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      background: linear-gradient(135deg, #3b82f6, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .layout {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 20px;
+    }
+
+    /* Glass card style */
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .jar-container { text-align: center; display: flex; flex-direction: column; }
+    .jar-grid { display: flex; gap: 10px; margin-bottom: 16px; justify-content: center; flex: 1; align-items: stretch; }
+    .jar {
+      position: relative;
+      width: 90px; height: 100%;
+      min-height: 130px;
+      border: 3px solid var(--jar-color);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.03);
+      transition: border-color 0.5s;
+    }
+    .jar::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 3px; right: 3px; height: 100%;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 50%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .jar.overflow {
+      animation: shake 0.4s ease-in-out;
+      border-color: var(--danger-color);
+    }
+    .fill {
+      position: absolute; bottom: 0; width: 100%;
+      background: linear-gradient(180deg, var(--bacteria-color), rgba(34,197,94,0.7));
+      transition: height 0.1s linear, background 0.5s;
+    }
+    .fill.warning {
+      background: linear-gradient(180deg, var(--warning-color), rgba(234,179,8,0.7));
+    }
+    .fill.danger {
+      background: linear-gradient(180deg, var(--danger-color), rgba(239,68,68,0.7));
+    }
+
+    /* Bacteria particles */
+    .bacteria-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* Percentage Display */
+    .percent-box {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 16px 32px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      min-width: 240px;
+      text-align: center;
+      transition: border-color 0.5s, background 0.5s, box-shadow 0.5s;
+      backdrop-filter: blur(8px);
+    }
+    .percent-box.warning {
+      background: rgba(234, 179, 8, 0.08);
+      border-color: rgba(234, 179, 8, 0.4);
+      box-shadow: 0 0 30px rgba(234, 179, 8, 0.1);
+    }
+    .percent-box.danger {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.4);
+      box-shadow: 0 0 40px rgba(239, 68, 68, 0.15);
+    }
+    .percent-box.critical {
+      animation: pulse-glow 1s ease-in-out infinite;
+    }
+    .percent-value {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--bacteria-color);
+      transition: color 0.5s;
+      font-variant-numeric: tabular-nums;
+    }
+    .percent-value.warning { color: var(--warning-color); }
+    .percent-value.danger { color: var(--danger-color); }
+
+    .bacteria-count-box {
+      background: rgba(59, 130, 246, 0.08);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .bacteria-count {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.5s;
+    }
+    .bacteria-count.huge {
+      font-size: 1.6rem;
+    }
+
+    .graph-container {
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+    }
+    .graph-title {
+      font-size: 0.75rem;
+      margin-bottom: 8px;
+      color: #64748b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    svg {
+      background: rgba(15, 23, 42, 0.8);
+      border-left: 2px solid rgba(148, 163, 184, 0.3);
+      border-bottom: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    .graph-grid { stroke: rgba(148, 163, 184, 0.08); stroke-width: 1; }
+    .graph-path { fill: none; stroke: var(--graph-line); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(239,68,68,0.4)); }
+    .graph-fill { fill: url(#graphGradient); opacity: 0.3; }
+    .data-point { fill: var(--graph-line); filter: drop-shadow(0 0 4px rgba(239,68,68,0.6)); }
+    .graph-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #64748b; margin-top: 4px; }
+
+    .controls {
+      width: 100%; max-width: 540px; text-align: center; margin-top: 30px;
+    }
+
+    /* Custom range slider */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #1e293b 0%, #1e293b 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 20px 0;
+      cursor: pointer;
+      position: relative;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(59,130,246,0.5);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 20px rgba(59,130,246,0.7);
+    }
+
+    /* Milestone markers on slider */
+    .slider-wrapper {
+      position: relative;
+      padding: 0 11px;
+    }
+    .milestone-markers {
+      position: absolute;
+      top: 30px; left: 11px; right: 11px;
+      height: 20px;
+      pointer-events: none;
+    }
+    .milestone {
+      position: absolute;
+      width: 2px; height: 10px;
+      background: rgba(148, 163, 184, 0.3);
+      transform: translateX(-1px);
+    }
+    .milestone-label {
+      position: absolute;
+      top: 12px;
+      font-size: 0.6rem;
+      color: #64748b;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .stats { font-size: 1.2rem; color: #94a3b8; margin-bottom: 5px; }
+    .message {
+      color: #cbd5e1;
+      min-height: 3em;
+      font-weight: 500;
+      font-size: 1.1rem;
+      transition: color 0.3s;
+      line-height: 1.5;
+    }
+    .message.danger { color: var(--danger-color); }
+
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+    button {
+      background: var(--accent-color); color: white; border: none;
+      padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59,130,246,0.4);
+    }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover {
+      background: rgba(148, 163, 184, 0.25);
+      box-shadow: none;
+    }
+    button.playing { background: var(--danger-color); }
+    button.continue {
+      background: var(--bacteria-color);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+      animation: pulse-continue 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-continue {
+      0%, 100% { box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+      50% { box-shadow: 0 4px 24px rgba(34, 197, 94, 0.6); }
+    }
+
+    .hidden { display: none; }
+
+    .time-display {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Insight cards */
+    .insight {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      background: rgba(59, 130, 246, 0.06);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+      50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.35); }
+    }
+
+    @keyframes float-up {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      100% { transform: translateY(-20px) scale(0.5); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>The Exponential Growth Trap</h1>
+<p class="subtitle">Why we always react too late</p>
+
+<div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
+  <div class="percent-box" id="percentBox">
+    <span class="stats">TOTAL CAPACITY FILLED</span>
+    <span id="percentLabel" class="percent-value">0%</span>
+  </div>
+  <div class="percent-box bacteria-count-box" id="bacteriaBox">
+    <span class="stats">BACTERIA COUNT</span>
+    <span id="bacteriaLabel" class="bacteria-count">1</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="jar-container glass">
+    <div class="jar-grid" id="jarGrid">
+      <div class="jar" id="jar0">
+        <canvas class="bacteria-canvas" id="canvas0" width="90" height="200"></canvas>
+        <div id="fill0" class="fill"></div>
+      </div>
+      <div class="jar hidden" id="jar1">
+        <canvas class="bacteria-canvas" id="canvas1" width="90" height="200"></canvas>
+        <div id="fill1" class="fill"></div>
+      </div>
+      <div class="jar hidden" id="jar2">
+        <canvas class="bacteria-canvas" id="canvas2" width="90" height="200"></canvas>
+        <div id="fill2" class="fill"></div>
+      </div>
+      <div class="jar hidden" id="jar3">
+        <canvas class="bacteria-canvas" id="canvas3" width="90" height="200"></canvas>
+        <div id="fill3" class="fill"></div>
+      </div>
+    </div>
+    <div class="time-display">
+      <span id="timeLabel">0</span> <span style="font-size: 0.8rem; color: #64748b;">min</span>
+    </div>
+  </div>
+
+  <div class="graph-container glass">
+    <div class="graph-title">Growth Curve</div>
+    <svg id="graph" width="300" height="220" viewBox="0 0 300 220">
+      <defs>
+        <linearGradient id="graphGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ef4444" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Grid lines -->
+      <line class="graph-grid" x1="0" y1="55" x2="300" y2="55"/>
+      <line class="graph-grid" x1="0" y1="110" x2="300" y2="110"/>
+      <line class="graph-grid" x1="0" y1="165" x2="300" y2="165"/>
+      <line class="graph-grid" x1="75" y1="0" x2="75" y2="150"/>
+      <line class="graph-grid" x1="150" y1="0" x2="150" y2="150"/>
+      <line class="graph-grid" x1="225" y1="0" x2="225" y2="150"/>
+      <!-- Data -->
+      <path id="curveFill" class="graph-fill" d="M 0 220"/>
+      <path id="curve" class="graph-path" d="M 0 220"/>
+      <circle id="marker" class="data-point" cx="0" cy="220" r="5"/>
+    </svg>
+    <div class="graph-labels" id="graphLabels">
+      <span>0 min</span><span>15</span><span>30</span><span>45</span><span>60</span>
+    </div>
+    <div id="insight" class="insight"></div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="slider-wrapper">
+    <input type="range" id="timeSlider" min="0" max="60" value="0">
+    <div class="milestone-markers" id="milestones"></div>
+  </div>
+  <div id="message" class="message" style="margin-top: 16px;">Slide to start the clock.</div>
+  <div class="btn-row">
+    <button id="playBtn" class="secondary">Auto-play</button>
+    <button id="addJarsBtn">We found 3 more jars!</button>
+  </div>
+</div>
+
+<script>
+  const slider = document.getElementById('timeSlider');
+  const timeLabel = document.getElementById('timeLabel');
+  const percentLabel = document.getElementById('percentLabel');
+  const percentBox = document.getElementById('percentBox');
+  const message = document.getElementById('message');
+  const curve = document.getElementById('curve');
+  const curveFill = document.getElementById('curveFill');
+  const marker = document.getElementById('marker');
+  const btn = document.getElementById('addJarsBtn');
+  const playBtn = document.getElementById('playBtn');
+  const insight = document.getElementById('insight');
+  const bacteriaLabel = document.getElementById('bacteriaLabel');
+  const graphLabels = document.getElementById('graphLabels');
+
+  const jarEls = [
+    document.getElementById('jar0'),
+    document.getElementById('jar1'),
+    document.getElementById('jar2'),
+    document.getElementById('jar3')
+  ];
+  const fills = [
+    document.getElementById('fill0'),
+    document.getElementById('fill1'),
+    document.getElementById('fill2'),
+    document.getElementById('fill3')
+  ];
+  const canvases = [
+    document.getElementById('canvas0'),
+    document.getElementById('canvas1'),
+    document.getElementById('canvas2'),
+    document.getElementById('canvas3')
+  ];
+
+  let maxJars = 1;
+  let playing = false;
+  let playInterval = null;
+  let pausedAtBreakpoint = false;
+
+  // Minutes where auto-play pauses for the user to absorb the info
+  const breakpoints = new Set([30, 50, 55, 58, 59, 60, 61, 62]);
+
+  // Build milestone markers
+  function buildMilestones() {
+    const container = document.getElementById('milestones');
+    const max = parseInt(slider.max);
+    const milestones = [
+      { t: 55, label: '55m' },
+      { t: 59, label: '59m' },
+      { t: 60, label: '60m' }
+    ];
+    container.innerHTML = '';
+    milestones.forEach(m => {
+      if (m.t > max) return;
+      const pct = (m.t / max) * 100;
+      const dot = document.createElement('div');
+      dot.className = 'milestone';
+      dot.style.left = pct + '%';
+      const lbl = document.createElement('div');
+      lbl.className = 'milestone-label';
+      lbl.style.left = pct + '%';
+      lbl.textContent = m.label;
+      container.appendChild(dot);
+      container.appendChild(lbl);
+    });
+  }
+  buildMilestones();
+
+  // Bacteria particle system
+  class BacteriaParticles {
+    constructor(canvas) {
+      this.canvas = canvas;
+      this.ctx = canvas.getContext('2d');
+      this.particles = [];
+    }
+    update(fillPercent) {
+      const count = Math.floor(fillPercent * 15);
+      // Add particles to reach count
+      while (this.particles.length < count) {
+        this.particles.push({
+          x: Math.random() * this.canvas.width,
+          y: this.canvas.height - (Math.random() * fillPercent * this.canvas.height),
+          r: 1.5 + Math.random() * 2,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: -0.3 - Math.random() * 0.5,
+          opacity: 0.4 + Math.random() * 0.4
+        });
+      }
+      // Remove excess
+      while (this.particles.length > count) this.particles.pop();
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      const fillTop = this.canvas.height * (1 - fillPercent);
+
+      this.particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        // Bounce within fill area
+        if (p.y < fillTop) { p.vy = Math.abs(p.vy) * 0.8; p.y = fillTop; }
+        if (p.y > this.canvas.height) { p.y = this.canvas.height; p.vy = -Math.abs(p.vy); }
+        if (p.x < 0 || p.x > this.canvas.width) p.vx *= -1;
+
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        this.ctx.fillStyle = `rgba(200, 255, 200, ${p.opacity})`;
+        this.ctx.fill();
+      });
+    }
+  }
+
+  const particleSystems = canvases.map(c => new BacteriaParticles(c));
+
+  btn.onclick = () => {
+    slider.max = 62;
+    maxJars = 4;
+    jarEls.forEach(j => j.classList.remove('hidden'));
+    btn.classList.add('hidden');
+    buildMilestones();
+    updateGraphLabels();
+    updateUI(parseInt(slider.value));
+  };
+
+  // Auto-play with breakpoints
+  playBtn.onclick = () => {
+    if (pausedAtBreakpoint) {
+      // Resume from breakpoint
+      pausedAtBreakpoint = false;
+      startPlay();
+      return;
+    }
+    if (playing) {
+      stopPlay();
+    } else {
+      if (parseInt(slider.value) >= parseInt(slider.max)) slider.value = 0;
+      startPlay();
+    }
+  };
+
+  function startPlay() {
+    playing = true;
+    pausedAtBreakpoint = false;
+    playBtn.textContent = 'Pause';
+    playBtn.classList.add('playing');
+    playBtn.classList.remove('secondary');
+    playInterval = setInterval(() => {
+      let v = parseInt(slider.value);
+      if (v >= parseInt(slider.max)) { stopPlay(); return; }
+      v += 1;
+      slider.value = v;
+      updateUI(v);
+      // Pause at breakpoints
+      if (breakpoints.has(v)) {
+        pauseAtBreakpoint();
+      }
+    }, 400);
+  }
+
+  function pauseAtBreakpoint() {
+    clearInterval(playInterval);
+    playInterval = null;
+    playing = false;
+    pausedAtBreakpoint = true;
+    playBtn.textContent = 'Continue';
+    playBtn.classList.remove('playing');
+    playBtn.classList.add('continue');
+  }
+
+  function stopPlay() {
+    playing = false;
+    pausedAtBreakpoint = false;
+    clearInterval(playInterval);
+    playInterval = null;
+    playBtn.textContent = 'Auto-play';
+    playBtn.classList.remove('playing', 'continue');
+    playBtn.classList.add('secondary');
+  }
+
+  slider.oninput = function() {
+    if (playing || pausedAtBreakpoint) stopPlay();
+    updateUI(parseInt(this.value));
+  };
+
+  const insights = {
+    10: "At 10 min, bacteria fill ~0.0001% of the jar. Invisible to the naked eye.",
+    30: "Halfway through time, only 0.0001% full. Time ≠ progress in exponential systems.",
+    50: "At 50 min, the jar is only ~0.1% full. 83% of time gone, almost nothing visible.",
+    55: "5 minutes left and >96% of capacity remains. This is why exponentials fool us.",
+    58: "25% full with only 2 minutes left. It took 58 minutes to get here — just 2 more to fill completely.",
+    59: "50% full. One minute to go. Could you have predicted this at minute 50?",
+    60: "Game over. The last 3 minutes filled 87.5% of all capacity.",
+    61: "You tripled capacity — but the bacteria doubled. Two jars gone in one minute. Adding resources can't outrun exponential growth.",
+    62: "All four jars full. Tripling capacity only bought 2 extra minutes. That's the exponential trap: linear solutions can't fix exponential problems.",
+  };
+
+  function updateGraphLabels() {
+    const max = parseInt(slider.max);
+    const step = max / 4;
+    graphLabels.innerHTML = '';
+    for (let i = 0; i <= 4; i++) {
+      const span = document.createElement('span');
+      const val = Math.round(step * i);
+      span.textContent = i === 0 ? val + ' min' : val;
+      graphLabels.appendChild(span);
+    }
+  }
+
+  function formatBacteriaCount(n) {
+    if (n >= 1e15) return (n / 1e15).toFixed(1) + ' quadrillion';
+    if (n >= 1e12) return (n / 1e12).toFixed(1) + ' trillion';
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + ' billion';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + ' million';
+    if (n >= 1e3) return n.toLocaleString();
+    return n.toString();
+  }
+
+  function updateUI(t) {
+    t = parseInt(t);
+    timeLabel.innerText = t;
+
+    let volume = Math.pow(2, t - 60);
+    let percentOfTotal = (volume / maxJars) * 100;
+
+    // Bacteria count: 2^t (starts at 1 bacterium at t=0)
+    let bacteriaCount = Math.pow(2, t);
+    bacteriaLabel.innerText = formatBacteriaCount(bacteriaCount);
+    bacteriaLabel.className = 'bacteria-count' + (t >= 40 ? ' huge' : '');
+
+    // Format percentage
+    if (percentOfTotal < 0.001 && percentOfTotal > 0) {
+      percentLabel.innerText = "< 0.001%";
+    } else if (percentOfTotal < 1) {
+      percentLabel.innerText = percentOfTotal.toFixed(3) + "%";
+    } else {
+      percentLabel.innerText = percentOfTotal.toFixed(1) + "%";
+    }
+
+    // Color states based on fill
+    const state = percentOfTotal >= 80 ? 'danger' : percentOfTotal >= 25 ? 'warning' : '';
+    percentBox.className = 'percent-box' + (state ? ' ' + state : '') + (percentOfTotal >= 90 ? ' critical' : '');
+    percentLabel.className = 'percent-value' + (state ? ' ' + state : '');
+
+    // Update Jars
+    fills.forEach((fill, i) => {
+      let jarFill = Math.min(Math.max(volume - i, 0), 1);
+      fill.style.height = (jarFill * 100) + "%";
+      fill.className = 'fill' + (jarFill >= 0.9 ? ' danger' : jarFill >= 0.5 ? ' warning' : '');
+
+      // Overflow shake
+      if (jarFill >= 1) {
+        jarEls[i].classList.add('overflow');
+      } else {
+        jarEls[i].classList.remove('overflow');
+      }
+
+      // Update particles
+      particleSystems[i].update(jarFill);
+    });
+
+    // Update Graph
+    const maxT = parseInt(slider.max);
+    let points = "M 0 220";
+    let fillPoints = "M 0 220";
+    for (let i = 0; i <= t; i++) {
+      let x = (i / maxT) * 300;
+      let vol = Math.pow(2, i - 60);
+      let y = 220 - Math.min(vol, maxJars) / maxJars * 220;
+      points += ` L ${x} ${y}`;
+      fillPoints += ` L ${x} ${y}`;
+      if (i === t) {
+        marker.setAttribute('cx', x);
+        marker.setAttribute('cy', y);
+      }
+    }
+    let lastX = (t / maxT) * 300;
+    fillPoints += ` L ${lastX} 220 Z`;
+    curve.setAttribute('d', points);
+    curveFill.setAttribute('d', fillPoints);
+
+    // Insight
+    let shownInsight = null;
+    for (const key of Object.keys(insights).sort((a, b) => b - a)) {
+      if (t >= parseInt(key)) { shownInsight = insights[key]; break; }
+    }
+    if (shownInsight) {
+      insight.textContent = shownInsight;
+      insight.classList.add('visible');
+    } else {
+      insight.classList.remove('visible');
+    }
+
+    // Message Logic
+    message.className = 'message';
+    if (t === 55) {
+      message.innerText = "Minute 55: You still have over 96% of your space left!";
+    } else if (t === 59) {
+      message.innerText = "Minute 59: Only ONE minute left, and you're at 50%!";
+      message.className = 'message danger';
+    } else if (t === 60) {
+      message.innerText = "Minute 60: Resource exhausted.";
+      message.className = 'message danger';
+    } else if (t === 61 && maxJars > 1) {
+      message.innerText = "Minute 61: Two jars full. Extra space vanishing fast.";
+      message.className = 'message danger';
+    } else if (t === 62 && maxJars > 1) {
+      message.innerText = "Minute 62: All four jars full. Tripling capacity only bought 2 minutes.";
+      message.className = 'message danger';
+    } else if (t < 50) {
+      message.innerText = "Everything looks fine. The volume is so tiny it's almost impossible to measure.";
+    } else {
+      message.innerText = "The growth is accelerating...";
+    }
+  }
+
+  // Particle animation loop
+  function animateParticles() {
+    const t = parseInt(slider.value);
+    const volume = Math.pow(2, t - 60);
+    fills.forEach((_, i) => {
+      let jarFill = Math.min(Math.max(volume - i, 0), 1);
+      if (jarFill > 0) particleSystems[i].update(jarFill);
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+</script>
+</body>
+</html>
