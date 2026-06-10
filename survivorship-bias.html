@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Overlevingsbias: het raadsel van de kogelgaten</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --accent-color: #3b82f6;
+      --plane-color: #94a3b8;
+      --plane-fill: #1e293b;
+      --returned-color: #22c55e;
+      --downed-color: #ef4444;
+      --vital-color: #f43f5e;
+      --armor-color: #facc15;
+      --warning-color: #eab308;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 30%, rgba(59,130,246,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 70%, rgba(244,63,94,0.07) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #3b82f6, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 22px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 600px;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(244, 63, 94, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--vital-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Glass card */
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 980px;
+    }
+
+    .plane-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1 1 380px;
+      min-width: 320px;
+    }
+    .panel-card {
+      flex: 1 1 320px;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* View toggle */
+    .toggle-row {
+      display: inline-flex;
+      gap: 4px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    .toggle-btn {
+      background: transparent;
+      color: #94a3b8;
+      border: none;
+      padding: 9px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.25s, color 0.25s;
+      box-shadow: none;
+    }
+    .toggle-btn.active.returned { background: rgba(34,197,94,0.18); color: var(--returned-color); }
+    .toggle-btn.active.all { background: rgba(59,130,246,0.18); color: var(--accent-color); }
+    .toggle-btn:hover { color: #e2e8f0; }
+
+    .plane-wrap { position: relative; }
+    svg.plane { display: block; }
+
+    .zone {
+      fill: var(--plane-fill);
+      stroke: var(--plane-color);
+      stroke-width: 1.5;
+      transition: fill 0.3s, stroke 0.3s;
+      cursor: pointer;
+    }
+    .zone.vital { stroke: var(--vital-color); }
+    .zone:hover { fill: #283548; }
+    .zone.armored {
+      fill: rgba(250, 204, 21, 0.22);
+      stroke: var(--armor-color);
+      stroke-width: 2.5;
+    }
+    .zone-label {
+      fill: #cbd5e1;
+      font-size: 9px;
+      font-weight: 600;
+      text-anchor: middle;
+      pointer-events: none;
+      font-family: -apple-system, system-ui, sans-serif;
+    }
+    .hit-dot { pointer-events: none; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      display: inline-block;
+    }
+    .dot.hit { background: #fbbf24; }
+    .dot.vital { width: 12px; height: 12px; border-radius: 3px; border: 2px solid var(--vital-color); background: transparent; }
+    .dot.armor { width: 12px; height: 12px; border-radius: 3px; border: 2px solid var(--armor-color); background: rgba(250,204,21,0.22); }
+
+    /* Counts */
+    .count-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+    .count-box {
+      flex: 1;
+      text-align: center;
+      border-radius: 12px;
+      padding: 12px 8px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .count-box.returned { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.07); }
+    .count-box.downed { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.07); }
+    .count-box .num {
+      display: block;
+      font-size: 1.9rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .count-box.returned .num { color: var(--returned-color); }
+    .count-box.downed .num { color: var(--downed-color); }
+    .count-box .lbl { font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+
+    .zone-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .zone-table th {
+      text-align: left; color: #64748b; font-weight: 600; font-size: 0.7rem;
+      text-transform: uppercase; letter-spacing: 1px; padding: 6px 8px;
+      border-bottom: 1px solid rgba(148,163,184,0.15);
+    }
+    .zone-table th.num, .zone-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .zone-table td {
+      padding: 8px; color: #cbd5e1;
+      border-bottom: 1px solid rgba(148,163,184,0.06);
+    }
+    .zone-table tr.vital td:first-child { color: var(--vital-color); font-weight: 600; }
+    .bar-cell { width: 38%; }
+    .bar-track { background: rgba(148,163,184,0.12); border-radius: 4px; height: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+    .bar-fill.returned { background: var(--returned-color); }
+    .bar-fill.all { background: var(--accent-color); }
+    .tag-vital {
+      font-size: 0.6rem; background: rgba(244,63,94,0.18); color: var(--vital-color);
+      padding: 1px 6px; border-radius: 6px; margin-left: 6px; vertical-align: middle;
+      letter-spacing: 0.5px;
+    }
+
+    .controls {
+      width: 100%; max-width: 620px; text-align: center; margin-top: 28px;
+    }
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    button {
+      background: var(--accent-color); color: white; border: none;
+      padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .hint { color: #64748b; font-size: 0.85rem; margin-top: 14px; min-height: 1.4em; }
+
+    /* Insight callouts */
+    .insight {
+      margin: 18px auto 0;
+      max-width: 620px;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+      text-align: left;
+      background: rgba(59, 130, 246, 0.06);
+      border-left: 3px solid var(--accent-color);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight.returned { background: rgba(34,197,94,0.07); border-left-color: var(--returned-color); }
+    .insight strong { color: white; }
+
+    /* Armor / challenge panel */
+    .challenge {
+      width: 100%;
+      max-width: 720px;
+      margin: 32px auto 0;
+      text-align: center;
+    }
+    .challenge h2 {
+      font-size: 1.3rem;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, #facc15, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .challenge p.lead { color: #94a3b8; font-size: 0.92rem; margin: 0 0 18px; line-height: 1.5; }
+    .armor-pills { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; }
+    .pill {
+      padding: 7px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+      background: rgba(15,23,42,0.7); color: #94a3b8;
+      border: 1px solid rgba(148,163,184,0.2);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .pill:hover { border-color: rgba(250,204,21,0.5); color: #e2e8f0; }
+    .pill.on {
+      background: rgba(250,204,21,0.18); color: var(--armor-color);
+      border-color: var(--armor-color);
+    }
+    .score-box {
+      margin-top: 18px;
+      padding: 18px 20px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.7);
+      border: 1px solid rgba(148,163,184,0.15);
+      text-align: left;
+      line-height: 1.6;
+      color: #cbd5e1;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: opacity 0.4s, max-height 0.4s, padding 0.4s;
+    }
+    .score-box.show { opacity: 1; max-height: 600px; }
+    .score-box.good { border-color: rgba(34,197,94,0.45); background: rgba(34,197,94,0.08); }
+    .score-box.bad { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.08); }
+    .score-box .verdict { font-size: 1.15rem; font-weight: 800; display: block; margin-bottom: 8px; }
+    .score-box.good .verdict { color: var(--returned-color); }
+    .score-box.bad .verdict { color: var(--downed-color); }
+    .score-box strong { color: white; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(244, 63, 94, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #3b82f6, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(34, 197, 94, 0.06);
+      border-left: 3px solid var(--returned-color);
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--vital-color); font-weight: 700; }
+    .explainer em { color: var(--accent-color); font-style: normal; font-weight: 600; }
+
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      60% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.95; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Overlevingsbias: het raadsel van de kogelgaten</h1>
+<p class="subtitle">Waar pantser je een bommenwerper?</p>
+
+<p class="intro">
+  In de Tweede Wereldoorlog onderzochten ingenieurs de teruggekeerde bommenwerpers en zagen dat de kogelgaten
+  vooral in de <strong>romp en vleugels</strong> zaten. De voor de hand liggende conclusie: pantser dáár.
+  Maar wiskundige Abraham Wald draaide het om &mdash; juist de plekken zónder gaten moest je beschermen.
+  De gaten die je <strong>niet</strong> ziet, vertellen het echte verhaal.
+  <span class="cue">Stuur 500 vliegtuigen de lucht in en ontdek waarom.</span>
+</p>
+
+<div class="layout">
+  <!-- Plane + heatmap -->
+  <div class="plane-card glass">
+    <div class="toggle-row" id="toggleRow">
+      <button class="toggle-btn returned active" id="btnReturned">Alleen teruggekeerd</button>
+      <button class="toggle-btn all" id="btnAll">Álle vliegtuigen</button>
+    </div>
+    <div class="plane-wrap">
+      <svg class="plane" id="planeSvg" width="340" height="380" viewBox="0 0 340 380">
+        <defs></defs>
+        <!-- zones drawn by JS for hit-testing; static silhouette below -->
+        <g id="zoneLayer"></g>
+        <g id="hitLayer"></g>
+        <g id="labelLayer"></g>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><span class="dot hit"></span> Kogelgat</span>
+      <span><span class="dot vital"></span> Vitale zone</span>
+      <span><span class="dot armor"></span> Bepantserd</span>
+    </div>
+  </div>
+
+  <!-- Counts + per-zone table -->
+  <div class="panel-card glass">
+    <div class="count-row">
+      <div class="count-box returned">
+        <span class="num" id="returnedCount">0</span>
+        <span class="lbl">Teruggekeerd</span>
+      </div>
+      <div class="count-box downed">
+        <span class="num" id="downedCount">0</span>
+        <span class="lbl">Neergehaald</span>
+      </div>
+    </div>
+    <table class="zone-table">
+      <thead>
+        <tr>
+          <th>Zone</th>
+          <th class="bar-cell">Treffers in deze weergave</th>
+          <th class="num">Aantal</th>
+        </tr>
+      </thead>
+      <tbody id="zoneTableBody"></tbody>
+    </table>
+    <div class="insight returned visible" id="zoneInsight">
+      Stuur vliegtuigen de lucht in om de treffers te zien.
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="btn-row">
+    <button id="flyBtn">Stuur 500 vliegtuigen</button>
+    <button id="resetBtn" class="secondary">Opnieuw</button>
+  </div>
+  <div class="hint" id="hint">Klik op &ldquo;Stuur 500 vliegtuigen&rdquo; om de simulatie te starten.</div>
+</div>
+
+<!-- Challenge: choose armor -->
+<section class="challenge glass">
+  <h2>Jouw beslissing: waar komt het pantser?</h2>
+  <p class="lead">
+    Pantser is zwaar &mdash; je kunt maar een paar zones beschermen. Klik de zones aan die jij zou bepantseren
+    (op het vliegtuig of via de knoppen hieronder) en test daarna je keuze.
+  </p>
+  <div class="armor-pills" id="armorPills"></div>
+  <div class="btn-row">
+    <button id="testBtn">Test mijn keuze</button>
+    <button id="clearArmorBtn" class="secondary">Pantser wissen</button>
+  </div>
+  <div class="score-box" id="scoreBox"></div>
+</section>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    De ingenieurs keken alleen naar de vliegtuigen die <strong>terugkwamen</strong>. Die zaten vol gaten in de romp en
+    vleugels &mdash; maar dat zijn juist de zones waar een treffer níét fataal is. De bommenwerper kon met die gaten
+    gewoon naar huis vliegen, dus zie je ze ruimschoots terug in de data.
+  </p>
+  <p>
+    De gaten in de <em>motoren</em> en de <em>cockpit</em> ontbreken bijna volledig &mdash; niet omdat die plekken zelden
+    geraakt werden, maar omdat een vliegtuig dat dáár getroffen werd <strong>neerstortte</strong> en dus nooit
+    onderzocht kon worden. Je telt alleen de overlevenden. Dat is overlevingsbias: de afwezigheid van bewijs is hier het
+    belangrijkste bewijs.
+  </p>
+  <p>
+    Abraham Wald's inzicht: zet het pantser juist op de plekken waar de teruggekeerde toestellen <strong>weinig of geen
+    gaten</strong> hebben. Daar zaten de fatale treffers die je in de cijfers niet terugziet. Schakel hierboven tussen
+    &ldquo;teruggekeerd&rdquo; en &ldquo;álle vliegtuigen&rdquo; en je ziet het: in werkelijkheid worden de vitale zones
+    even vaak geraakt &mdash; die toestellen kwamen alleen nooit terug.
+  </p>
+  <p>
+    Kortom: kijk niet alleen naar de overlevers. De winnaars, de succesverhalen en de teruggekeerde vliegtuigen vertellen
+    een vertekend verhaal als je de verliezers stilzwijgend hebt weggelaten.
+  </p>
+</section>
+
+<script>
+  // ---- Zone definitions -------------------------------------------------
+  // Each zone: id, Dutch name, whether it's vital (a hit there downs the plane),
+  // a "size" weight (relative target area => probability of being hit),
+  // and a polygon-ish rectangle list for hit placement + the SVG shape.
+  const ZONES = [
+    { id: 'motorL',  name: 'Motor links',  vital: true,  weight: 1.0,
+      rects: [[78,150,34,70]] },
+    { id: 'motorR',  name: 'Motor rechts', vital: true,  weight: 1.0,
+      rects: [[228,150,34,70]] },
+    { id: 'cockpit', name: 'Cockpit',      vital: true,  weight: 0.8,
+      rects: [[150,40,40,55]] },
+    { id: 'romp',    name: 'Romp',         vital: false, weight: 2.6,
+      rects: [[150,95,40,210]] },
+    { id: 'vleugels',name: 'Vleugels',     vital: false, weight: 3.2,
+      rects: [[40,165,100,40],[200,165,100,40]] },
+    { id: 'staart',  name: 'Staart',       vital: false, weight: 1.4,
+      rects: [[150,305,40,55],[110,320,40,28],[190,320,40,28]] },
+  ];
+  const zoneById = {};
+  ZONES.forEach(z => zoneById[z.id] = z);
+
+  // Weighted pick of a zone (probability proportional to target area / weight)
+  const totalWeight = ZONES.reduce((s, z) => s + z.weight, 0);
+  function pickZone() {
+    let r = Math.random() * totalWeight;
+    for (const z of ZONES) { r -= z.weight; if (r <= 0) return z; }
+    return ZONES[ZONES.length - 1];
+  }
+  function randomPointIn(zone) {
+    // pick one of the zone's rects weighted by area, then a random point in it
+    let area = zone.rects.map(r => r[2] * r[3]);
+    let tot = area.reduce((a, b) => a + b, 0);
+    let r = Math.random() * tot, idx = 0;
+    for (let i = 0; i < area.length; i++) { r -= area[i]; if (r <= 0) { idx = i; break; } }
+    const [x, y, w, h] = zone.rects[idx];
+    return { x: x + Math.random() * w, y: y + Math.random() * h };
+  }
+
+  // ---- SVG plane (top-down bomber) -------------------------------------
+  const SVGNS = 'http://www.w3.org/2000/svg';
+  const zoneLayer = document.getElementById('zoneLayer');
+  const hitLayer = document.getElementById('hitLayer');
+  const labelLayer = document.getElementById('labelLayer');
+
+  // Hand-drawn-ish polygons per zone for a recognizable bomber from above.
+  const zoneShapes = {
+    cockpit:  'M150,38 Q170,26 190,38 L190,92 L150,92 Z',
+    romp:     'M150,92 L190,92 L190,300 Q170,318 150,300 Z',
+    motorL:   'M86,150 L120,150 L120,222 L86,222 Q80,186 86,150 Z',
+    motorR:   'M220,150 L254,150 Q260,186 254,222 L220,222 Z',
+    vleugels: 'M40,168 L150,158 L150,210 L40,202 Q34,185 40,168 Z ' +
+              'M300,168 Q306,185 300,202 L190,210 L190,158 Z',
+    staart:   'M150,300 L190,300 L196,360 L144,360 Z ' +
+              'M150,322 L108,346 L120,352 L150,344 Z ' +
+              'M190,322 L232,346 L220,352 L190,344 Z',
+  };
+  const zoneLabelPos = {
+    cockpit: [170, 70], romp: [170, 200], motorL: [103, 190],
+    motorR: [237, 190], vleugels: [90, 188], staart: [170, 335],
+  };
+
+  const zoneEls = {};
+  ZONES.forEach(z => {
+    const p = document.createElementNS(SVGNS, 'path');
+    p.setAttribute('d', zoneShapes[z.id]);
+    p.setAttribute('class', 'zone' + (z.vital ? ' vital' : ''));
+    p.dataset.zone = z.id;
+    p.addEventListener('click', () => toggleArmor(z.id));
+    zoneLayer.appendChild(p);
+    zoneEls[z.id] = p;
+
+    const t = document.createElementNS(SVGNS, 'text');
+    t.setAttribute('x', zoneLabelPos[z.id][0]);
+    t.setAttribute('y', zoneLabelPos[z.id][1]);
+    t.setAttribute('class', 'zone-label');
+    t.textContent = z.name;
+    labelLayer.appendChild(t);
+  });
+
+  // ---- Simulation -------------------------------------------------------
+  // state.hits[zoneId] = { returned: n, all: n }
+  let state = null;
+
+  function blankCounts() {
+    const c = {};
+    ZONES.forEach(z => c[z.id] = { returned: 0, all: 0 });
+    return c;
+  }
+
+  // store individual hit points so we can render dots: {x,y,zone,downed}
+  function simulate(nPlanes) {
+    const counts = blankCounts();
+    const points = [];
+    let returned = 0, downed = 0;
+    for (let i = 0; i < nPlanes; i++) {
+      const nHits = 3 + Math.floor(Math.random() * 5); // 3..7 hits
+      let planeDowned = false;
+      const planeHits = [];
+      for (let h = 0; h < nHits; h++) {
+        const z = pickZone();
+        const pt = randomPointIn(z);
+        planeHits.push({ zone: z.id, x: pt.x, y: pt.y });
+        if (z.vital) planeDowned = true;
+        counts[z.id].all++;
+      }
+      if (planeDowned) {
+        downed++;
+        planeHits.forEach(ph => ph.downed = true);
+      } else {
+        returned++;
+        planeHits.forEach(ph => { ph.downed = false; counts[ph.zone].returned++; });
+      }
+      points.push(...planeHits);
+    }
+    return { counts, points, returned, downed, n: nPlanes };
+  }
+
+  // ---- Rendering --------------------------------------------------------
+  let currentView = 'returned';
+
+  function render() {
+    renderHits();
+    renderCounts();
+    renderTable();
+    renderInsight();
+  }
+
+  function renderHits() {
+    hitLayer.innerHTML = '';
+    if (!state) return;
+    const showAll = currentView === 'all';
+    // Draw returned-plane hits in amber; in "all" view also draw the fatal
+    // (vital) hits in red so the truth is visually striking.
+    state.points.forEach(p => {
+      if (!showAll && p.downed) return; // returned view: hide downed planes' hits
+      const c = document.createElementNS(SVGNS, 'circle');
+      c.setAttribute('cx', p.x.toFixed(1));
+      c.setAttribute('cy', p.y.toFixed(1));
+      c.setAttribute('r', 2.1);
+      c.setAttribute('class', 'hit-dot');
+      if (showAll && p.downed) {
+        c.setAttribute('fill', 'rgba(244,63,94,0.85)');
+      } else {
+        c.setAttribute('fill', 'rgba(251,191,36,0.8)');
+      }
+      hitLayer.appendChild(c);
+    });
+  }
+
+  function renderCounts() {
+    const r = state ? state.returned : 0;
+    const d = state ? state.downed : 0;
+    document.getElementById('returnedCount').textContent = r.toLocaleString('nl-NL');
+    document.getElementById('downedCount').textContent = d.toLocaleString('nl-NL');
+  }
+
+  function renderTable() {
+    const body = document.getElementById('zoneTableBody');
+    body.innerHTML = '';
+    const key = currentView; // 'returned' | 'all'
+    let max = 1;
+    if (state) ZONES.forEach(z => { max = Math.max(max, state.counts[z.id][key]); });
+    ZONES.forEach(z => {
+      const tr = document.createElement('tr');
+      if (z.vital) tr.className = 'vital';
+      const val = state ? state.counts[z.id][key] : 0;
+      const pct = (val / max) * 100;
+      tr.innerHTML =
+        '<td>' + z.name + (z.vital ? '<span class="tag-vital">VITAAL</span>' : '') + '</td>' +
+        '<td class="bar-cell"><div class="bar-track"><div class="bar-fill ' + key +
+          '" style="width:' + pct.toFixed(0) + '%"></div></div></td>' +
+        '<td class="num">' + val.toLocaleString('nl-NL') + '</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  function renderInsight() {
+    const el = document.getElementById('zoneInsight');
+    if (!state) return;
+    if (currentView === 'returned') {
+      el.className = 'insight returned visible';
+      el.innerHTML = 'De teruggekeerde vliegtuigen tonen de meeste gaten in <strong>romp en vleugels</strong>. ' +
+        'De vitale zones (motoren, cockpit) lijken bijna ongeschonden &mdash; verdacht weinig treffers.';
+    } else {
+      el.className = 'insight visible';
+      el.innerHTML = 'Bij <strong>álle</strong> vliegtuigen zijn de treffers veel gelijkmatiger verdeeld. ' +
+        'De rode stippen zijn de fatale treffers op vitale zones &mdash; die toestellen kwamen nooit terug, ' +
+        'dus zag je ze niet in de vorige weergave.';
+    }
+  }
+
+  // ---- View toggle ------------------------------------------------------
+  const btnReturned = document.getElementById('btnReturned');
+  const btnAll = document.getElementById('btnAll');
+  function setView(v) {
+    currentView = v;
+    btnReturned.classList.toggle('active', v === 'returned');
+    btnAll.classList.toggle('active', v === 'all');
+    render();
+  }
+  btnReturned.onclick = () => setView('returned');
+  btnAll.onclick = () => setView('all');
+
+  // ---- Buttons ----------------------------------------------------------
+  const flyBtn = document.getElementById('flyBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const hint = document.getElementById('hint');
+
+  flyBtn.onclick = () => {
+    state = simulate(500);
+    setView('returned');
+    const pctVital = ((state.downed / state.n) * 100).toFixed(0);
+    hint.innerHTML = '500 vliegtuigen gevlogen. <strong style="color:#22c55e">' +
+      state.returned + '</strong> kwamen terug, <strong style="color:#ef4444">' +
+      state.downed + '</strong> werden neergehaald (~' + pctVital +
+      '% kreeg een fatale treffer). Schakel nu tussen de twee weergaven hierboven.';
+  };
+
+  resetBtn.onclick = () => {
+    state = null;
+    setView('returned');
+    hint.textContent = 'Klik op "Stuur 500 vliegtuigen" om de simulatie opnieuw te starten.';
+    document.getElementById('zoneInsight').innerHTML =
+      'Stuur vliegtuigen de lucht in om de treffers te zien.';
+    clearScore();
+  };
+
+  // ---- Armor challenge --------------------------------------------------
+  const armor = new Set();
+  const armorPills = document.getElementById('armorPills');
+  ZONES.forEach(z => {
+    const b = document.createElement('button');
+    b.className = 'pill';
+    b.textContent = z.name;
+    b.dataset.zone = z.id;
+    b.onclick = () => toggleArmor(z.id);
+    armorPills.appendChild(b);
+  });
+
+  function toggleArmor(id) {
+    if (armor.has(id)) armor.delete(id); else armor.add(id);
+    syncArmorUI();
+    clearScore();
+  }
+  function syncArmorUI() {
+    ZONES.forEach(z => {
+      const on = armor.has(z.id);
+      zoneEls[z.id].classList.toggle('armored', on);
+      const pill = armorPills.querySelector('[data-zone="' + z.id + '"]');
+      if (pill) pill.classList.toggle('on', on);
+    });
+  }
+  document.getElementById('clearArmorBtn').onclick = () => {
+    armor.clear(); syncArmorUI(); clearScore();
+  };
+
+  function clearScore() {
+    const sb = document.getElementById('scoreBox');
+    sb.className = 'score-box';
+    sb.innerHTML = '';
+  }
+
+  document.getElementById('testBtn').onclick = () => {
+    const sb = document.getElementById('scoreBox');
+    if (armor.size === 0) {
+      sb.className = 'score-box show';
+      sb.innerHTML = '<span class="verdict" style="color:#eab308">Kies eerst een paar zones</span>' +
+        'Klik op de zones (motor, cockpit, romp, vleugels of staart) die jij zou bepantseren en test daarna opnieuw.';
+      return;
+    }
+    const vitalZones = ZONES.filter(z => z.vital).map(z => z.id);
+    const chosenVital = vitalZones.filter(id => armor.has(id));
+    const chosenNonVital = [...armor].filter(id => !zoneById[id].vital);
+    const coveredAll = vitalZones.every(id => armor.has(id));
+
+    let cls, verdict, body;
+    if (coveredAll && chosenNonVital.length === 0) {
+      cls = 'good';
+      verdict = 'Precies wat Wald adviseerde!';
+      body = 'Je hebt álle vitale zones bepantserd (' +
+        vitalZones.map(id => zoneById[id].name).join(', ') +
+        ') &mdash; juist de plekken waar de teruggekeerde toestellen wéinig gaten lieten zien. ' +
+        'Daar zaten de fatale treffers die uit de data verdwenen. Hier hoort het pantser.';
+    } else if (chosenVital.length > 0 && chosenNonVital.length > 0) {
+      cls = 'bad';
+      verdict = 'Half goed &mdash; en daarin schuilt de val';
+      body = 'Je beschermde ' + chosenVital.map(id => zoneById[id].name).join(' en ') +
+        ' (goed!), maar ook ' + chosenNonVital.map(id => zoneById[id].name).join(' en ') +
+        '. Dat zijn precies de zones met veel zichtbare gaten &mdash; maar gaten dáár betekenen dat het ' +
+        'vliegtuig het overlééfde. Daar is pantser grotendeels verspild.';
+    } else if (chosenVital.length > 0) {
+      cls = 'good';
+      verdict = 'Goede richting!';
+      body = 'Je pantsert vitale zones (' + chosenVital.map(id => zoneById[id].name).join(', ') +
+        ') &mdash; precies waar de cijfers verdacht weinig gaten tonen. ' +
+        (coveredAll ? '' : 'Vergeet de overige vitale zones niet: ' +
+          vitalZones.filter(id => !armor.has(id)).map(id => zoneById[id].name).join(', ') + '. ');
+    } else {
+      cls = 'bad';
+      verdict = 'De klassieke denkfout';
+      body = 'Je pantserde ' + chosenNonVital.map(id => zoneById[id].name).join(' en ') +
+        ' &mdash; precies waar de teruggekeerde vliegtuigen de meeste gaten hadden. ' +
+        'Maar die gaten bewijzen juist dat een treffer daar te overleven is! ' +
+        'De vitale zones (motoren, cockpit) lijken schoon omdat de geraakte toestellen nooit terugkwamen. ' +
+        'Dáár hoort het pantser. Schakel naar "Álle vliegtuigen" en zie de fatale treffers verschijnen.';
+    }
+
+    sb.className = 'score-box show ' + cls;
+    sb.innerHTML = '<span class="verdict">' + verdict + '</span>' + body;
+  };
+
+  // ---- Init -------------------------------------------------------------
+  render();
+</script>
+</body>
+</html>

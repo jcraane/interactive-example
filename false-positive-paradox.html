@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De vals-positieve val</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --healthy-color: #22c55e;     /* gezond */
+      --tp-color: #38bdf8;          /* terecht-positief (ziek én positief) */
+      --fp-color: #ef4444;          /* vals-positief (gezond maar positief) */
+      --accent-color: #38bdf8;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 40%, rgba(56,189,248,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 15%, rgba(239,68,68,0.06) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #38bdf8, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--tp-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Glass card style */
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      margin-top: 8px;
+    }
+
+    /* Hero stat card */
+    .hero {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto 8px;
+      text-align: center;
+      padding: 22px 28px;
+      border-radius: 18px;
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      box-shadow: 0 0 40px rgba(239,68,68,0.12);
+      backdrop-filter: blur(10px);
+      transition: background 0.5s, border-color 0.5s, box-shadow 0.5s;
+    }
+    .hero.ok {
+      background: rgba(34, 197, 94, 0.08);
+      border-color: rgba(34, 197, 94, 0.35);
+      box-shadow: 0 0 40px rgba(34,197,94,0.12);
+    }
+    .hero.warn {
+      background: rgba(234, 179, 8, 0.08);
+      border-color: rgba(234, 179, 8, 0.35);
+      box-shadow: 0 0 40px rgba(234,179,8,0.12);
+    }
+    .hero .label {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .hero .big {
+      display: block;
+      font-size: 3.4rem;
+      font-weight: 800;
+      margin: 6px 0 2px;
+      color: var(--fp-color);
+      font-variant-numeric: tabular-nums;
+      transition: color 0.5s;
+      line-height: 1;
+    }
+    .hero.ok .big { color: var(--healthy-color); }
+    .hero.warn .big { color: var(--warning-color); }
+    .hero .sub {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    /* Population grid */
+    .grid-card { display: flex; flex-direction: column; align-items: center; }
+    .grid-title {
+      font-size: 0.75rem;
+      margin-bottom: 12px;
+      color: #64748b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    #popGrid {
+      display: grid;
+      grid-template-columns: repeat(50, 1fr);
+      gap: 1px;
+      width: 360px;
+      height: 360px;
+      background: rgba(15,23,42,0.6);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .cell {
+      width: 100%;
+      border-radius: 1px;
+      background: rgba(148,163,184,0.10);
+      transition: background 0.35s, opacity 0.35s, transform 0.35s;
+    }
+    .cell.healthy { background: var(--healthy-color); opacity: 0.55; }
+    .cell.tp { background: var(--tp-color); opacity: 1; box-shadow: 0 0 2px rgba(56,189,248,0.6); }
+    .cell.fp { background: var(--fp-color); opacity: 1; box-shadow: 0 0 2px rgba(239,68,68,0.6); }
+    .cell.fn { background: var(--healthy-color); opacity: 0.22; }
+    .cell.dimmed { opacity: 0.06 !important; box-shadow: none; }
+
+    .grid-note {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      color: #64748b;
+      text-align: center;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 18px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.82rem;
+      color: #cbd5e1;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .sw-healthy { background: var(--healthy-color); opacity: 0.55; }
+    .sw-tp { background: var(--tp-color); }
+    .sw-fp { background: var(--fp-color); }
+
+    /* Right column: counts + controls */
+    .side { width: 360px; display: flex; flex-direction: column; gap: 18px; }
+
+    .counts { display: flex; flex-direction: column; gap: 10px; }
+    .count-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.5);
+      border: 1px solid rgba(148,163,184,0.1);
+    }
+    .count-row .name { display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #cbd5e1; }
+    .count-row .val { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .count-row.tp { border-left: 3px solid var(--tp-color); }
+    .count-row.tp .val { color: var(--tp-color); }
+    .count-row.fp { border-left: 3px solid var(--fp-color); }
+    .count-row.fp .val { color: var(--fp-color); }
+    .count-row.total { border-left: 3px solid rgba(148,163,184,0.5); }
+    .count-row.total .val { color: #e2e8f0; }
+
+    /* Sliders */
+    .control-block { margin-bottom: 4px; }
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+    .control-head .v { font-weight: 800; color: var(--accent-color); font-variant-numeric: tabular-nums; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      outline: none;
+      margin: 10px 0 4px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.5);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(56,189,248,0.7); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border: none;
+      background: var(--accent-color); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.5); cursor: pointer;
+    }
+
+    /* Toggle */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(56,189,248,0.06);
+      border: 1px solid rgba(56,189,248,0.2);
+    }
+    .toggle-row .t-label { font-size: 0.9rem; color: #e2e8f0; }
+    .switch { position: relative; width: 50px; height: 28px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-track {
+      position: absolute; inset: 0;
+      background: rgba(148,163,184,0.25);
+      border-radius: 28px;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+    .slider-track::before {
+      content: '';
+      position: absolute;
+      height: 22px; width: 22px;
+      left: 3px; top: 3px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .switch input:checked + .slider-track { background: var(--accent-color); }
+    .switch input:checked + .slider-track::before { transform: translateX(22px); }
+
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: white; border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      font-size: 0.9rem; transition: background 0.2s;
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); }
+
+    /* Insight callouts */
+    .insight {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      background: rgba(239, 68, 68, 0.06);
+      border-left: 3px solid var(--fp-color);
+      text-align: left;
+      line-height: 1.5;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s, max-height 0.4s, margin 0.4s, padding 0.4s;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+    .insight.visible {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 200px;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(56, 189, 248, 0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #38bdf8, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer .formula {
+      text-align: center;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      background: rgba(15,23,42,0.6);
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.06);
+      border-left: 3px solid var(--tp-color);
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--tp-color); font-weight: 700; }
+    .explainer em { color: var(--fp-color); font-style: normal; font-weight: 600; }
+
+    @media (max-width: 800px) {
+      #popGrid { width: 300px; height: 300px; }
+      .side { width: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>De vals-positieve val</h1>
+<p class="subtitle">Waarom een 99% accurate test je tóch kan misleiden</p>
+
+<p class="intro">
+  Stel: er bestaat een test voor een <strong>zeldzame ziekte</strong> die in 99% van de gevallen het juiste antwoord geeft.
+  Jouw test is positief. Hoe groot is de kans dat je de ziekte écht hebt? Bijna iedereen zegt &ldquo;99%&rdquo; &mdash;
+  maar het antwoord is vaak nog geen <strong>50%</strong>.
+  <span class="cue">Schuif aan de knoppen en zie waarom.</span>
+</p>
+
+<div class="hero" id="hero">
+  <span class="label">Als je test positief is, is de kans dat je de ziekte écht hebt:</span>
+  <span class="big" id="posteriorVal">50%</span>
+  <span class="sub" id="heroSub">een muntje opgooien is bijna net zo betrouwbaar</span>
+</div>
+
+<div class="layout">
+  <div class="grid-card glass">
+    <div class="grid-title">10.000 mensen &mdash; 1 vakje = 4 mensen</div>
+    <div id="popGrid"></div>
+    <div class="legend">
+      <span><i class="swatch sw-healthy"></i> Gezond (terecht negatief)</span>
+      <span><i class="swatch sw-tp"></i> Ziek &amp; positief</span>
+      <span><i class="swatch sw-fp"></i> Gezond maar positief</span>
+    </div>
+    <div class="grid-note" id="gridNote">Elk vakje staat voor 4 mensen uit een bevolking van 10.000.</div>
+  </div>
+
+  <div class="side">
+    <div class="counts glass" style="padding:18px;">
+      <div class="count-row tp">
+        <span class="name"><i class="swatch sw-tp"></i> Terecht-positief (ziek)</span>
+        <span class="val" id="tpCount">99</span>
+      </div>
+      <div class="count-row fp">
+        <span class="name"><i class="swatch sw-fp"></i> Vals-positief (gezond)</span>
+        <span class="val" id="fpCount">99</span>
+      </div>
+      <div class="count-row total">
+        <span class="name">Totaal positieve tests</span>
+        <span class="val" id="totalCount">198</span>
+      </div>
+    </div>
+
+    <div class="glass" style="padding:20px;">
+      <div class="control-block">
+        <div class="control-head">
+          <span>Zeldzaamheid &mdash; prevalentie</span>
+          <span class="v" id="prevLabel">1%</span>
+        </div>
+        <input type="range" id="prevSlider" min="1" max="200" value="10">
+        <div style="font-size:0.72rem;color:#64748b;">Hoeveel van de bevolking heeft de ziekte echt?</div>
+      </div>
+
+      <div class="control-block" style="margin-top:14px;">
+        <div class="control-head">
+          <span>Sensitiviteit &mdash; P(positief | ziek)</span>
+          <span class="v" id="sensLabel">99%</span>
+        </div>
+        <input type="range" id="sensSlider" min="50" max="100" value="99">
+        <div style="font-size:0.72rem;color:#64748b;">Hoe vaak vindt de test een echte zieke?</div>
+      </div>
+
+      <div class="control-block" style="margin-top:14px;">
+        <div class="control-head">
+          <span>Specificiteit &mdash; P(negatief | gezond)</span>
+          <span class="v" id="specLabel">99%</span>
+        </div>
+        <input type="range" id="specSlider" min="50" max="100" value="99">
+        <div style="font-size:0.72rem;color:#64748b;">Hoe vaak laat de test een gezonde met rust?</div>
+      </div>
+
+      <div style="text-align:center;margin-top:8px;">
+        <button class="secondary" id="resetBtn">Terug naar standaard (1% / 99% / 99%)</button>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <span class="t-label">Toon alleen positieve tests</span>
+      <label class="switch">
+        <input type="checkbox" id="filterToggle">
+        <span class="slider-track"></span>
+      </label>
+    </div>
+
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Het geheim zit in het verschil tussen twee groepen. De test maakt fouten in een vast <strong>percentage</strong>,
+    maar past dat percentage toe op een <em>enorme</em> groep gezonde mensen en een <em>piepkleine</em> groep zieken.
+    Bij een ziekte die maar 1% van de bevolking treft, zijn er op 10.000 mensen slechts 100 zieken &mdash; en 9.900 gezonden.
+  </p>
+  <p>
+    De test vindt bijna alle 100 zieken (sensitiviteit 99% &rarr; ~99 terecht-positief). Maar diezelfde test zit er ook
+    1% naast bij de gezonden (specificiteit 99% &rarr; 1% van 9.900 = ~99 vals-positief). Resultaat: ongeveer
+    <strong>99 echte zieken</strong> tegenover <em>99 valse alarmen</em>. Van alle positieve uitslagen is dus maar de helft terecht.
+  </p>
+  <p class="formula">
+    P(ziek | positief) = TP / (TP + FP)<br>
+    = 99 / (99 + 99) &asymp; <strong style="-webkit-text-fill-color:#38bdf8;">50%</strong>
+  </p>
+  <p>
+    Dit is de stelling van Bayes in actie: een kleine foutmarge op een grote gezonde groep kan net zoveel valse alarmen
+    opleveren als er échte gevallen zijn. Hoe zeldzamer de ziekte, hoe sterker dit effect &mdash; bij 0,1% prevalentie is
+    een positieve test zelfs met een 99%-test meestal lóós alarm. Daarom worden zeldzame aandoeningen nooit op één test alleen
+    gediagnosticeerd, maar pas na een tweede, onafhankelijke bevestiging.
+  </p>
+  <p>
+    Kortom: de betrouwbaarheid van een test op zichzelf zegt weinig. Wat telt is hoe zeldzaam datgene is waar je naar zoekt.
+  </p>
+</section>
+
+<script>
+  const N = 10000;
+  const CELLS = 2500;            // 50 x 50 grid; each cell = N / CELLS = 4 people
+  const PEOPLE_PER_CELL = N / CELLS;
+
+  const prevSlider = document.getElementById('prevSlider');
+  const sensSlider = document.getElementById('sensSlider');
+  const specSlider = document.getElementById('specSlider');
+  const prevLabel = document.getElementById('prevLabel');
+  const sensLabel = document.getElementById('sensLabel');
+  const specLabel = document.getElementById('specLabel');
+  const posteriorVal = document.getElementById('posteriorVal');
+  const hero = document.getElementById('hero');
+  const heroSub = document.getElementById('heroSub');
+  const tpCount = document.getElementById('tpCount');
+  const fpCount = document.getElementById('fpCount');
+  const totalCount = document.getElementById('totalCount');
+  const filterToggle = document.getElementById('filterToggle');
+  const insight = document.getElementById('insight');
+  const gridNote = document.getElementById('gridNote');
+  const resetBtn = document.getElementById('resetBtn');
+  const popGrid = document.getElementById('popGrid');
+
+  // Build the grid cells once.
+  const cells = [];
+  for (let i = 0; i < CELLS; i++) {
+    const c = document.createElement('div');
+    c.className = 'cell';
+    popGrid.appendChild(c);
+    cells.push(c);
+  }
+
+  // prevalence slider value -> fraction. Slider is in tenths of a percent: 1 => 0.1%, 200 => 20%.
+  function prevFraction() { return parseInt(prevSlider.value) / 1000; }
+
+  function fmtPercent(x) {
+    // x is a fraction 0..1
+    const pct = x * 100;
+    if (pct > 0 && pct < 1) {
+      // show up to 2 decimals for small values, trim trailing zeros
+      return (pct < 0.1 ? pct.toFixed(2) : pct.toFixed(1)).replace('.', ',') + '%';
+    }
+    return (Math.round(pct * 10) / 10).toString().replace('.', ',') + '%';
+  }
+
+  function fmtInt(n) { return Math.round(n).toLocaleString('nl-NL'); }
+
+  function compute() {
+    const p = prevFraction();
+    const sens = parseInt(sensSlider.value) / 100;
+    const spec = parseInt(specSlider.value) / 100;
+
+    const sick = N * p;
+    const healthy = N * (1 - p);
+    const tp = sick * sens;                  // terecht-positief
+    const fn = sick * (1 - sens);            // vals-negatief (ziek, gemist)
+    const fp = healthy * (1 - spec);         // vals-positief
+    const tn = healthy * spec;               // terecht-negatief
+    const totalPos = tp + fp;
+    const posterior = totalPos > 0 ? tp / totalPos : 0;
+
+    return { p, sens, spec, sick, healthy, tp, fn, fp, tn, totalPos, posterior };
+  }
+
+  // Assign each of the CELLS cells a category proportional to people counts.
+  // Order matters for a clean visual: TP block, then FP block, then FN, then healthy fill.
+  function categorize(s) {
+    const tpCells = Math.round(s.tp / PEOPLE_PER_CELL);
+    const fpCells = Math.round(s.fp / PEOPLE_PER_CELL);
+    const fnCells = Math.round(s.fn / PEOPLE_PER_CELL);
+    const cats = new Array(CELLS);
+    let idx = 0;
+    for (let i = 0; i < tpCells && idx < CELLS; i++) cats[idx++] = 'tp';
+    for (let i = 0; i < fpCells && idx < CELLS; i++) cats[idx++] = 'fp';
+    for (let i = 0; i < fnCells && idx < CELLS; i++) cats[idx++] = 'fn';
+    while (idx < CELLS) cats[idx++] = 'healthy';
+    return cats;
+  }
+
+  function render() {
+    const s = compute();
+    const filtered = filterToggle.checked;
+
+    // Labels
+    prevLabel.textContent = fmtPercent(s.p);
+    sensLabel.textContent = sensSlider.value + '%';
+    specLabel.textContent = specSlider.value + '%';
+
+    // Hero
+    posteriorVal.textContent = Math.round(s.posterior * 100) + '%';
+    hero.classList.remove('ok', 'warn');
+    if (s.posterior >= 0.8) {
+      hero.classList.add('ok');
+      heroSub.textContent = 'een positieve uitslag is hier goed te vertrouwen';
+    } else if (s.posterior >= 0.5) {
+      hero.classList.add('warn');
+      heroSub.textContent = 'beter dan een muntje, maar lang niet zeker';
+    } else {
+      heroSub.textContent = 'een positieve test is hier vaker fout dan goed';
+    }
+
+    // Counts
+    tpCount.textContent = fmtInt(s.tp);
+    fpCount.textContent = fmtInt(s.fp);
+    totalCount.textContent = fmtInt(s.totalPos);
+
+    // Grid
+    const cats = categorize(s);
+    for (let i = 0; i < CELLS; i++) {
+      const cat = cats[i];
+      let cls = 'cell ' + cat;
+      if (filtered && (cat === 'healthy' || cat === 'fn')) cls += ' dimmed';
+      cells[i].className = cls;
+    }
+
+    gridNote.textContent = filtered
+      ? 'Alleen positieve tests opgelicht: ' + fmtInt(s.tp) + ' terecht (blauw) vs. ' + fmtInt(s.fp) + ' vals alarm (rood).'
+      : 'Elk vakje staat voor 4 mensen uit een bevolking van 10.000.';
+
+    // Insight callouts
+    let text = null;
+    if (s.posterior < 0.5 && s.sens >= 0.9 && s.spec >= 0.9) {
+      text = 'Kijk: zelfs met een test die ' + Math.round(s.sens*100) + '% van de zieken vindt en ' +
+             Math.round(s.spec*100) + '% van de gezonden met rust laat, is een positieve uitslag tóch vaker fout dan goed. ' +
+             'De ' + fmtInt(s.fp) + ' valse alarmen overtreffen de ' + fmtInt(s.tp) + ' echte zieken.';
+    } else if (s.posterior < 0.5) {
+      text = 'Onder de 50%: van alle positieve tests is de meerderheid vals alarm. De zeldzaamheid van de ziekte wint het van de nauwkeurigheid van de test.';
+    } else if (s.posterior < 0.8) {
+      text = 'Tussen 50% en 80%: een positieve uitslag betekent nu iets, maar je weet het nog lang niet zeker. Een tweede test zou helpen.';
+    } else if (s.p >= 0.15) {
+      text = 'Bij een veelvoorkomende ziekte is een positieve test wél betrouwbaar &mdash; de kleine groep gezonden levert weinig vals alarm op. Schuif de prevalentie omlaag en zie de val terugkomen.';
+    } else {
+      text = 'Hier is de test betrouwbaar genoeg om op te vertrouwen. Verlaag de prevalentie of verslechter de specificiteit om de vals-positieve val te activeren.';
+    }
+    insight.innerHTML = text;
+    insight.classList.add('visible');
+  }
+
+  prevSlider.oninput = render;
+  sensSlider.oninput = render;
+  specSlider.oninput = render;
+  filterToggle.onchange = render;
+  resetBtn.onclick = () => {
+    prevSlider.value = 10;   // 1.0%
+    sensSlider.value = 99;
+    specSlider.value = 99;
+    render();
+  };
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schelling's segregatiemodel</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --type-a: #f59e0b;
+      --type-b: #6366f1;
+      --accent-color: #38bdf8;
+      --graph-line: #ec4899;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(245,158,11,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(99,102,241,0.07) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #f59e0b, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Glass card style */
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 20px;
+    }
+
+    .grid-container { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    #grid {
+      border-radius: 10px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12), 0 0 30px rgba(0,0,0,0.4);
+      image-rendering: pixelated;
+      width: 420px;
+      height: 420px;
+      max-width: 80vw;
+      max-height: 80vw;
+    }
+    .legend {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+    .swatch.a { background: var(--type-a); }
+    .swatch.b { background: var(--type-b); }
+    .swatch.empty { background: #1e293b; border: 1px solid rgba(148,163,184,0.2); }
+
+    .panel { width: 320px; display: flex; flex-direction: column; }
+
+    .metric {
+      background: rgba(56, 189, 248, 0.06);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+    }
+    .metric .label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .metric .value {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+      transition: color 0.4s;
+    }
+    .metric.segregation { background: rgba(236, 72, 153, 0.06); border-color: rgba(236, 72, 153, 0.25); }
+    .metric.segregation .value { color: var(--graph-line); }
+    .metric.unhappy.calm { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.06); }
+    .metric.unhappy.calm .value { color: var(--good-color); }
+
+    .metric-row { display: flex; gap: 14px; }
+    .metric-row .metric { flex: 1; margin-bottom: 14px; }
+
+    /* Slider */
+    .control-block { margin-top: 6px; }
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .control-block label .num {
+      font-weight: 700;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .hint { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--type-b) 0%, var(--type-a) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(56,189,248,0.8); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.6);
+      cursor: pointer;
+    }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+    button {
+      background: var(--accent-color); color: #0f172a; border: none;
+      padding: 11px 18px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(56,189,248,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(56,189,248,0.45); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button.playing { background: var(--danger-color); color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    /* Insight card */
+    .insight {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(236, 72, 153, 0.07);
+      border-left: 3px solid var(--graph-line);
+      text-align: left;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #f9a8d4; }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(245, 158, 11, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--type-a); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(99, 102, 241, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #f59e0b, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.08);
+      border-left: 3px solid var(--type-b);
+      color: #c7d2fe;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--type-a); font-weight: 700; }
+    .explainer em { color: var(--accent-color); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>Schelling's segregatiemodel</h1>
+<p class="subtitle">Hoe kleine voorkeuren grote scheidslijnen maken</p>
+
+<p class="intro">
+  Stel je een wijk voor met twee soorten bewoners. Niemand wil in een getto wonen &mdash; iedereen is prima tevreden
+  zolang <strong>maar een derde</strong> van de buren op henzelf lijkt. Een héél milde voorkeur dus. Toch glijdt de buurt,
+  stap voor stap, af naar scherp gescheiden eilanden van oranje en paars.
+  <span class="cue">Verlaag de voorkeur en druk op afspelen &mdash; en kijk hoe niemand segregatie wil, maar iedereen hem maakt.</span>
+</p>
+
+<div class="layout">
+  <div class="grid-container glass">
+    <canvas id="grid" width="400" height="400"></canvas>
+    <div class="legend">
+      <span><span class="swatch a"></span> Type A</span>
+      <span><span class="swatch b"></span> Type B</span>
+      <span><span class="swatch empty"></span> Leeg</span>
+    </div>
+  </div>
+
+  <div class="panel glass">
+    <div class="metric-row">
+      <div class="metric">
+        <span class="label">Ronde</span>
+        <span class="value" id="roundValue">0</span>
+      </div>
+      <div class="metric unhappy" id="unhappyMetric">
+        <span class="label">Ontevreden</span>
+        <span class="value" id="unhappyValue">0%</span>
+      </div>
+    </div>
+
+    <div class="metric segregation">
+      <span class="label">Segregatie-index &middot; gemiddeld aandeel gelijke buren</span>
+      <span class="value" id="segValue">0%</span>
+    </div>
+
+    <div class="control-block">
+      <label for="tolSlider">
+        Voorkeur (tolerantie-drempel)
+        <span class="num" id="tolLabel">33%</span>
+      </label>
+      <input type="range" id="tolSlider" min="0" max="100" value="33">
+      <div class="hint">Een bewoner is tevreden als minstens dit aandeel van de buren op henzelf lijkt.</div>
+    </div>
+
+    <div class="control-block" style="margin-top:14px;">
+      <label for="emptySlider">
+        Leegstand
+        <span class="num" id="emptyLabel">10%</span>
+      </label>
+      <input type="range" id="emptySlider" min="2" max="40" value="10">
+      <div class="hint">Hoeveel woningen leeg staan &mdash; ontevreden bewoners verhuizen hierheen.</div>
+    </div>
+
+    <div class="btn-row">
+      <button id="stepBtn" class="secondary">Stap</button>
+      <button id="playBtn">Automatisch afspelen</button>
+      <button id="resetBtn" class="secondary">Herschud</button>
+    </div>
+
+    <div class="message" id="message">Druk op &laquo;Stap&raquo; of &laquo;Automatisch afspelen&raquo; om te beginnen.</div>
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('grid');
+  const ctx = canvas.getContext('2d');
+
+  const tolSlider = document.getElementById('tolSlider');
+  const tolLabel = document.getElementById('tolLabel');
+  const emptySlider = document.getElementById('emptySlider');
+  const emptyLabel = document.getElementById('emptyLabel');
+
+  const roundValue = document.getElementById('roundValue');
+  const unhappyValue = document.getElementById('unhappyValue');
+  const unhappyMetric = document.getElementById('unhappyMetric');
+  const segValue = document.getElementById('segValue');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+
+  const stepBtn = document.getElementById('stepBtn');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const N = 40;                 // grid is N x N
+  const CELL = canvas.width / N;
+  const EMPTY = 0, A = 1, B = 2;
+
+  const COL = {
+    [EMPTY]: '#111a2e',
+    [A]: '#f59e0b',
+    [B]: '#6366f1'
+  };
+
+  let grid = new Int8Array(N * N);
+  let round = 0;
+  let playing = false;
+  let playInterval = null;
+  let lastUnhappyFrac = 0;
+  let lastSeg = 0;
+  let firstSeg = 0;            // segregation right after a fresh shuffle
+  let startTol = 33;          // tolerance at the moment play/step started
+
+  function idx(r, c) { return r * N + c; }
+
+  function shuffle() {
+    const emptyFrac = parseInt(emptySlider.value) / 100;
+    grid = new Int8Array(N * N);
+    for (let i = 0; i < grid.length; i++) {
+      const x = Math.random();
+      if (x < emptyFrac) grid[i] = EMPTY;
+      else if (x < emptyFrac + (1 - emptyFrac) / 2) grid[i] = A;
+      else grid[i] = B;
+    }
+    round = 0;
+  }
+
+  // Fraction of occupied neighbours that share this cell's type.
+  // Returns -1 if the agent has no occupied neighbours at all.
+  function sameNeighbourFrac(r, c) {
+    const self = grid[idx(r, c)];
+    let same = 0, total = 0;
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        if (dr === 0 && dc === 0) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= N || nc < 0 || nc >= N) continue;
+        const v = grid[idx(nr, nc)];
+        if (v === EMPTY) continue;
+        total++;
+        if (v === self) same++;
+      }
+    }
+    if (total === 0) return -1;
+    return same / total;
+  }
+
+  function isHappy(r, c, threshold) {
+    const f = sameNeighbourFrac(r, c);
+    if (f < 0) return true;        // isolated agents count as content
+    return f >= threshold;
+  }
+
+  // Run one round: relocate every unhappy agent to a random empty cell.
+  function step() {
+    const threshold = parseInt(tolSlider.value) / 100;
+
+    // Collect unhappy agents and empty cells.
+    const unhappy = [];
+    const empties = [];
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        const v = grid[idx(r, c)];
+        if (v === EMPTY) { empties.push(idx(r, c)); continue; }
+        if (!isHappy(r, c, threshold)) unhappy.push(idx(r, c));
+      }
+    }
+
+    // Move unhappy agents (Fisher-Yates shuffle the empty list, then assign).
+    for (let i = empties.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [empties[i], empties[j]] = [empties[j], empties[i]];
+    }
+    // Randomise order in which agents pick, so it isn't biased top-left.
+    for (let i = unhappy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [unhappy[i], unhappy[j]] = [unhappy[j], unhappy[i]];
+    }
+
+    let ei = 0;
+    for (const from of unhappy) {
+      if (ei >= empties.length) break;          // no room left this round
+      const to = empties[ei++];
+      grid[to] = grid[from];
+      grid[from] = EMPTY;
+      // The vacated cell becomes a new empty for later movers.
+      empties.push(from);
+    }
+
+    round++;
+    return unhappy.length;
+  }
+
+  // Metrics over the whole population.
+  function computeMetrics() {
+    const threshold = parseInt(tolSlider.value) / 100;
+    let agents = 0, unhappyCount = 0, segSum = 0, segCount = 0;
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        if (grid[idx(r, c)] === EMPTY) continue;
+        agents++;
+        const f = sameNeighbourFrac(r, c);
+        if (f >= 0) { segSum += f; segCount++; }
+        if (!isHappy(r, c, threshold)) unhappyCount++;
+      }
+    }
+    return {
+      unhappyFrac: agents ? unhappyCount / agents : 0,
+      seg: segCount ? segSum / segCount : 0
+    };
+  }
+
+  function draw() {
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c < N; c++) {
+        ctx.fillStyle = COL[grid[idx(r, c)]];
+        ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+      }
+    }
+  }
+
+  function render() {
+    draw();
+    const m = computeMetrics();
+    lastUnhappyFrac = m.unhappyFrac;
+    lastSeg = m.seg;
+
+    roundValue.textContent = round;
+    unhappyValue.textContent = Math.round(m.unhappyFrac * 100) + '%';
+    segValue.textContent = Math.round(m.seg * 100) + '%';
+
+    if (m.unhappyFrac < 0.02) {
+      unhappyMetric.classList.add('calm');
+    } else {
+      unhappyMetric.classList.remove('calm');
+    }
+    updateNarrative(m);
+  }
+
+  function updateNarrative(m) {
+    const tolPct = parseInt(tolSlider.value);
+    const segPct = Math.round(m.seg * 100);
+    const unhappyPct = Math.round(m.unhappyFrac * 100);
+
+    if (round === 0) {
+      message.textContent = 'Willekeurig gemengde wijk. Schuif de voorkeur en speel af.';
+      insight.classList.remove('visible');
+      return;
+    }
+
+    if (m.unhappyFrac < 0.02) {
+      message.innerHTML = 'De wijk is tot rust gekomen: bijna iedereen is <strong>tevreden</strong>.';
+    } else {
+      message.innerHTML = 'Ontevreden bewoners blijven verhuizen &mdash; de buurt sorteert zichzelf...';
+    }
+
+    // Killer insight: small preference, large segregation.
+    const climb = segPct - Math.round(firstSeg * 100);
+    if (tolPct <= 45 && segPct >= 70) {
+      insight.innerHTML =
+        'Met maar <strong>' + tolPct + '% voorkeur</strong> is inmiddels <strong>' + segPct +
+        '%</strong> van je buren gelijk geworden. Niemand wilde dit, en tóch gebeurt het.';
+      insight.classList.add('visible');
+    } else if (tolPct >= 75) {
+      insight.innerHTML =
+        'Bij een hoge eis (<strong>' + tolPct + '%</strong>) raakt bijna niemand ooit tevreden: ' +
+        unhappyPct + '% blijft verhuizen. Te streng &rarr; eeuwige chaos in plaats van scheiding.';
+      insight.classList.add('visible');
+    } else if (round >= 2 && climb >= 12) {
+      insight.innerHTML =
+        'De segregatie-index klom van ' + Math.round(firstSeg * 100) + '% naar <strong>' + segPct +
+        '%</strong>, terwijl de voorkeur maar ' + tolPct + '% is.';
+      insight.classList.add('visible');
+    } else {
+      insight.classList.remove('visible');
+    }
+  }
+
+  function reset() {
+    stopPlay();
+    shuffle();
+    const m = computeMetrics();
+    firstSeg = m.seg;
+    render();
+  }
+
+  function doStep() {
+    if (round === 0) { firstSeg = lastSeg; }
+    const moved = step();
+    render();
+    // Auto-stop the animation once the wijk settles.
+    if (moved === 0 && playing) {
+      stopPlay();
+      message.innerHTML = 'Stabiel! Niemand wil nog verhuizen &mdash; de scheiding is definitief.';
+    }
+  }
+
+  // Auto-play
+  function startPlay() {
+    playing = true;
+    playBtn.textContent = 'Pauzeren';
+    playBtn.classList.add('playing');
+    stepBtn.disabled = true;
+    if (round === 0) firstSeg = lastSeg;
+    playInterval = setInterval(doStep, 350);
+  }
+  function stopPlay() {
+    playing = false;
+    playBtn.textContent = 'Automatisch afspelen';
+    playBtn.classList.remove('playing');
+    stepBtn.disabled = false;
+    clearInterval(playInterval);
+    playInterval = null;
+  }
+
+  playBtn.onclick = () => { playing ? stopPlay() : startPlay(); };
+  stepBtn.onclick = () => { if (!playing) doStep(); };
+  resetBtn.onclick = reset;
+
+  tolSlider.oninput = function () {
+    tolLabel.textContent = this.value + '%';
+    // Recompute happiness/metrics against the new threshold without moving anyone.
+    if (round > 0) render();
+  };
+  emptySlider.oninput = function () {
+    emptyLabel.textContent = this.value + '%';
+    // Changing density only takes effect on a fresh shuffle.
+    if (round === 0) reset();
+  };
+
+  // Init
+  reset();
+</script>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Elke bewoner kijkt alleen naar zijn <strong>directe buren</strong> (de acht omliggende vakjes) en stelt één milde eis:
+    minstens een bepaald aandeel van die buren moet op henzelf lijken. Is dat niet zo, dan verhuist hij naar een willekeurig
+    leeg vakje. Niemand heeft een wereldbeeld, niemand stuurt het geheel &mdash; er zijn alleen duizenden kleine,
+    lokale keuzes.
+  </p>
+  <p>
+    Toch ontstaat er een patroon dat <em>niemand</em> bedoeld heeft. Verhuist één ontevreden bewoner weg, dan verandert
+    daardoor de buurt van zijn oude én zijn nieuwe buren. Een buur die net tevreden was, kan nu nét over de drempel kantelen
+    en óók gaan verhuizen. Zo plant elke verhuizing zich voort als een rimpeling, en de wijk schuift onverbiddelijk naar
+    grote, egale eilanden van één soort. Dit heet <em>emergentie</em>: macrogedrag dat niet in de microregel zit.
+  </p>
+  <p>
+    De clou is dat de drempel verrassend láág mag zijn. Bij zo'n <strong>33%</strong> &mdash; iedereen accepteert moeiteloos
+    een meerderheid aan andersoortige buren &mdash; loopt de gemiddelde gelijkheid alsnog op tot ver boven de
+    <strong>70%</strong>. Een milde individuele voorkeur vergroot zichzelf uit tot scherpe collectieve segregatie.
+    Zet je de eis juist héél hoog, dan komt de wijk nooit tot rust en blijft iedereen eindeloos verhuizen.
+  </p>
+  <p>
+    Schelling liet hiermee in 1971 zien dat zichtbare segregatie geen bewijs is van diepe haat of een groot plan: ze kan
+    vanzelf voortkomen uit onschuldige voorkeuren. Het patroon dat we zien, hoeft niemands wens te zijn.
+  </p>
+</section>
+</body>
+</html>

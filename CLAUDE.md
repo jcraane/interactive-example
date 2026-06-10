@@ -21,6 +21,9 @@ in a browser (`file://`) and it just works.
 
 All examples are in **Dutch** (`lang="nl"`).
 
+- `index.html` — the landing page linking every example, with a one-line Dutch teaser each.
+  Cards are generated from an `examples` array in the inline script; add a new example by
+  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`).
 - `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
   slider, auto-play with teaching breakpoints, live growth curve (SVG), canvas particle animation.
 - `three-door-problem.html` — the Monty Hall problem ("Het driedeurenprobleem").
@@ -30,6 +33,12 @@ All examples are in **Dutch** (`lang="nl"`).
   curve, showing that starting early beats saving more.
 - `simpsons-paradox.html` — Simpson's paradox: draggable scatter clusters whose per-group
   regression lines reverse direction when combined.
+- `false-positive-paradox.html` — base rate fallacy: a population grid where false positives
+  visibly outnumber true positives for a rare condition, with prevalence/sensitivity/specificity sliders.
+- `schelling-segregation.html` — Schelling's segregation model: a canvas grid of two agent
+  types that self-sorts into clusters even at a low same-neighbour preference.
+- `survivorship-bias.html` — survivorship bias (Wald's WWII planes): a hit simulation whose
+  "returned planes" view shows holes avoiding the vital zones, revealing where armor really belongs.
 
 Examples are independent — there is no shared library or cross-file dependency.
 
@@ -60,6 +69,8 @@ Examples are independent — there is no shared library or cross-file dependency
 3. Pick one concept and make the interaction *demonstrate* it — not just illustrate it.
 4. Open with a short Dutch intro card (see Conventions); set `lang="nl"` and keep all
    user-facing copy in Dutch.
+5. Register it on the landing page: add one entry to the `examples` array in `index.html`
+   (`file`, `icon`, `title`, `tagline`, `accent`) with a one-line Dutch teaser.
 
 ## Testing
 
