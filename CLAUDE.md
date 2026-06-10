@@ -39,6 +39,22 @@ All examples are in **Dutch** (`lang="nl"`).
   types that self-sorts into clusters even at a low same-neighbour preference.
 - `survivorship-bias.html` — survivorship bias (Wald's WWII planes): a hit simulation whose
   "returned planes" view shows holes avoiding the vital zones, revealing where armor really belongs.
+- `evolution-of-trust.html` — the iterated prisoner's dilemma: play against AI personalities
+  (copycat, grudger, …), then run an evolutionary tournament where the rounds-per-encounter
+  slider decides whether cheaters or cooperators take over.
+- `double-pendulum.html` — chaos theory / the butterfly effect: double pendulums released a
+  thousandth of a degree apart diverge completely within seconds, with a live divergence meter.
+- `coastline-paradox.html` — the coastline paradox: walk a shrinking ruler along a fractal
+  coast and watch the measured length rise without limit (Richardson plot included).
+- `regression-to-the-mean.html` — regression to the mean: praise the top scorers of a
+  luck-based test and scold the worst, then watch both groups drift back to average; a
+  skill-vs-luck slider controls how strong the effect is.
+- `benfords-law.html` — Benford's law: first-digit histograms of embedded/generated datasets
+  (country populations, powers of 2, Fibonacci, expenses) hug the logarithmic curve, while a
+  "fabricated fraud" dataset trips the chi-square fraud gauge.
+- `braess-paradox.html` — Braess's paradox: a live traffic network where opening a zero-cost
+  shortcut makes every car's commute slower, with a central-planner button showing the system
+  optimum vs. the Nash equilibrium.
 
 Examples are independent — there is no shared library or cross-file dependency.
 

@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De evolutie van vertrouwen</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --accent-color: #a78bfa;
+      --accent-2: #38bdf8;
+      --coop-color: #22c55e;
+      --cheat-color: #ef4444;
+      --copycat-color: #38bdf8;
+      --grudger-color: #a78bfa;
+      --optimist-color: #22c55e;
+      --cheater-color: #ef4444;
+      --random-color: #f59e0b;
+      --text-dim: #94a3b8;
+      --text-faint: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(167,139,250,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 15%, rgba(56,189,248,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 90%, rgba(34,197,94,0.05) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: var(--text-faint);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(167, 139, 250, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: var(--text-faint); }
+
+    /* Phase headers */
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 980px;
+      width: 100%;
+      margin: 38px auto 14px;
+    }
+    .phase-header .badge {
+      flex: none;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #0f172a;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8);
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+    .phase-header h2 { font-size: 1.25rem; margin: 0; color: #e2e8f0; }
+    .phase-header .line { flex: 1; height: 1px; background: rgba(148,163,184,0.18); }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      max-width: 1020px;
+    }
+
+    /* === Phase 1: play yourself === */
+    .opponents {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+    .opponent-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      text-align: center;
+      width: 104px;
+      transition: transform 0.15s, border-color 0.25s, box-shadow 0.25s, background 0.25s;
+      user-select: none;
+    }
+    .opponent-card:hover { transform: translateY(-2px); border-color: rgba(167,139,250,0.45); }
+    .opponent-card.selected {
+      border-color: var(--strat-color, var(--accent-color));
+      background: rgba(167, 139, 250, 0.10);
+      box-shadow: 0 0 18px rgba(167,139,250,0.25), inset 0 0 0 1px var(--strat-color, var(--accent-color));
+    }
+    .opponent-card .emoji { font-size: 1.7rem; display: block; margin-bottom: 4px; }
+    .opponent-card .name { font-size: 0.78rem; font-weight: 700; color: #e2e8f0; line-height: 1.25; }
+
+    .play-area { width: 560px; max-width: 94vw; display: flex; flex-direction: column; }
+
+    .vs-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .player-box {
+      flex: 1;
+      text-align: center;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148,163,184,0.14);
+      border-radius: 14px;
+      padding: 12px 10px;
+    }
+    .player-box .who {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 2px;
+    }
+    .player-box .score-value {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.3s;
+    }
+    .player-box.you .score-value { color: var(--accent-2); }
+    .player-box.them .score-value { color: var(--accent-color); }
+    .player-box .opp-face { font-size: 1.05rem; }
+    .vs-label { font-weight: 800; color: var(--text-faint); font-size: 0.85rem; }
+
+    .score-pop { animation: scorePop 0.45s ease; }
+    @keyframes scorePop {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    .choice-row { display: flex; gap: 12px; margin: 6px 0 14px; }
+    .choice-row button { flex: 1; font-size: 1rem; padding: 14px 10px; }
+
+    button {
+      background: var(--accent-color); color: #0f172a; border: none;
+      padding: 11px 18px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(167,139,250,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.45); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.coop {
+      background: var(--coop-color);
+      box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+    }
+    button.coop:hover { box-shadow: 0 6px 20px rgba(34,197,94,0.45); }
+    button.cheat {
+      background: var(--cheat-color); color: white;
+      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+    }
+    button.cheat:hover { box-shadow: 0 6px 20px rgba(239,68,68,0.45); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button.playing { background: var(--cheat-color); color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+
+    /* History strip */
+    .history-label {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 6px;
+    }
+    .history-strip {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 10px;
+      min-height: 84px;
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(148,163,184,0.14);
+      border-radius: 12px;
+      align-items: center;
+    }
+    .history-strip .placeholder { color: var(--text-faint); font-size: 0.85rem; margin: 0 auto; }
+    .round-chip {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: none;
+      animation: chipIn 0.35s ease;
+    }
+    @keyframes chipIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.7); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .move-dot {
+      width: 26px; height: 26px;
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 800;
+    }
+    .move-dot.c { background: rgba(34,197,94,0.22); color: #4ade80; border: 1px solid rgba(34,197,94,0.5); }
+    .move-dot.d { background: rgba(239,68,68,0.22); color: #f87171; border: 1px solid rgba(239,68,68,0.5); }
+
+    /* Payoff matrix */
+    .matrix-panel { width: 340px; max-width: 94vw; display: flex; flex-direction: column; }
+    .matrix-title {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    table.payoff {
+      border-collapse: separate;
+      border-spacing: 6px;
+      width: 100%;
+      font-size: 0.82rem;
+    }
+    table.payoff th {
+      font-weight: 600;
+      color: var(--text-dim);
+      padding: 4px;
+      font-size: 0.75rem;
+    }
+    table.payoff td {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148,163,184,0.15);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+      line-height: 1.45;
+      transition: box-shadow 0.3s, border-color 0.3s;
+    }
+    table.payoff td .you-pts { font-weight: 800; color: var(--accent-2); }
+    table.payoff td .them-pts { font-weight: 800; color: var(--accent-color); }
+    table.payoff td.highlight {
+      border-color: rgba(167,139,250,0.7);
+      box-shadow: 0 0 14px rgba(167,139,250,0.35);
+    }
+    .matrix-note { font-size: 0.78rem; color: var(--text-faint); margin-top: 10px; line-height: 1.5; text-align: center; }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-top: 14px;
+      text-align: center;
+    }
+    .message strong { color: var(--accent-color); }
+
+    /* Insight card */
+    .insight {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(167, 139, 250, 0.08);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      line-height: 1.55;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #c4b5fd; }
+
+    /* === Phase 2: evolution === */
+    .sim-area { width: 600px; max-width: 94vw; display: flex; flex-direction: column; }
+    #chart {
+      width: 100%;
+      height: 220px;
+      border-radius: 12px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12);
+    }
+    .pop-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 14px;
+      min-height: 28px;
+    }
+    .agent-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      transition: background 0.5s, box-shadow 0.5s;
+      box-shadow: 0 0 6px rgba(0,0,0,0.4);
+    }
+
+    .legend {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+    .swatch { width: 12px; height: 12px; border-radius: 4px; display: inline-block; }
+
+    .sim-panel { width: 340px; max-width: 94vw; display: flex; flex-direction: column; }
+
+    .metric {
+      background: rgba(167, 139, 250, 0.06);
+      border: 1px solid rgba(167, 139, 250, 0.22);
+      border-radius: 14px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .metric .label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+    .metric .value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+    }
+    .metric .value .leader-emoji { font-size: 1.4rem; }
+
+    .control-block { margin-top: 8px; }
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .control-block label .num {
+      font-weight: 700;
+      color: var(--accent-2);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 2px; line-height: 1.45; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--cheat-color) 0%, var(--accent-color) 55%, var(--coop-color) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-2);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(56,189,248,0.8); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-2);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(56,189,248,0.6);
+      cursor: pointer;
+    }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(56, 189, 248, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #a78bfa, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--accent-2);
+      color: #bae6fd;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em { color: var(--accent-2); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>De evolutie van vertrouwen</h1>
+<p class="subtitle">Het herhaalde gevangenendilemma</p>
+
+<p class="intro">
+  Samenwerken levert allebei iets op, maar bedriegen levert <strong>jou meer</strong> op &mdash; als de ander
+  tenminste braaf meewerkt. Waarom bedriegt dan niet iedereen elkaar voortdurend? Speel eerst zelf tegen vijf
+  karakters en ontdek hun patroon. Laat ze daarna in een evolutie-arena tegen elkaar los, en draai aan
+  één enkele knop: <strong>hoe vaak kom je dezelfde tegenspeler weer tegen?</strong>
+  <span class="cue">Die ene knop beslist of bedriegers of samenwerkers de wereld overnemen.</span>
+</p>
+
+<div class="phase-header">
+  <span class="badge">Fase 1</span>
+  <h2>Speel zelf</h2>
+  <div class="line"></div>
+</div>
+
+<div class="opponents" id="opponents"></div>
+
+<div class="layout">
+  <div class="play-area glass">
+    <div class="vs-row">
+      <div class="player-box you">
+        <div class="who">Jij</div>
+        <div class="score-value" id="playerScore">0</div>
+      </div>
+      <div class="vs-label">VS</div>
+      <div class="player-box them">
+        <div class="who" id="opponentName">Tegenstander</div>
+        <div class="score-value" id="aiScore">0</div>
+      </div>
+    </div>
+
+    <div class="choice-row">
+      <button class="coop" id="coopBtn">&#129309; Samenwerken</button>
+      <button class="cheat" id="cheatBtn">&#128520; Bedriegen</button>
+    </div>
+
+    <div class="history-label">Verloop &mdash; boven: jij &middot; onder: tegenstander</div>
+    <div class="history-strip" id="historyStrip">
+      <span class="placeholder">Nog geen rondes gespeeld.</span>
+    </div>
+
+    <div class="message" id="playMessage">Kies een tegenstander en doe je eerste zet.</div>
+    <div class="insight" id="playInsight"></div>
+
+    <div class="btn-row">
+      <button class="secondary" id="resetMatchBtn">Opnieuw tegen deze speler</button>
+    </div>
+  </div>
+
+  <div class="matrix-panel glass">
+    <div class="matrix-title">De spelregels (punten per ronde)</div>
+    <table class="payoff">
+      <tr>
+        <th></th>
+        <th>Ander werkt samen</th>
+        <th>Ander bedriegt</th>
+      </tr>
+      <tr>
+        <th>Jij werkt samen</th>
+        <td id="cellCC">&#129309;&#129309;<br><span class="you-pts">+2</span> / <span class="them-pts">+2</span></td>
+        <td id="cellCD">&#129309;&#128520;<br><span class="you-pts">&minus;1</span> / <span class="them-pts">+3</span></td>
+      </tr>
+      <tr>
+        <th>Jij bedriegt</th>
+        <td id="cellDC">&#128520;&#129309;<br><span class="you-pts">+3</span> / <span class="them-pts">&minus;1</span></td>
+        <td id="cellDD">&#128520;&#128520;<br><span class="you-pts">0</span> / <span class="them-pts">0</span></td>
+      </tr>
+    </table>
+    <div class="matrix-note">
+      Bedriegen is in <em>één</em> losse ronde altijd de slimste zet. En toch&hellip;
+      speel een paar rondes achter elkaar en voel wat er gebeurt.
+    </div>
+  </div>
+</div>
+
+<div class="phase-header">
+  <span class="badge">Fase 2</span>
+  <h2>Evolutie-simulatie</h2>
+  <div class="line"></div>
+</div>
+
+<div class="layout">
+  <div class="sim-area glass">
+    <canvas id="chart" width="560" height="220"></canvas>
+    <div class="pop-grid" id="popGrid"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="sim-panel glass">
+    <div class="metric">
+      <span class="label">Generatie</span>
+      <span class="value" id="genValue">0</span>
+    </div>
+    <div class="metric">
+      <span class="label">Koploper</span>
+      <span class="value" id="leaderValue"><span class="leader-emoji">&mdash;</span></span>
+    </div>
+
+    <div class="control-block">
+      <label for="roundsSlider">
+        Rondes per ontmoeting
+        <span class="num" id="roundsLabel">10</span>
+      </label>
+      <input type="range" id="roundsSlider" min="1" max="20" value="10">
+      <div class="hint">D&eacute; sleutelknop: bij 1 ronde zie je elkaar nooit terug (anoniem). Bij veel rondes bouw je een reputatie op.</div>
+    </div>
+
+    <div class="control-block">
+      <label for="errSlider">
+        Fout-percentage (miscommunicatie)
+        <span class="num" id="errLabel">0%</span>
+      </label>
+      <input type="range" id="errSlider" min="0" max="10" value="0">
+      <div class="hint">Kans dat een zet per ongeluk verkeerd overkomt. Kleine fouten kunnen rancuneuze strategie&euml;n de das omdoen.</div>
+    </div>
+
+    <div class="btn-row">
+      <button id="startBtn">Start evolutie</button>
+      <button class="secondary" id="resetSimBtn">Reset</button>
+    </div>
+
+    <div class="message" id="simMessage">Elke generatie: iedereen speelt tegen iedereen, de slechtsten worden vervangen door kopie&euml;n van de besten.</div>
+    <div class="insight" id="simInsight"></div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    In een <strong>eenmalige</strong> ontmoeting is bedriegen koel berekend de beste zet: wat de ander ook doet,
+    jij scoort er meer mee. Daarom winnen bedriegers de evolutie als elke ontmoeting maar &eacute;&eacute;n ronde duurt.
+    Maar zodra je dezelfde speler <em>opnieuw</em> tegenkomt, verandert alles: je zet van nu bepaalt hoe de ander
+    je straks behandelt. Bedrog wordt duur, want het kost je alle toekomstige samenwerking.
+  </p>
+  <p>
+    De grote winnaar bij herhaalde ontmoetingen is meestal <strong>De Kopieerder</strong> (tit-for-tat): aardig beginnen,
+    bedrog &eacute;&eacute;n keer terugbetalen, en daarna meteen weer vergeven. Die strategie is nooit de eerste die bedriegt,
+    laat zich niet eindeloos uitbuiten, en is glashelder voorspelbaar. Politicoloog Robert Axelrod liet in 1980
+    computertoernooien zien dat juist deze simpele, vriendelijke strategie alle sluwe alternatieven versloeg.
+  </p>
+  <p>
+    Vertrouwen blijkt dus geen kwestie van karakter, maar van <em>omstandigheden</em>: het ontstaat vanzelf waar mensen
+    elkaar herhaaldelijk tegenkomen, en het verdampt waar ontmoetingen anoniem en eenmalig zijn. Vergelijk de vaste
+    marktkoopman die je elke week ziet met een anonieme verkoper op internet, of een dorpsgemeenschap met een
+    eenmalige reactie onder een nieuwsbericht. Hetzelfde mens, andere spelregels &mdash; ander gedrag.
+  </p>
+  <p>
+    Wil je meer vertrouwen in een groep, een bedrijf of online? Verander dan niet de mensen, maar het spel:
+    zorg dat interacties zich herhalen, dat reputatie zichtbaar is, en dat kleine fouten vergeven kunnen worden.
+  </p>
+</section>
+
+<script>
+  // ---------- Shared game model ----------
+  var C = 'C', D = 'D';
+  // payoff[myMove][theirMove] = my points
+  var PAYOFF = {
+    C: { C: 2, D: -1 },
+    D: { C: 3, D: 0 }
+  };
+
+  var STRATEGIES = {
+    copycat:  { name: 'De Kopieerder',  emoji: '\u{1F99C}', color: '#38bdf8',
+                desc: 'begint aardig en kopieert daarna steeds jouw vorige zet. Bedrog betaalt hij terug, maar hij vergeeft net zo snel.' },
+    grudger:  { name: 'De Wrok',        emoji: '\u{1F620}', color: '#a78bfa',
+                desc: 'werkt samen tot je hem &eacute;&eacute;n keer bedriegt &mdash; daarna bedriegt hij j&oacute;u voor altijd. Vergeven zit er niet in.' },
+    optimist: { name: 'De Optimist',    emoji: '\u{1F60A}', color: '#22c55e',
+                desc: 'werkt &aacute;ltijd samen, wat je ook doet. Heerlijk naïef &mdash; en een makkelijke prooi voor bedriegers.' },
+    cheater:  { name: 'De Bedrieger',   emoji: '\u{1F608}', color: '#ef4444',
+                desc: 'bedriegt &aacute;ltijd. Tegen aardige spelers scoort hij dik, maar tegen elkaar winnen bedriegers niets.' },
+    random:   { name: 'De Toevallige',  emoji: '\u{1F3B2}', color: '#f59e0b',
+                desc: 'gooit elke ronde een muntje. Geen patroon, geen plan &mdash; en daardoor ook geen reputatie om op te bouwen.' }
+  };
+  var STRAT_KEYS = ['copycat', 'grudger', 'optimist', 'cheater', 'random'];
+
+  function freshState() { return { grudge: false }; }
+
+  // oppHistory = array of the opponent's past moves, state = per-match memory
+  function strategyMove(key, oppHistory, state) {
+    switch (key) {
+      case 'optimist': return C;
+      case 'cheater':  return D;
+      case 'random':   return Math.random() < 0.5 ? C : D;
+      case 'copycat':  return oppHistory.length ? oppHistory[oppHistory.length - 1] : C;
+      case 'grudger':  return state.grudge ? D : C;
+    }
+    return C;
+  }
+
+  // ---------- Phase 1: play yourself ----------
+  var opponentsEl = document.getElementById('opponents');
+  var playerScoreEl = document.getElementById('playerScore');
+  var aiScoreEl = document.getElementById('aiScore');
+  var opponentNameEl = document.getElementById('opponentName');
+  var coopBtn = document.getElementById('coopBtn');
+  var cheatBtn = document.getElementById('cheatBtn');
+  var historyStrip = document.getElementById('historyStrip');
+  var playMessage = document.getElementById('playMessage');
+  var playInsight = document.getElementById('playInsight');
+  var resetMatchBtn = document.getElementById('resetMatchBtn');
+  var matrixCells = {
+    CC: document.getElementById('cellCC'),
+    CD: document.getElementById('cellCD'),
+    DC: document.getElementById('cellDC'),
+    DD: document.getElementById('cellDD')
+  };
+
+  var currentOpp = 'copycat';
+  var userHistory = [], aiHistory = [];
+  var userScore = 0, aiScore = 0;
+  var aiState = freshState();
+
+  // Build opponent selector cards
+  STRAT_KEYS.forEach(function (key) {
+    var s = STRATEGIES[key];
+    var card = document.createElement('div');
+    card.className = 'opponent-card';
+    card.style.setProperty('--strat-color', s.color);
+    card.innerHTML = '<span class="emoji">' + s.emoji + '</span><span class="name">' + s.name + '</span>';
+    card.onclick = function () { selectOpponent(key); };
+    card.id = 'opp-' + key;
+    opponentsEl.appendChild(card);
+  });
+
+  function selectOpponent(key) {
+    currentOpp = key;
+    STRAT_KEYS.forEach(function (k) {
+      document.getElementById('opp-' + k).classList.toggle('selected', k === key);
+    });
+    resetMatch();
+  }
+
+  function resetMatch() {
+    userHistory = [];
+    aiHistory = [];
+    userScore = 0;
+    aiScore = 0;
+    aiState = freshState();
+    playerScoreEl.textContent = '0';
+    aiScoreEl.textContent = '0';
+    var s = STRATEGIES[currentOpp];
+    opponentNameEl.innerHTML = '<span class="opp-face">' + s.emoji + '</span> ' + s.name;
+    historyStrip.innerHTML = '<span class="placeholder">Nog geen rondes gespeeld.</span>';
+    playMessage.innerHTML = 'Je speelt tegen <strong>' + s.name + '</strong>. Kun jij zijn patroon ontdekken?';
+    playInsight.classList.remove('visible');
+    clearMatrixHighlight();
+  }
+
+  function clearMatrixHighlight() {
+    Object.keys(matrixCells).forEach(function (k) { matrixCells[k].classList.remove('highlight'); });
+  }
+
+  function popScore(el) {
+    el.classList.remove('score-pop');
+    void el.offsetWidth; // restart animation
+    el.classList.add('score-pop');
+  }
+
+  function playRound(userMove) {
+    // AI decides based on the user's past moves
+    var aiMove = strategyMove(currentOpp, userHistory, aiState);
+
+    var userPts = PAYOFF[userMove][aiMove];
+    var aiPts = PAYOFF[aiMove][userMove];
+    userScore += userPts;
+    aiScore += aiPts;
+
+    userHistory.push(userMove);
+    aiHistory.push(aiMove);
+    if (userMove === D) aiState.grudge = true;
+
+    // Render scores
+    playerScoreEl.textContent = userScore;
+    aiScoreEl.textContent = aiScore;
+    popScore(playerScoreEl);
+    popScore(aiScoreEl);
+
+    // Highlight payoff cell
+    clearMatrixHighlight();
+    matrixCells[userMove === C ? (aiMove === C ? 'CC' : 'CD') : (aiMove === C ? 'DC' : 'DD')].classList.add('highlight');
+
+    // History chip
+    if (userHistory.length === 1) historyStrip.innerHTML = '';
+    var chip = document.createElement('div');
+    chip.className = 'round-chip';
+    chip.innerHTML =
+      '<div class="move-dot ' + (userMove === C ? 'c' : 'd') + '">' + (userMove === C ? '\u{1F91D}' : '\u{1F608}') + '</div>' +
+      '<div class="move-dot ' + (aiMove === C ? 'c' : 'd') + '">' + (aiMove === C ? '\u{1F91D}' : '\u{1F608}') + '</div>';
+    historyStrip.appendChild(chip);
+    historyStrip.scrollLeft = historyStrip.scrollWidth;
+
+    updatePlayNarrative(userMove, aiMove, userPts, aiPts);
+  }
+
+  function fmtPts(p) { return (p > 0 ? '+' : '') + p; }
+
+  function updatePlayNarrative(userMove, aiMove, userPts, aiPts) {
+    var s = STRATEGIES[currentOpp];
+    var rounds = userHistory.length;
+
+    if (userMove === C && aiMove === C) {
+      playMessage.innerHTML = 'Jullie werkten allebei samen: <strong>' + fmtPts(userPts) + '</strong> voor jou, ' + fmtPts(aiPts) + ' voor ' + s.name + '.';
+    } else if (userMove === D && aiMove === C) {
+      playMessage.innerHTML = 'Jij bedroog een samenwerker: <strong>' + fmtPts(userPts) + '</strong> voor jou&hellip; maar onthoudt ' + s.name + ' dit?';
+    } else if (userMove === C && aiMove === D) {
+      playMessage.innerHTML = 'Au &mdash; jij werkte samen, maar werd bedrogen: <strong>' + fmtPts(userPts) + '</strong> voor jou, ' + fmtPts(aiPts) + ' voor ' + s.name + '.';
+    } else {
+      playMessage.innerHTML = 'Allebei bedrogen: <strong>0</strong> punten voor allebei. Zo wint niemand iets.';
+    }
+
+    if (rounds >= 6) {
+      playInsight.innerHTML = '<strong>Patroon van ' + s.emoji + ' ' + s.name + ':</strong> ' + s.desc +
+        (rounds >= 10 ? ' Na ' + rounds + ' rondes staat het <strong>' + userScore + '</strong> tegen <strong>' + aiScore + '</strong>.' : '');
+      playInsight.classList.add('visible');
+    }
+  }
+
+  coopBtn.onclick = function () { playRound(C); };
+  cheatBtn.onclick = function () { playRound(D); };
+  resetMatchBtn.onclick = resetMatch;
+
+  // ---------- Phase 2: evolution simulation ----------
+  var chart = document.getElementById('chart');
+  var ctx = chart.getContext('2d');
+  var popGrid = document.getElementById('popGrid');
+  var legendEl = document.getElementById('legend');
+  var genValue = document.getElementById('genValue');
+  var leaderValue = document.getElementById('leaderValue');
+  var roundsSlider = document.getElementById('roundsSlider');
+  var roundsLabel = document.getElementById('roundsLabel');
+  var errSlider = document.getElementById('errSlider');
+  var errLabel = document.getElementById('errLabel');
+  var startBtn = document.getElementById('startBtn');
+  var resetSimBtn = document.getElementById('resetSimBtn');
+  var simMessage = document.getElementById('simMessage');
+  var simInsight = document.getElementById('simInsight');
+
+  var POP_SIZE = 25;       // 5 of each strategy
+  var REPLACE = 2;         // worst 2 replaced by copies of best 2 each generation
+  var MAX_GEN = 60;
+
+  var population = [];
+  var generation = 0;
+  var popHistory = [];        // array of count objects per generation
+  var simRunning = false;
+  var simInterval = null;
+  var agentDots = [];
+
+  function initPopulation() {
+    population = [];
+    STRAT_KEYS.forEach(function (key) {
+      for (var i = 0; i < POP_SIZE / 5; i++) population.push(key);
+    });
+    generation = 0;
+    popHistory = [countPopulation()];
+  }
+
+  function countPopulation() {
+    var counts = {};
+    STRAT_KEYS.forEach(function (k) { counts[k] = 0; });
+    population.forEach(function (k) { counts[k]++; });
+    return counts;
+  }
+
+  function playMatch(a, b, rounds, errRate) {
+    var histA = [], histB = [];
+    var stateA = freshState(), stateB = freshState();
+    var scoreA = 0, scoreB = 0;
+    for (var i = 0; i < rounds; i++) {
+      var mA = strategyMove(a, histB, stateA);
+      var mB = strategyMove(b, histA, stateB);
+      if (Math.random() < errRate) mA = (mA === C ? D : C);
+      if (Math.random() < errRate) mB = (mB === C ? D : C);
+      scoreA += PAYOFF[mA][mB];
+      scoreB += PAYOFF[mB][mA];
+      histA.push(mA);
+      histB.push(mB);
+      if (mB === D) stateA.grudge = true;
+      if (mA === D) stateB.grudge = true;
+    }
+    return [scoreA, scoreB];
+  }
+
+  function runGeneration() {
+    var rounds = parseInt(roundsSlider.value);
+    var errRate = parseInt(errSlider.value) / 100;
+    var scores = population.map(function () { return 0; });
+
+    // Round-robin tournament
+    for (var i = 0; i < population.length; i++) {
+      for (var j = i + 1; j < population.length; j++) {
+        var result = playMatch(population[i], population[j], rounds, errRate);
+        scores[i] += result[0];
+        scores[j] += result[1];
+      }
+    }
+
+    // Evolution: worst REPLACE agents become copies of the best REPLACE agents
+    var order = population.map(function (_, i) { return i; });
+    order.sort(function (x, y) { return scores[y] - scores[x]; });
+    var newPop = population.slice();
+    for (var k = 0; k < REPLACE; k++) {
+      newPop[order[order.length - 1 - k]] = population[order[k]];
+    }
+    population = newPop;
+    generation++;
+    popHistory.push(countPopulation());
+  }
+
+  // ----- Rendering -----
+  function buildPopGrid() {
+    popGrid.innerHTML = '';
+    agentDots = [];
+    for (var i = 0; i < POP_SIZE; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'agent-dot';
+      popGrid.appendChild(dot);
+      agentDots.push(dot);
+    }
+  }
+
+  function renderPopGrid() {
+    // Group by strategy so clusters are visible
+    var sorted = population.slice().sort(function (a, b) {
+      return STRAT_KEYS.indexOf(a) - STRAT_KEYS.indexOf(b);
+    });
+    for (var i = 0; i < POP_SIZE; i++) {
+      var col = STRATEGIES[sorted[i]].color;
+      agentDots[i].style.background = col;
+      agentDots[i].style.boxShadow = '0 0 8px ' + col + '55';
+      agentDots[i].title = STRATEGIES[sorted[i]].name;
+    }
+  }
+
+  function renderLegend(counts) {
+    legendEl.innerHTML = STRAT_KEYS.map(function (k) {
+      var s = STRATEGIES[k];
+      return '<span><span class="swatch" style="background:' + s.color + '"></span>' +
+        s.emoji + ' ' + s.name + ': <strong style="color:' + s.color + '">' + counts[k] + '</strong></span>';
+    }).join('');
+  }
+
+  function drawChart() {
+    var w = chart.width, h = chart.height;
+    var padL = 8, padR = 8, padT = 10, padB = 10;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#0b1120';
+    ctx.fillRect(0, 0, w, h);
+
+    var slots = Math.max(30, popHistory.length);
+    var plotW = w - padL - padR, plotH = h - padT - padB;
+
+    function x(i) { return padL + (slots <= 1 ? 0 : (i / (slots - 1)) * plotW); }
+    function y(frac) { return padT + (1 - frac) * plotH; }
+
+    // Stacked area per strategy
+    var cumBelow = popHistory.map(function () { return 0; });
+    STRAT_KEYS.forEach(function (key) {
+      var lower = cumBelow.slice();
+      var upper = popHistory.map(function (counts, i) {
+        cumBelow[i] += counts[key] / POP_SIZE;
+        return cumBelow[i];
+      });
+
+      ctx.beginPath();
+      for (var i = 0; i < popHistory.length; i++) {
+        var px = x(i), py = y(upper[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      for (var j = popHistory.length - 1; j >= 0; j--) {
+        ctx.lineTo(x(j), y(lower[j]));
+      }
+      ctx.closePath();
+      ctx.fillStyle = STRATEGIES[key].color + 'cc';
+      ctx.fill();
+    });
+
+    // Subtle separators on top
+    ctx.strokeStyle = 'rgba(11,17,32,0.6)';
+    ctx.lineWidth = 1;
+    var cum2 = popHistory.map(function () { return 0; });
+    STRAT_KEYS.slice(0, -1).forEach(function (key) {
+      ctx.beginPath();
+      for (var i = 0; i < popHistory.length; i++) {
+        cum2[i] += popHistory[i][key] / POP_SIZE;
+        var px = x(i), py = y(cum2[i]);
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    });
+
+    // Axis label
+    ctx.fillStyle = 'rgba(148,163,184,0.65)';
+    ctx.font = '11px -apple-system, system-ui, sans-serif';
+    ctx.fillText('generatie →', padL + 4, h - padB - 4);
+  }
+
+  function leaderOf(counts) {
+    var best = STRAT_KEYS[0];
+    STRAT_KEYS.forEach(function (k) { if (counts[k] > counts[best]) best = k; });
+    return best;
+  }
+
+  function renderSim() {
+    var counts = popHistory[popHistory.length - 1];
+    genValue.textContent = generation;
+    var lead = leaderOf(counts);
+    var s = STRATEGIES[lead];
+    if (generation === 0) {
+      leaderValue.innerHTML = '<span class="leader-emoji">&mdash;</span>';
+    } else {
+      leaderValue.innerHTML = '<span class="leader-emoji">' + s.emoji + '</span> ' +
+        '<span style="font-size:0.95rem;color:' + s.color + '">' + s.name + '</span>';
+    }
+    renderPopGrid();
+    renderLegend(counts);
+    drawChart();
+  }
+
+  function checkOutcome() {
+    var counts = popHistory[popHistory.length - 1];
+    var rounds = parseInt(roundsSlider.value);
+    var coopCount = counts.copycat + counts.grudger + counts.optimist;
+    var lead = leaderOf(counts);
+
+    var done = false;
+    if (counts.cheater >= POP_SIZE * 0.8) {
+      done = true;
+      simMessage.innerHTML = 'De populatie is overgenomen door <strong>bedriegers</strong>. Niemand vertrouwt nog iemand.';
+      simInsight.innerHTML =
+        'Met maar <strong>' + rounds + ' ronde' + (rounds === 1 ? '' : 's') + ' per ontmoeting</strong> zie je elkaar (vrijwel) nooit terug ' +
+        '&mdash; bedrog heeft geen gevolgen, dus bedriegers winnen. Dit is de wereld van <strong>anonieme, eenmalige interacties</strong>: ' +
+        'denk aan reaguurders onder een willekeurig bericht, of oplichters die telkens nieuwe slachtoffers zoeken. ' +
+        'Schuif de rondes omhoog en start opnieuw: kijk wat herhaling doet.';
+      simInsight.classList.add('visible');
+    } else if (coopCount === POP_SIZE) {
+      done = true;
+      var s = STRATEGIES[lead];
+      simMessage.innerHTML = 'Alle bedriegers zijn uitgestorven &mdash; <strong>samenwerking heeft gewonnen</strong>, aangevoerd door ' + s.emoji + ' ' + s.name + '.';
+      simInsight.innerHTML =
+        'Met <strong>' + rounds + ' rondes per ontmoeting</strong> kom je dezelfde spelers steeds opnieuw tegen. Bedrog wordt nu afgestraft ' +
+        '(door ' + STRATEGIES.copycat.emoji + ' De Kopieerder en ' + STRATEGIES.grudger.emoji + ' De Wrok), dus bedriegers verhongeren &mdash; ' +
+        'en samenwerkers floreren. <strong>Vertrouwen is een product van herhaalde interacties.</strong> ' +
+        'Daarom vertrouw je de bakker op de hoek eerder dan een anonieme webshop: niet omdat hij beter is, maar omdat je hem morgen w&eacute;&eacute;r ziet.';
+      simInsight.classList.add('visible');
+    } else if (generation >= MAX_GEN) {
+      done = true;
+      simMessage.innerHTML = 'Maximum aantal generaties bereikt. Koploper: <strong>' + STRATEGIES[lead].name + '</strong>.';
+    } else {
+      if (counts.cheater > 5 && counts.optimist < 5) {
+        simMessage.innerHTML = 'De bedriegers plukken de optimisten kaal&hellip; maar wie eten ze daarna op?';
+      } else if (counts.cheater < 5 && counts.cheater > 0) {
+        simMessage.innerHTML = 'De bedriegers raken uitgehongerd: ze komen elkaar steeds vaker tegen en winnen dan <strong>niets</strong>.';
+      } else {
+        simMessage.innerHTML = 'Generatie ' + generation + ': de slechtst scorende spelers zijn vervangen door kopie&euml;n van de besten.';
+      }
+    }
+    return done;
+  }
+
+  function simStep() {
+    runGeneration();
+    renderSim();
+    if (checkOutcome()) stopSim(true);
+  }
+
+  function startSim() {
+    simRunning = true;
+    startBtn.textContent = 'Pauzeer';
+    startBtn.classList.add('playing');
+    simInterval = setInterval(simStep, 550);
+  }
+
+  function stopSim(finished) {
+    simRunning = false;
+    startBtn.textContent = finished ? 'Hervat' : 'Start evolutie';
+    startBtn.classList.remove('playing');
+    clearInterval(simInterval);
+    simInterval = null;
+  }
+
+  function resetSim() {
+    stopSim(false);
+    startBtn.textContent = 'Start evolutie';
+    initPopulation();
+    renderSim();
+    simMessage.innerHTML = 'Elke generatie: iedereen speelt tegen iedereen, de slechtsten worden vervangen door kopie&euml;n van de besten.';
+    simInsight.classList.remove('visible');
+  }
+
+  startBtn.onclick = function () { simRunning ? stopSim(false) : startSim(); };
+  resetSimBtn.onclick = resetSim;
+
+  roundsSlider.oninput = function () {
+    roundsLabel.textContent = this.value;
+  };
+  errSlider.oninput = function () {
+    errLabel.textContent = this.value + '%';
+  };
+
+  // ---------- Init ----------
+  selectOpponent('copycat');
+  buildPopGrid();
+  resetSim();
+</script>
+</body>
+</html>

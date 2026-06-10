@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regressie naar het gemiddelde</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --accent-color: #a78bfa;      /* violet — toeval / statistiek */
+      --praise-color: #22c55e;      /* geprezen groep */
+      --scold-color: #ef4444;       /* berispte groep */
+      --neutral-color: #94a3b8;
+      --gold: #fbbf24;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 30%, rgba(167,139,250,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 10%, rgba(34,197,94,0.06) 0%, transparent 45%),
+        radial-gradient(ellipse at 70% 90%, rgba(239,68,68,0.05) 0%, transparent 45%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #a78bfa, #22c55e 55%, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(167, 139, 250, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Glass card */
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    /* Stat cards */
+    .stats {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto 22px;
+    }
+    .stat-card {
+      flex: 1 1 200px;
+      min-width: 200px;
+      padding: 16px 18px;
+      border-radius: 14px;
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148,163,184,0.12);
+      text-align: center;
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .stat-card.praised-card { border-color: rgba(34,197,94,0.35); box-shadow: 0 0 24px rgba(34,197,94,0.08); }
+    .stat-card.scolded-card { border-color: rgba(239,68,68,0.35); box-shadow: 0 0 24px rgba(239,68,68,0.08); }
+    .stat-card .stat-title {
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 8px;
+    }
+    .stat-card .stat-vals {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 1.7rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .stat-card .before { color: #64748b; font-size: 1.15rem; font-weight: 700; }
+    .stat-card.praised-card .now { color: var(--praise-color); }
+    .stat-card.scolded-card .now { color: var(--scold-color); }
+    .stat-card.class-card .now { color: #e2e8f0; }
+    .stat-card .stat-sub { margin-top: 8px; font-size: 0.74rem; color: #64748b; min-height: 1.2em; }
+
+    .arrow {
+      display: inline-block;
+      font-size: 1.3rem;
+      width: 1.2em;
+      text-align: center;
+    }
+    .arrow.drop { color: var(--scold-color); animation: bounceDown 1s ease-in-out infinite; }
+    .arrow.rise { color: var(--praise-color); animation: bounceUp 1s ease-in-out infinite; }
+    .arrow.flat { color: #64748b; }
+    @keyframes bounceDown { 0%,100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+    @keyframes bounceUp   { 0%,100% { transform: translateY(2px); }  50% { transform: translateY(-3px); } }
+
+    /* Histogram card */
+    .hist-card {
+      flex: 1 1 600px;
+      max-width: 660px;
+      display: flex;
+      flex-direction: column;
+    }
+    .hist-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .hist-title {
+      font-size: 0.75rem;
+      color: #64748b;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .test-badge {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      background: rgba(167,139,250,0.1);
+      border: 1px solid rgba(167,139,250,0.3);
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #histArea {
+      position: relative;
+      width: 100%;
+      height: 430px;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(148,163,184,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .student {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(15,23,42,0.7);
+      transition: left 0.65s cubic-bezier(0.45, 0.05, 0.25, 1.1),
+                  top 0.65s cubic-bezier(0.45, 0.05, 0.25, 1.1),
+                  background 0.65s, box-shadow 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      line-height: 1;
+      user-select: none;
+    }
+    .student.praised {
+      box-shadow: 0 0 0 2px var(--praise-color), 0 0 10px rgba(34,197,94,0.7);
+      z-index: 3;
+    }
+    .student.praised::after { content: '🏆'; }
+    .student.scolded {
+      box-shadow: 0 0 0 2px var(--scold-color), 0 0 10px rgba(239,68,68,0.7);
+      z-index: 3;
+    }
+    .student.scolded::after { content: '✗'; color: #fecaca; font-weight: 800; font-size: 10px; }
+    .student.pop { animation: popIn 0.45s ease; }
+    @keyframes popIn {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.7); }
+      100% { transform: scale(1); }
+    }
+
+    .axis-label {
+      position: absolute;
+      bottom: 4px;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: #64748b;
+      font-variant-numeric: tabular-nums;
+    }
+    #avgMarker {
+      position: absolute;
+      top: 8px;
+      bottom: 24px;
+      width: 0;
+      border-left: 2px dashed rgba(167,139,250,0.45);
+      transition: left 0.65s cubic-bezier(0.45, 0.05, 0.25, 1.1);
+      pointer-events: none;
+    }
+    #avgMarker::after {
+      content: 'gemiddelde';
+      position: absolute;
+      top: -2px;
+      left: 5px;
+      font-size: 0.62rem;
+      color: rgba(167,139,250,0.8);
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .hist-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      justify-content: center;
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+    .hist-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .ring { width: 11px; height: 11px; border-radius: 50%; display: inline-block; background: rgba(148,163,184,0.3); }
+    .ring.praise { box-shadow: 0 0 0 2px var(--praise-color); }
+    .ring.scold { box-shadow: 0 0 0 2px var(--scold-color); }
+
+    /* Side panel */
+    .side {
+      flex: 1 1 320px;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .btn-grid { display: flex; flex-direction: column; gap: 10px; }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row button { flex: 1; }
+
+    button {
+      font-family: inherit;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: white;
+      transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s, background 0.2s;
+    }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-praise {
+      background: rgba(34,197,94,0.14);
+      border: 1px solid rgba(34,197,94,0.45);
+      color: #86efac;
+    }
+    .btn-praise:hover:not(:disabled) { background: rgba(34,197,94,0.25); box-shadow: 0 0 16px rgba(34,197,94,0.25); }
+    .btn-scold {
+      background: rgba(239,68,68,0.14);
+      border: 1px solid rgba(239,68,68,0.45);
+      color: #fca5a5;
+    }
+    .btn-scold:hover:not(:disabled) { background: rgba(239,68,68,0.25); box-shadow: 0 0 16px rgba(239,68,68,0.25); }
+    .btn-next {
+      background: linear-gradient(135deg, #7c3aed, #a78bfa);
+      box-shadow: 0 4px 18px rgba(124,58,237,0.4);
+      font-size: 1rem;
+    }
+    .btn-next:hover:not(:disabled) { box-shadow: 0 6px 24px rgba(124,58,237,0.55); }
+    .btn-auto {
+      background: rgba(167,139,250,0.12);
+      border: 1px solid rgba(167,139,250,0.4);
+      color: #c4b5fd;
+    }
+    .btn-auto:hover:not(:disabled) { background: rgba(167,139,250,0.22); }
+    .btn-reset {
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.25);
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .btn-reset:hover:not(:disabled) { background: rgba(148,163,184,0.22); }
+
+    /* Skill slider */
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+    .control-head .v { font-weight: 800; color: var(--accent-color); font-variant-numeric: tabular-nums; }
+    .slider-ends {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.68rem;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, #7c3aed, #1e293b);
+      border-radius: 4px;
+      outline: none;
+      margin: 10px 0 4px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(167,139,250,0.55);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(167,139,250,0.75); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border: none;
+      background: var(--accent-color); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(167,139,250,0.55); cursor: pointer;
+    }
+
+    /* Chart */
+    #chartCard { display: none; }
+    #chartCard.visible { display: block; animation: fadeUp 0.5s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .chart-title {
+      font-size: 0.72rem;
+      color: #64748b;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .chart-legend {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 6px;
+    }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .line-swatch { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+
+    /* Insight callout */
+    .insight {
+      padding: 0 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      background: rgba(167, 139, 250, 0.07);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      line-height: 1.55;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s, max-height 0.4s, padding 0.4s;
+    }
+    .insight.visible {
+      opacity: 1;
+      transform: translateY(0);
+      max-height: 320px;
+      padding-top: 13px;
+      padding-bottom: 13px;
+    }
+    .insight strong { color: var(--accent-color); }
+    .insight em.up { color: var(--praise-color); font-style: normal; font-weight: 700; }
+    .insight em.down { color: var(--scold-color); font-style: normal; font-weight: 700; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(167, 139, 250, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #a78bfa, #22c55e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer .formula {
+      text-align: center;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      background: rgba(15,23,42,0.6);
+      padding: 14px 18px;
+      border-radius: 8px;
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(167, 139, 250, 0.07);
+      border-left: 3px solid var(--accent-color);
+      color: #94a3b8;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em.up { color: var(--praise-color); font-style: normal; font-weight: 600; }
+    .explainer em.down { color: var(--scold-color); font-style: normal; font-weight: 600; }
+
+    @media (max-width: 720px) {
+      #histArea { height: 340px; }
+      .student { width: 12px; height: 12px; font-size: 7px; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Regressie naar het gemiddelde</h1>
+<p class="subtitle">Waarom straffen lijkt te werken en prijzen averechts lijkt</p>
+
+<p class="intro">
+  Een klas van 100 leerlingen maakt een toets. Je <strong>prijst de tien besten</strong> en
+  <strong>berispt de tien slechtsten</strong> &mdash; en op de volgende toets zakken de geprezen
+  leerlingen, terwijl de berispten opveren. Heeft je compliment ze lui gemaakt? Werkte de uitbrander?
+  Nee: er gebeurde iets veel saaiers, en veel hardnekkigers.
+  <span class="cue">Probeer het zelf en ontmasker de illusie.</span>
+</p>
+
+<div class="stats">
+  <div class="stat-card praised-card">
+    <div class="stat-title">🏆 geprezen groep (top 10)</div>
+    <div class="stat-vals">
+      <span class="before" id="praisedBefore">&ndash;</span>
+      <span class="arrow flat" id="praisedArrow">&middot;</span>
+      <span class="now" id="praisedNow">&ndash;</span>
+    </div>
+    <div class="stat-sub" id="praisedSub">klik &lsquo;Prijs de top 10&rsquo;</div>
+  </div>
+  <div class="stat-card class-card">
+    <div class="stat-title">Klasgemiddelde</div>
+    <div class="stat-vals">
+      <span class="now" id="classAvg">&ndash;</span>
+    </div>
+    <div class="stat-sub" id="classSub">100 leerlingen, score 0&ndash;10</div>
+  </div>
+  <div class="stat-card scolded-card">
+    <div class="stat-title">✗ Berispte groep (laagste 10)</div>
+    <div class="stat-vals">
+      <span class="before" id="scoldedBefore">&ndash;</span>
+      <span class="arrow flat" id="scoldedArrow">&middot;</span>
+      <span class="now" id="scoldedNow">&ndash;</span>
+    </div>
+    <div class="stat-sub" id="scoldedSub">klik &lsquo;Berisp de laagste 10&rsquo;</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="hist-card glass">
+    <div class="hist-head">
+      <span class="hist-title">De klas, gestapeld per score</span>
+      <span class="test-badge" id="testBadge">Toets 1</span>
+    </div>
+    <div id="histArea">
+      <div id="avgMarker"></div>
+    </div>
+    <div class="hist-legend">
+      <span><i class="ring praise"></i> geprezen (🏆)</span>
+      <span><i class="ring scold"></i> berispt (✗)</span>
+      <span>kleur = score (rood laag &rarr; groen hoog)</span>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="glass" style="padding:20px;">
+      <div class="btn-grid">
+        <div class="btn-row">
+          <button class="btn-praise" id="praiseBtn">🏆 Prijs de top 10</button>
+          <button class="btn-scold" id="scoldBtn">✗ Berisp de laagste 10</button>
+        </div>
+        <button class="btn-next" id="nextBtn">🎲 Volgende toets</button>
+        <div class="btn-row">
+          <button class="btn-auto" id="autoBtn">▶ Run 20 toetsen</button>
+          <button class="btn-reset" id="resetBtn">↺ Nieuwe klas</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass" style="padding:20px;">
+      <div class="control-head">
+        <span>Vaardigheid vs. geluk</span>
+        <span class="v" id="skillLabel">0% vaardigheid</span>
+      </div>
+      <input type="range" id="skillSlider" min="0" max="100" value="0">
+      <div class="slider-ends"><span>100% geluk</span><span>100% vaardigheid</span></div>
+      <div style="font-size:0.72rem;color:#64748b;margin-top:8px;">
+        score = vaardigheid &times; talent + geluk &times; toeval. Bij pure vaardigheid verdwijnt de regressie.
+      </div>
+    </div>
+
+    <div class="insight" id="insight"></div>
+
+    <div class="glass" id="chartCard" style="padding:18px;">
+      <div class="chart-title">Groepsgemiddelden per toets</div>
+      <svg id="chartSvg" viewBox="0 0 340 170" width="100%" style="display:block;">
+        <line x1="34" y1="14" x2="34" y2="146" stroke="rgba(148,163,184,0.25)" stroke-width="1"/>
+        <line x1="34" y1="146" x2="330" y2="146" stroke="rgba(148,163,184,0.25)" stroke-width="1"/>
+        <line x1="34" y1="80" x2="330" y2="80" stroke="rgba(148,163,184,0.12)" stroke-width="1"/>
+        <text x="28" y="150" font-size="9" fill="#64748b" text-anchor="end">0</text>
+        <text x="28" y="84" font-size="9" fill="#64748b" text-anchor="end">5</text>
+        <text x="28" y="19" font-size="9" fill="#64748b" text-anchor="end">10</text>
+        <text x="330" y="162" font-size="9" fill="#64748b" text-anchor="end">toets &#8594;</text>
+        <polyline id="meanLine" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4" points=""/>
+        <polyline id="praisedLine" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round" points=""/>
+        <polyline id="scoldedLine" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linejoin="round" points=""/>
+      </svg>
+      <div class="chart-legend">
+        <span><i class="line-swatch" style="background:#22c55e;"></i> geprezen</span>
+        <span><i class="line-swatch" style="background:#ef4444;"></i> berispt</span>
+        <span><i class="line-swatch" style="background:#94a3b8;"></i> klas</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Elke toetsscore is een mix van iets blijvends (<strong>talent</strong>) en iets vluchtigs
+    (<strong>toeval</strong>: de vragen die toevallig langskwamen, een goede of slechte dag).
+    Wie vandaag extreem hoog scoort, heeft bijna altijd niet alleen talent gehad, maar ook geluk.
+    Dat geluk dobbelt op de volgende toets opnieuw &mdash; en valt dan meestal gewoon gemiddeld uit.
+    De uitschieter zakt dus terug, de uitglijder veert op. Niet door jouw compliment of uitbrander,
+    maar door pure kansspreiding.
+  </p>
+  <p class="formula">
+    score = vaardigheid &times; talent + (1 &minus; vaardigheid) &times; toeval<br>
+    extreme score &asymp; talent <strong style="-webkit-text-fill-color:#a78bfa;">+ geluk</strong> &rarr; volgende keer: zonder dat geluk
+  </p>
+  <p>
+    Dit heet de <strong>&lsquo;Sports Illustrated-vloek&rsquo;</strong>: sporters die de cover halen, presteren
+    daarna &lsquo;opeens&rsquo; minder. Geen vloek &mdash; je haalt de cover juist in de week dat alles meezat.
+    Psycholoog Daniel Kahneman zag hetzelfde bij vlieginstructeurs: na een uitbrander vloog een cadet
+    beter, na een compliment slechter. De instructeurs concludeerden dat <em class="down">straffen werkt</em>
+    en <em class="up">prijzen verwent</em> &mdash; terwijl ze alleen maar regressie naar het gemiddelde zagen.
+    Kahneman noemde het een wrange les: het leven beloont ons schijnbaar voor streng zijn en straft ons voor vriendelijkheid.
+  </p>
+  <p>
+    De grootte van het effect hangt af van hoeveel toeval er in de meting zit. Schuif de vaardigheid omhoog en de
+    regressie smelt weg: bij een meting die puur talent meet, blijven de besten gewoon de besten. Daarom regresseert
+    een gokspel volledig, een schaaktoernooi nauwelijks &mdash; en zit bijna alles in het leven daar ergens tussenin.
+  </p>
+  <p>
+    Kortom: wie alleen na extreme uitkomsten ingrijpt, zal altijd &lsquo;bewijs&rsquo; vinden dat ingrijpen werkt.
+    De statistiek had het allang gedaan.
+  </p>
+</section>
+
+<script>
+  const N = 100;
+  const TOP_N = 10;
+  const MAX_SCORE = 10;
+
+  const histArea = document.getElementById('histArea');
+  const avgMarker = document.getElementById('avgMarker');
+  const testBadge = document.getElementById('testBadge');
+  const praisedBefore = document.getElementById('praisedBefore');
+  const praisedNow = document.getElementById('praisedNow');
+  const praisedArrow = document.getElementById('praisedArrow');
+  const praisedSub = document.getElementById('praisedSub');
+  const scoldedBefore = document.getElementById('scoldedBefore');
+  const scoldedNow = document.getElementById('scoldedNow');
+  const scoldedArrow = document.getElementById('scoldedArrow');
+  const scoldedSub = document.getElementById('scoldedSub');
+  const classAvgEl = document.getElementById('classAvg');
+  const praiseBtn = document.getElementById('praiseBtn');
+  const scoldBtn = document.getElementById('scoldBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const autoBtn = document.getElementById('autoBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const skillSlider = document.getElementById('skillSlider');
+  const skillLabel = document.getElementById('skillLabel');
+  const insight = document.getElementById('insight');
+  const chartCard = document.getElementById('chartCard');
+  const praisedLine = document.getElementById('praisedLine');
+  const scoldedLine = document.getElementById('scoldedLine');
+  const meanLine = document.getElementById('meanLine');
+
+  let students = [];
+  let praisedSet = [];
+  let scoldedSet = [];
+  let baselinePraised = null;
+  let baselineScolded = null;
+  let testNum = 1;
+  let history = [];          // [{p, s, m}] per toets vanaf het moment van selectie
+  let autoRunning = false;
+  let autoLeft = 0;
+  let autoTimer = null;
+  let axisLabels = [];
+
+  function skill() { return parseInt(skillSlider.value) / 100; }
+
+  // som van 10 muntworpen: 0..10, gemiddeld 5
+  function binom10() {
+    let s = 0;
+    for (let i = 0; i < 10; i++) if (Math.random() < 0.5) s++;
+    return s;
+  }
+
+  function fmt1(x) { return x.toFixed(1).replace('.', ','); }
+
+  function colorFor(score) {
+    const hue = (score / MAX_SCORE) * 130;   // 0 = rood, 130 = groen
+    return 'hsl(' + Math.round(hue) + ', 70%, 52%)';
+  }
+
+  function avg(group) {
+    if (!group.length) return 0;
+    return group.reduce((a, s) => a + s.score, 0) / group.length;
+  }
+
+  function classAvg() { return avg(students); }
+
+  function makeClass() {
+    students.forEach(s => s.el.remove());
+    students = [];
+    for (let i = 0; i < N; i++) {
+      const el = document.createElement('div');
+      el.className = 'student';
+      histArea.appendChild(el);
+      students.push({ talent: binom10(), luck: binom10(), score: 0, el });
+    }
+  }
+
+  function makeAxis() {
+    axisLabels = [];
+    for (let i = 0; i <= MAX_SCORE; i++) {
+      const l = document.createElement('div');
+      l.className = 'axis-label';
+      l.textContent = i;
+      histArea.appendChild(l);
+      axisLabels.push(l);
+    }
+  }
+
+  function computeScores() {
+    const k = skill();
+    for (const s of students) {
+      const raw = k * s.talent + (1 - k) * s.luck;
+      s.score = Math.max(0, Math.min(MAX_SCORE, Math.round(raw)));
+    }
+  }
+
+  function rollLuck() {
+    for (const s of students) s.luck = binom10();
+  }
+
+  function layout() {
+    const W = histArea.clientWidth;
+    const H = histArea.clientHeight;
+    const pad = 8;
+    const axisH = 24;
+    const colW = (W - 2 * pad) / (MAX_SCORE + 1);
+    const dot = window.innerWidth <= 720 ? 12 : 16;
+
+    const cols = Array.from({ length: MAX_SCORE + 1 }, () => []);
+    students.forEach(s => cols[s.score].push(s));
+    const maxStack = Math.max(1, ...cols.map(c => c.length));
+    const step = Math.min(dot + 2, (H - axisH - 14) / maxStack);
+
+    cols.forEach((col, sc) => {
+      const x = pad + (sc + 0.5) * colW;
+      col.forEach((s, j) => {
+        s.el.style.left = (x - dot / 2) + 'px';
+        s.el.style.top = (H - axisH - dot - j * step) + 'px';
+        s.el.style.width = dot + 'px';
+        s.el.style.height = dot + 'px';
+        s.el.style.background = colorFor(sc);
+      });
+    });
+
+    axisLabels.forEach((l, i) => {
+      l.style.left = (pad + (i + 0.5) * colW) + 'px';
+    });
+
+    avgMarker.style.left = (pad + (classAvg() + 0.5) * colW) + 'px';
+  }
+
+  function setArrow(arrowEl, delta, hasNewTest) {
+    arrowEl.classList.remove('drop', 'rise', 'flat');
+    if (!hasNewTest) {
+      arrowEl.classList.add('flat');
+      arrowEl.innerHTML = '&middot;';
+    } else if (delta < -0.05) {
+      arrowEl.classList.add('drop');
+      arrowEl.textContent = '▼';
+    } else if (delta > 0.05) {
+      arrowEl.classList.add('rise');
+      arrowEl.textContent = '▲';
+    } else {
+      arrowEl.classList.add('flat');
+      arrowEl.textContent = '▶';
+    }
+  }
+
+  function updateStats() {
+    testBadge.textContent = 'Toets ' + testNum;
+    classAvgEl.textContent = fmt1(classAvg());
+
+    const newTests = history.length > 1;
+
+    if (praisedSet.length) {
+      const now = avg(praisedSet);
+      praisedBefore.textContent = fmt1(baselinePraised);
+      praisedNow.textContent = fmt1(now);
+      const d = now - baselinePraised;
+      setArrow(praisedArrow, d, newTests);
+      praisedSub.textContent = newTests
+        ? (d <= -0.05 ? 'gezakt met ' + fmt1(-d) + ' punt' : d >= 0.05 ? 'gestegen met ' + fmt1(d) + ' punt' : 'vrijwel gelijk gebleven')
+        : 'bij selectie — wacht op de volgende toets';
+    } else {
+      praisedBefore.innerHTML = '&ndash;';
+      praisedNow.innerHTML = '&ndash;';
+      setArrow(praisedArrow, 0, false);
+      praisedSub.textContent = 'klik ‘Prijs de top 10’';
+    }
+
+    if (scoldedSet.length) {
+      const now = avg(scoldedSet);
+      scoldedBefore.textContent = fmt1(baselineScolded);
+      scoldedNow.textContent = fmt1(now);
+      const d = now - baselineScolded;
+      setArrow(scoldedArrow, d, newTests);
+      scoldedSub.textContent = newTests
+        ? (d >= 0.05 ? 'gestegen met ' + fmt1(d) + ' punt' : d <= -0.05 ? 'gezakt met ' + fmt1(-d) + ' punt' : 'vrijwel gelijk gebleven')
+        : 'bij selectie — wacht op de volgende toets';
+    } else {
+      scoldedBefore.innerHTML = '&ndash;';
+      scoldedNow.innerHTML = '&ndash;';
+      setArrow(scoldedArrow, 0, false);
+      scoldedSub.textContent = 'klik ‘Berisp de laagste 10’';
+    }
+  }
+
+  function showInsight(html) {
+    insight.innerHTML = html;
+    insight.classList.add('visible');
+  }
+
+  // --- selectie ---
+  function clearMarks() {
+    praisedSet.forEach(s => s.el.classList.remove('praised', 'pop'));
+    scoldedSet.forEach(s => s.el.classList.remove('scolded', 'pop'));
+    praisedSet = [];
+    scoldedSet = [];
+    baselinePraised = null;
+    baselineScolded = null;
+    history = [];
+    chartCard.classList.remove('visible');
+  }
+
+  function sortedByScore(desc) {
+    const jittered = students.map(s => ({ s, r: Math.random() }));
+    jittered.sort((a, b) => (desc ? b.s.score - a.s.score : a.s.score - b.s.score) || a.r - b.r);
+    return jittered.map(o => o.s);
+  }
+
+  function restartHistory() {
+    history = [snapshotEntry()];
+    drawChart();
+    chartCard.classList.add('visible');
+  }
+
+  function snapshotEntry() {
+    return {
+      p: praisedSet.length ? avg(praisedSet) : null,
+      s: scoldedSet.length ? avg(scoldedSet) : null,
+      m: classAvg()
+    };
+  }
+
+  function selectTop() {
+    praisedSet.forEach(s => s.el.classList.remove('praised', 'pop'));
+    const pool = sortedByScore(true).filter(s => !scoldedSet.includes(s));
+    praisedSet = pool.slice(0, TOP_N);
+    baselinePraised = avg(praisedSet);
+    praisedSet.forEach(s => {
+      s.el.classList.add('praised');
+      void s.el.offsetWidth;
+      s.el.classList.add('pop');
+    });
+    restartHistory();
+    updateStats();
+    if (scoldedSet.length) {
+      showInsight('Beide groepen zijn gemarkeerd: de toppers met <em class="up">🏆</em>, de achterblijvers met <em class="down">✗</em>. Druk op <strong>‘Volgende toets’</strong> en kijk wat er met hun gemiddelden gebeurt.');
+    } else {
+      showInsight('De top 10 glimt van trots. 🏆 Markeer eventueel ook de laagste 10, en druk dan op <strong>‘Volgende toets’</strong>.');
+    }
+  }
+
+  function selectBottom() {
+    scoldedSet.forEach(s => s.el.classList.remove('scolded', 'pop'));
+    const pool = sortedByScore(false).filter(s => !praisedSet.includes(s));
+    scoldedSet = pool.slice(0, TOP_N);
+    baselineScolded = avg(scoldedSet);
+    scoldedSet.forEach(s => {
+      s.el.classList.add('scolded');
+      void s.el.offsetWidth;
+      s.el.classList.add('pop');
+    });
+    restartHistory();
+    updateStats();
+    if (praisedSet.length) {
+      showInsight('Beide groepen zijn gemarkeerd: de toppers met <em class="up">🏆</em>, de achterblijvers met <em class="down">✗</em>. Druk op <strong>‘Volgende toets’</strong> en kijk wat er met hun gemiddelden gebeurt.');
+    } else {
+      showInsight('De laagste 10 zijn streng toegesproken. ✗ Markeer eventueel ook de top 10, en druk dan op <strong>‘Volgende toets’</strong>.');
+    }
+  }
+
+  // --- volgende toets ---
+  function nextTest() {
+    testNum++;
+    rollLuck();
+    computeScores();
+    layout();
+    if (praisedSet.length || scoldedSet.length) {
+      history.push(snapshotEntry());
+      drawChart();
+    }
+    updateStats();
+    insightAfterTest();
+  }
+
+  function insightAfterTest() {
+    const k = skill();
+    if (!praisedSet.length && !scoldedSet.length) {
+      showInsight('De klas heeft opnieuw gedobbeld &mdash; maar zonder gemarkeerde groepen valt er niets te vergelijken. <strong>Prijs eerst de top 10</strong> en/of <strong>berisp de laagste 10</strong>.');
+      return;
+    }
+    const parts = [];
+    if (praisedSet.length) {
+      const d = avg(praisedSet) - baselinePraised;
+      parts.push('de geprezen groep ging van <strong>' + fmt1(baselinePraised) + '</strong> naar <em class="' + (d < 0 ? 'down' : 'up') + '">' + fmt1(avg(praisedSet)) + '</em>');
+    }
+    if (scoldedSet.length) {
+      const d = avg(scoldedSet) - baselineScolded;
+      parts.push('de berispte groep van <strong>' + fmt1(baselineScolded) + '</strong> naar <em class="' + (d > 0 ? 'up' : 'down') + '">' + fmt1(avg(scoldedSet)) + '</em>');
+    }
+    let html = parts.join(', ') + ' &mdash; terwijl het klasgemiddelde rond <strong>' + fmt1(classAvg()) + '</strong> blijft hangen. ';
+    if (k >= 0.75) {
+      html += 'Met <strong>' + Math.round(k * 100) + '% vaardigheid</strong> in de meting is er weinig toeval om uit te middelen: de toppers blìjven toppers. De regressie is bijna verdwenen.';
+    } else if (k >= 0.4) {
+      html += 'Een deel van de extreme scores was talent, een deel geluk &mdash; dus de groepen schuiven gedeeltelijk terug naar het midden.';
+    } else {
+      html += 'Dit is de illusie van de instructeur: <em class="down">straffen lijkt te werken</em>, <em class="up">prijzen lijkt averechts</em> &mdash; puur door kansspreiding. Er is niemand veranderd; alleen het geluk heeft opnieuw gedobbeld.';
+    }
+    showInsight(html);
+  }
+
+  // --- grafiek ---
+  function drawChart() {
+    const x0 = 34, x1 = 330, y0 = 146, y1 = 14;
+    const n = history.length;
+    const denom = Math.max(n - 1, 1);
+    function pt(i, v) {
+      const x = x0 + (i / denom) * (x1 - x0);
+      const y = y0 - (v / MAX_SCORE) * (y0 - y1);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }
+    praisedLine.setAttribute('points', history.map((h, i) => h.p === null ? '' : pt(i, h.p)).filter(Boolean).join(' '));
+    scoldedLine.setAttribute('points', history.map((h, i) => h.s === null ? '' : pt(i, h.s)).filter(Boolean).join(' '));
+    meanLine.setAttribute('points', history.map((h, i) => pt(i, h.m)).join(' '));
+  }
+
+  // --- auto-modus: 20 toetsen ---
+  function stopAuto(finished) {
+    autoRunning = false;
+    if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+    autoBtn.textContent = '▶ Run 20 toetsen';
+    praiseBtn.disabled = false;
+    scoldBtn.disabled = false;
+    nextBtn.disabled = false;
+    resetBtn.disabled = false;
+    skillSlider.disabled = false;
+    if (finished) {
+      const k = skill();
+      if (k >= 0.75) {
+        showInsight('Twintig toetsen later: de lijnen blijven netjes uit elkaar. Bij een meting die vooral <strong>talent</strong> meet, is er nauwelijks regressie &mdash; de besten waren écht de besten. Schuif de vaardigheid omlaag en run opnieuw voor het contrast.');
+      } else {
+        showInsight('Twintig toetsen later is het patroon onmiskenbaar: beide lijnen klappen direct naar het klasgemiddelde en blijven daar trillen. Dit is geen toevalstreffer maar een wetmatigheid &mdash; dezelfde die de <strong>‘Sports Illustrated-vloek’</strong> verklaart en die Kahnemans vlieginstructeurs deed geloven dat schreeuwen werkt.');
+      }
+    }
+  }
+
+  function startAuto() {
+    if (!praisedSet.length) selectTop();
+    if (!scoldedSet.length) selectBottom();
+    autoRunning = true;
+    autoLeft = 20;
+    autoBtn.textContent = '⏹ Stop';
+    praiseBtn.disabled = true;
+    scoldBtn.disabled = true;
+    nextBtn.disabled = true;
+    resetBtn.disabled = true;
+    skillSlider.disabled = true;
+    showInsight('We draaien <strong>20 toetsen</strong> achter elkaar. Let op de grafiek: kijk hoe beide groepslijnen naar het klasgemiddelde kruipen — elke keer weer.');
+    const tick = () => {
+      if (!autoRunning) return;
+      nextTest();
+      autoLeft--;
+      if (autoLeft <= 0) {
+        stopAuto(true);
+      } else {
+        autoTimer = setTimeout(tick, 360);
+      }
+    };
+    autoTimer = setTimeout(tick, 500);
+  }
+
+  // --- events ---
+  praiseBtn.onclick = selectTop;
+  scoldBtn.onclick = selectBottom;
+  nextBtn.onclick = nextTest;
+  autoBtn.onclick = () => { autoRunning ? stopAuto(false) : startAuto(); };
+
+  resetBtn.onclick = () => {
+    clearMarks();
+    testNum = 1;
+    makeClass();
+    computeScores();
+    layout();
+    updateStats();
+    showInsight('Een verse klas van 100 leerlingen heeft toets 1 gemaakt. <strong>Prijs de besten, berisp de zwaksten</strong> &mdash; en kijk wat de volgende toets doet.');
+  };
+
+  skillSlider.oninput = () => {
+    const k = skill();
+    skillLabel.textContent = Math.round(k * 100) + '% vaardigheid';
+    clearMarks();
+    computeScores();
+    layout();
+    updateStats();
+    if (k >= 0.75) {
+      showInsight('De toets meet nu vooral <strong>talent</strong>. Markeer de top en de laagste 10 en zie: hun scores blijven nu hangen waar ze zijn &mdash; regressie heeft toeval nodig.');
+    } else if (k === 0) {
+      showInsight('De score is nu <strong>puur geluk</strong> (10 muntworpen per leerling). Elke uitschieter is dus 100% toeval &mdash; perfecte regressie gegarandeerd.');
+    } else {
+      showInsight('De score is nu een mix: <strong>' + Math.round(k * 100) + '% talent</strong>, ' + Math.round((1 - k) * 100) + '% toeval. Hoe meer toeval, hoe harder extreme groepen terugveren.');
+    }
+  };
+
+  window.addEventListener('resize', layout);
+
+  // --- init ---
+  makeClass();
+  makeAxis();
+  computeScores();
+  // eerste layout zonder vlieg-animatie: posities direct zetten
+  students.forEach(s => s.el.style.transition = 'none');
+  layout();
+  requestAnimationFrame(() => {
+    students.forEach(s => s.el.style.transition = '');
+  });
+  updateStats();
+  showInsight('Dit is <strong>toets 1</strong>: de scores van 100 leerlingen, hier puur op geluk (10 muntworpen elk). Prijs de besten, berisp de zwaksten &mdash; en kijk wat er op de volgende toets gebeurt.');
+</script>
+</body>
+</html>

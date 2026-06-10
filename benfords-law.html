@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De wet van Benford</title>
+  <style>
+    :root {
+      --bg-color: #0c0e1a;
+      --accent-color: #a78bfa;
+      --accent-2: #2dd4bf;
+      --benford-line: #fbbf24;
+      --good-color: #34d399;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --text-muted: #6b7280;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 25%, rgba(167,139,250,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 20%, rgba(45,212,191,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 95%, rgba(251,191,36,0.05) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 48px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-left: 3px solid var(--accent-color);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .intro strong { color: #fff; }
+
+    /* Dataset chips */
+    .chips {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1080px;
+      margin-bottom: 24px;
+    }
+    .chip {
+      background: rgba(148, 163, 184, 0.1);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #cbd5e1;
+      padding: 10px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.25s;
+    }
+    .chip:hover { background: rgba(167, 139, 250, 0.15); border-color: rgba(167, 139, 250, 0.4); transform: translateY(-1px); }
+    .chip.active {
+      background: linear-gradient(135deg, rgba(167,139,250,0.3), rgba(45,212,191,0.2));
+      border-color: rgba(167, 139, 250, 0.6);
+      color: #fff;
+      box-shadow: 0 0 18px rgba(167,139,250,0.35);
+    }
+    .chip.fraud.active {
+      background: linear-gradient(135deg, rgba(239,68,68,0.32), rgba(245,158,11,0.18));
+      border-color: rgba(239, 68, 68, 0.6);
+      box-shadow: 0 0 18px rgba(239,68,68,0.4);
+    }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    /* Chart card */
+    .chart-card { flex: 1 1 560px; min-width: 320px; display: flex; flex-direction: column; }
+    .card-title {
+      font-size: 0.75rem;
+      margin-bottom: 14px;
+      color: #94a3b8;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .count-pill {
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+      color: #94a3b8;
+      text-transform: none;
+      letter-spacing: 0.5px;
+    }
+
+    .chart-wrap { position: relative; flex: 1; }
+    .chart {
+      position: relative;
+      display: flex;
+      height: 270px;
+      align-items: flex-end;
+      border-bottom: 2px solid rgba(148,163,184,0.25);
+      background: rgba(10, 12, 24, 0.55);
+      border-radius: 10px 10px 0 0;
+      padding: 26px 6px 0;
+    }
+    .bar-col {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      cursor: default;
+    }
+    .bar {
+      position: relative;
+      width: 64%;
+      height: 0%;
+      border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, #a78bfa, #7c5fd8);
+      box-shadow: 0 0 14px rgba(167,139,250,0.35);
+      transition: height 0.8s cubic-bezier(0.22, 1.2, 0.36, 1), background 0.5s, box-shadow 0.5s;
+    }
+    .bar.deviant {
+      background: linear-gradient(180deg, #f87171, #dc2626);
+      box-shadow: 0 0 16px rgba(239,68,68,0.5);
+    }
+    .bar-pct {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+    .overlay {
+      position: absolute;
+      left: 6px; right: 6px; top: 26px; bottom: 0;
+      width: calc(100% - 12px);
+      height: calc(100% - 26px);
+      pointer-events: none;
+      overflow: visible;
+    }
+    .benford-line {
+      fill: none;
+      stroke: var(--benford-line);
+      stroke-width: 2;
+      stroke-dasharray: 6 5;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 0 5px rgba(251,191,36,0.5));
+    }
+    .benford-tick {
+      stroke: var(--benford-line);
+      stroke-width: 3;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 0 4px rgba(251,191,36,0.7));
+    }
+    .digit-row { display: flex; padding: 8px 6px 0; }
+    .digit-label { flex: 1; text-align: center; font-size: 0.95rem; font-weight: 700; color: #94a3b8; }
+
+    .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 14px; font-size: 0.72rem; color: #94a3b8; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 16px; height: 5px; border-radius: 2px; display: inline-block; }
+    .legend-dash { width: 16px; height: 0; border-top: 2px dashed var(--benford-line); display: inline-block; }
+
+    .samples-line {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.6;
+      min-height: 1.5em;
+    }
+    .samples-line .sample { color: #c4b5fd; font-variant-numeric: tabular-nums; }
+
+    /* Gauge card */
+    .gauge-card { flex: 1 1 320px; min-width: 300px; display: flex; flex-direction: column; align-items: center; }
+    .gauge-svg { width: 100%; max-width: 300px; height: auto; margin-top: 8px; overflow: visible; }
+    .gauge-needle {
+      transform-origin: 100px 100px;
+      transition: transform 1.1s cubic-bezier(0.34, 1.4, 0.5, 1);
+    }
+    .gauge-scale-label { fill: var(--text-muted); font-size: 9px; }
+    .gauge-verdict {
+      margin-top: 14px;
+      padding: 8px 22px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 1.02rem;
+      letter-spacing: 0.5px;
+      transition: all 0.5s;
+      text-align: center;
+    }
+    .gauge-verdict.good { background: rgba(52,211,153,0.12); color: var(--good-color); border: 1px solid rgba(52,211,153,0.4); }
+    .gauge-verdict.warning { background: rgba(245,158,11,0.12); color: var(--warning-color); border: 1px solid rgba(245,158,11,0.4); }
+    .gauge-verdict.danger {
+      background: rgba(239,68,68,0.14); color: #fca5a5; border: 1px solid rgba(239,68,68,0.5);
+      animation: pulse-glow 1.1s ease-in-out infinite;
+    }
+    .gauge-score {
+      margin-top: 12px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+    }
+    .gauge-score .num { color: #e2e8f0; font-weight: 700; }
+    .gauge-note { margin-top: 14px; font-size: 0.78rem; color: var(--text-muted); text-align: center; line-height: 1.55; }
+
+    /* Insight callout */
+    .insight {
+      margin-top: 22px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      background: rgba(167, 139, 250, 0.07);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      max-width: 1080px;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s, border-color 0.4s, background 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight.hot { background: rgba(239, 68, 68, 0.08); border-left-color: var(--danger-color); }
+    .insight strong { color: #fff; }
+
+    /* Intuition section */
+    .section-title {
+      margin: 44px 0 6px;
+      font-size: 1.45rem;
+      text-align: center;
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 800;
+    }
+    .section-sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 22px; text-align: center; max-width: 640px; }
+
+    .intuition-card { flex: 1 1 460px; min-width: 320px; display: flex; flex-direction: column; }
+    .logstrip-svg { width: 100%; height: auto; margin-top: 6px; }
+    .strip-caption { margin-top: 12px; font-size: 0.82rem; color: #94a3b8; line-height: 1.55; }
+    .strip-caption strong { color: #fff; }
+
+    /* Growing counter */
+    .counter-display {
+      font-size: 1.9rem;
+      font-weight: 800;
+      text-align: center;
+      margin: 10px 0 4px;
+      font-variant-numeric: tabular-nums;
+      color: #e2e8f0;
+      min-height: 1.3em;
+      line-height: 1.3;
+    }
+    .counter-display .lead-digit { color: var(--accent-2); text-shadow: 0 0 14px rgba(45,212,191,0.6); }
+    .counter-sub { text-align: center; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 14px; min-height: 1.2em; }
+    .tally {
+      display: flex;
+      height: 130px;
+      align-items: flex-end;
+      gap: 6px;
+      border-bottom: 1px solid rgba(148,163,184,0.25);
+      padding: 0 4px;
+    }
+    .tally-col { flex: 1; height: 100%; position: relative; display: flex; align-items: flex-end; }
+    .tally-bar {
+      width: 100%;
+      height: 0%;
+      min-height: 2px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, #2dd4bf, #14b8a6);
+      box-shadow: 0 0 10px rgba(45,212,191,0.3);
+      transition: height 0.25s ease-out;
+    }
+    .tally-expected {
+      position: absolute;
+      left: -2px; right: -2px;
+      height: 0;
+      border-top: 2px dashed var(--benford-line);
+      opacity: 0.8;
+      pointer-events: none;
+    }
+    .tally-digits { display: flex; gap: 6px; padding: 6px 4px 0; }
+    .tally-digit { flex: 1; text-align: center; font-size: 0.78rem; font-weight: 700; color: #94a3b8; }
+    .counter-controls { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+    button {
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf);
+      color: #0c0e1a; border: none;
+      padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.92rem;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
+      box-shadow: 0 4px 14px rgba(167,139,250,0.35);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(45,212,191,0.45); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #cbd5e1;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 16px rgba(239, 68, 68, 0.2); }
+      50% { box-shadow: 0 0 36px rgba(239, 68, 68, 0.45); }
+    }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 560px;
+      width: 100%;
+      margin: 44px auto 0;
+      padding: 24px 26px;
+      border-radius: 16px;
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 3px solid transparent;
+      border-image: linear-gradient(135deg, #a78bfa, #2dd4bf, #fbbf24) 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .explainer h2 {
+      font-size: 1.4rem;
+      margin: 0 0 14px;
+      text-align: center;
+      background: linear-gradient(135deg, #a78bfa, #2dd4bf, #fbbf24);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p { margin: 0 0 14px; }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer strong { color: #fff; }
+    .explainer .accent { color: var(--accent-2); font-weight: 700; }
+    .explainer code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.88em;
+      background: rgba(167, 139, 250, 0.12);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: #ddd6fe;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+
+<h1>De wet van Benford</h1>
+<p class="subtitle">Het eerste cijfer liegt nooit — een leugendetector voor getallen</p>
+
+<p class="intro">Pak een willekeurige verzameling échte getallen — bevolkingsaantallen, rekeningen, rivierlengtes — en kijk alleen naar het <strong>eerste cijfer</strong>. Intuïtie zegt: elk cijfer van 1 t/m 9 komt ongeveer even vaak voor, zo'n 11%. De werkelijkheid is bizar scheef: ruim <strong>30%</strong> begint met een 1, en nog geen <strong>5%</strong> met een 9. Wissel hieronder tussen datasets en ontdek waarom forensisch accountants hiermee fraudeurs vangen.</p>
+
+<div class="chips" id="chips"></div>
+
+<div class="layout">
+  <div class="chart-card glass">
+    <div class="card-title">
+      <span>Verdeling van het eerste cijfer</span>
+      <span class="count-pill" id="countPill">—</span>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart" id="chart"></div>
+      <svg class="overlay" id="overlay" viewBox="0 0 360 100" preserveAspectRatio="none">
+        <polyline class="benford-line" id="benfordLine" points=""></polyline>
+        <g id="benfordTicks"></g>
+      </svg>
+      <div class="digit-row" id="digitRow"></div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(90deg,#a78bfa,#7c5fd8)"></span>Waargenomen in de data</div>
+      <div class="legend-item"><span class="legend-dash"></span>Benford-verwachting: log₁₀(1 + 1/d)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:linear-gradient(90deg,#f87171,#dc2626)"></span>Sterke afwijking</div>
+    </div>
+    <div class="samples-line" id="samplesLine"></div>
+  </div>
+
+  <div class="gauge-card glass">
+    <div class="card-title"><span>Fraudemeter</span></div>
+    <svg class="gauge-svg" id="gaugeSvg" viewBox="0 0 200 118">
+      <g id="gaugeArcs"></g>
+      <text class="gauge-scale-label" x="14" y="114" text-anchor="middle">past bij Benford</text>
+      <text class="gauge-scale-label" x="186" y="114" text-anchor="middle">verdacht!</text>
+      <g class="gauge-needle" id="gaugeNeedle">
+        <line x1="100" y1="100" x2="100" y2="32" stroke="#e2e8f0" stroke-width="3.5" stroke-linecap="round"
+              style="filter: drop-shadow(0 0 6px rgba(226,232,240,0.6))"/>
+      </g>
+      <circle cx="100" cy="100" r="7" fill="#e2e8f0"/>
+      <circle cx="100" cy="100" r="3" fill="#0c0e1a"/>
+    </svg>
+    <div class="gauge-verdict good" id="gaugeVerdict">—</div>
+    <div class="gauge-score" id="gaugeScore"></div>
+    <div class="gauge-note">De meter telt per cijfer het kwadratische verschil tussen wat we zien en wat Benford voorspelt (een χ²-score). Hoe verder de naald uitslaat, hoe onwaarschijnlijker dat de data "natuurlijk" is.</div>
+  </div>
+</div>
+
+<div id="insight" class="insight"></div>
+
+<h2 class="section-title">Waarom wint het cijfer 1?</h2>
+<p class="section-sub">Benford gaat over dingen die <em>procentueel</em> groeien. Wie van 1 naar 2 wil moet +100% groeien; van 9 naar 10 is maar +11%. Alles wat groeit, hangt dus veel langer rond in de "1"-zone.</p>
+
+<div class="layout">
+  <div class="intuition-card glass">
+    <div class="card-title"><span>De getallenlijn op logschaal</span></div>
+    <svg class="logstrip-svg" id="logStrip" viewBox="0 0 700 92"></svg>
+    <p class="strip-caption">Dit is de afstand van 1 tot 10 op een <strong>logaritmische schaal</strong> — de natuurlijke schaal van procentuele groei. De zone waarin een getal met <strong>1</strong> begint is veruit het breedst (30,1%), de "9"-zone is een smal randje (4,6%). Een groeiend getal landt dus veel vaker in de brede zones. Precies die breedtes zijn de wet van Benford.</p>
+  </div>
+
+  <div class="intuition-card glass">
+    <div class="card-title"><span>Zie het live gebeuren: +5% per tik</span></div>
+    <div class="counter-display" id="counterDisplay"><span class="lead-digit">1</span>,00</div>
+    <div class="counter-sub" id="counterSub">Druk op start — het getal groeit elke tik 5% en we turven het eerste cijfer.</div>
+    <div class="tally" id="tally"></div>
+    <div class="tally-digits" id="tallyDigits"></div>
+    <div class="counter-controls">
+      <button id="counterBtn">▶ Start groeiteller</button>
+      <button id="counterResetBtn" class="secondary">Reset</button>
+    </div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>Onze intuïtie zegt: negen mogelijke begincijfers, dus elk <strong>±11,1%</strong>. Maar natuurlijke data — bedragen, populaties, bestandsgroottes — ontstaat door <strong>vermenigvuldiging</strong>: groei, rente, prijzen × aantallen. Op een logaritmische schaal is zulke data gelijkmatig uitgesmeerd, en op die schaal is de "1"-zone simpelweg het breedst. Daarom geldt: kans op begincijfer <code>d</code> = <code>log₁₀(1 + 1/d)</code> — van <span class="accent">30,1%</span> voor de 1 tot <span class="accent">4,6%</span> voor de 9.</p>
+  <p>Het mooiste bewijs zag je hierboven: <strong>machten van 2</strong> en <strong>Fibonacci-getallen</strong> hebben niets met geld of mensen te maken, maar groeien met een vaste factor — en volgen de curve perfect. De wet is zelfs <strong>schaal-onafhankelijk</strong>: reken bevolkingen om van personen naar dozijnen of euro's naar yen, en de verdeling blijft staan. Geen enkele andere verdeling heeft die eigenschap.</p>
+  <p>En de fraude? Wie cijfers <strong>verzint</strong>, denkt "willekeurig" te zijn en spreidt de begincijfers ongeveer gelijk — met een voorliefde voor 5'en en ronde bedragen. Tegen de logaritmische curve valt dat meteen op. <strong>Belastingdiensten en forensisch accountants gebruiken dit echt</strong>: de boekhouding van grote fraudezaken (zoals Enron) week meetbaar af van Benford, en een χ²-toets op begincijfers is een standaard eerste scan bij verdachte administraties.</p>
+  <p>Kort samengevat: echte getallen groeien, en groei is procentueel — dus hangt alles lang rond bij de 1. Verzonnen getallen komen uit een mensenhoofd, en mensenhoofden denken lineair. <span class="accent">Dat verschil is meetbaar.</span></p>
+</section>
+
+<script>
+  // ---------- Elements ----------
+  const chipsEl = document.getElementById('chips');
+  const chartEl = document.getElementById('chart');
+  const digitRowEl = document.getElementById('digitRow');
+  const benfordLineEl = document.getElementById('benfordLine');
+  const benfordTicksEl = document.getElementById('benfordTicks');
+  const countPill = document.getElementById('countPill');
+  const samplesLine = document.getElementById('samplesLine');
+  const gaugeArcs = document.getElementById('gaugeArcs');
+  const gaugeNeedle = document.getElementById('gaugeNeedle');
+  const gaugeVerdict = document.getElementById('gaugeVerdict');
+  const gaugeScore = document.getElementById('gaugeScore');
+  const insightEl = document.getElementById('insight');
+  const logStripEl = document.getElementById('logStrip');
+  const counterDisplay = document.getElementById('counterDisplay');
+  const counterSub = document.getElementById('counterSub');
+  const tallyEl = document.getElementById('tally');
+  const tallyDigitsEl = document.getElementById('tallyDigits');
+  const counterBtn = document.getElementById('counterBtn');
+  const counterResetBtn = document.getElementById('counterResetBtn');
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // ---------- Benford theory ----------
+  const BENFORD = []; // index 0 => digit 1
+  for (let d = 1; d <= 9; d++) BENFORD.push(Math.log10(1 + 1 / d));
+  const MAX_PCT = 0.36; // vertical scale of the chart (36%)
+
+  // ---------- Helpers ----------
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  function firstDigitOfNumber(x) {
+    if (!isFinite(x) || x <= 0) return null;
+    while (x >= 10) x /= 10;
+    while (x < 1) x *= 10;
+    return Math.floor(x);
+  }
+
+  function nlNum(x, dec) {
+    return x.toFixed(dec).replace('.', ',');
+  }
+
+  function formatPop(n) {
+    if (n >= 1e9) return nlNum(n / 1e9, 2) + ' miljard';
+    if (n >= 1e6) return nlNum(n / 1e6, 1) + ' miljoen';
+    if (n >= 1e3) return Math.round(n / 1e3) + ' duizend';
+    return String(n);
+  }
+
+  function formatEuro(x) {
+    return '€ ' + x.toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ---------- Embedded data: world populations per country (approx. 2023) ----------
+  const COUNTRIES = [
+    ["India",1428627663],["China",1425671352],["Verenigde Staten",339996563],["Indonesië",277534122],
+    ["Pakistan",240485658],["Nigeria",223804632],["Brazilië",216422446],["Bangladesh",172954319],
+    ["Rusland",144444359],["Mexico",128455567],["Ethiopië",126527060],["Japan",123294513],
+    ["Filipijnen",117337368],["Egypte",112716598],["DR Congo",102262808],["Vietnam",98858950],
+    ["Iran",89172767],["Turkije",85816199],["Duitsland",83294633],["Thailand",71801279],
+    ["Verenigd Koninkrijk",67736802],["Tanzania",67438106],["Frankrijk",64756584],["Zuid-Afrika",60414495],
+    ["Italië",58870762],["Kenia",55100586],["Myanmar",54577997],["Colombia",52085168],
+    ["Zuid-Korea",51784059],["Oeganda",48582334],["Soedan",48109006],["Spanje",47519628],
+    ["Argentinië",45773884],["Algerije",45606480],["Irak",45504560],["Afghanistan",42239854],
+    ["Canada",38781291],["Marokko",37840044],["Polen",37654247],["Saoedi-Arabië",36947025],
+    ["Oekraïne",36744634],["Angola",36684202],["Oezbekistan",35163944],["Jemen",34449825],
+    ["Peru",34352719],["Maleisië",34308525],["Ghana",34121985],["Mozambique",33897354],
+    ["Nepal",30896590],["Madagaskar",30325732],["Ivoorkust",28873034],["Venezuela",28838499],
+    ["Kameroen",28647293],["Niger",27202843],["Australië",26439111],["Noord-Korea",26160821],
+    ["Taiwan",23923276],["Mali",23293698],["Burkina Faso",23251485],["Syrië",23227014],
+    ["Sri Lanka",21893579],["Malawi",20931751],["Zambia",20569737],["Roemenië",19892812],
+    ["Chili",19629590],["Kazachstan",19606633],["Tsjaad",18278568],["Ecuador",18190484],
+    ["Somalië",18143378],["Guatemala",18092026],["Senegal",17763163],["Nederland",17618299],
+    ["Cambodja",16944826],["Zimbabwe",16665409],["Guinee",14190612],["Rwanda",14094683],
+    ["Benin",13712828],["Burundi",13238559],["Tunesië",12458223],["Bolivia",12388571],
+    ["Haïti",11724763],["België",11686140],["Jordanië",11337052],["Dominicaanse Republiek",11332972],
+    ["Cuba",11194449],["Zuid-Soedan",11088796],["Zweden",10612086],["Honduras",10593798],
+    ["Tsjechië",10495295],["Azerbeidzjan",10412651],["Griekenland",10341277],["Papoea-Nieuw-Guinea",10329931],
+    ["Portugal",10247605],["Tadzjikistan",10143543],["Hongarije",9604000],["Verenigde Arabische Emiraten",9516871],
+    ["Wit-Rusland",9498238],["Israël",9174520],["Togo",9053799],["Oostenrijk",8958960],
+    ["Zwitserland",8796669],["Sierra Leone",8791092],["Laos",7633779],["Hongkong",7491609],
+    ["Servië",7149077],["Nicaragua",7046310],["Libië",6888388],["Paraguay",6861524],
+    ["Kirgizië",6735347],["Bulgarije",6687717],["Turkmenistan",6516100],["El Salvador",6364943],
+    ["Congo-Brazzaville",6106869],["Singapore",6014723],["Denemarken",5910913],["Slowakije",5795199],
+    ["Centraal-Afrikaanse Republiek",5742315],["Finland",5545475],["Libanon",5489739],["Noorwegen",5474360],
+    ["Liberia",5418377],["Palestina",5371230],["Nieuw-Zeeland",5228100],["Costa Rica",5212173],
+    ["Ierland",5056935],["Mauritanië",4862989],["Oman",4644384],["Panama",4468087],
+    ["Koeweit",4310108],["Kroatië",4008617],["Eritrea",3748901],["Georgië",3728282],
+    ["Mongolië",3447157],["Moldavië",3435931],["Uruguay",3423108],["Bosnië en Herzegovina",3210847],
+    ["Albanië",2832439],["Jamaica",2825544],["Armenië",2777970],["Gambia",2773168],
+    ["Litouwen",2718352],["Qatar",2716391],["Botswana",2675352],["Namibië",2604172],
+    ["Gabon",2436566],["Lesotho",2330318],["Guinee-Bissau",2150842],["Slovenië",2119675],
+    ["Noord-Macedonië",2085679],["Letland",1830211],["Equatoriaal-Guinea",1714671],["Trinidad en Tobago",1534937],
+    ["Bahrein",1485509],["Oost-Timor",1360596],["Estland",1322765],["Mauritius",1300557],
+    ["Cyprus",1260138],["Eswatini",1210822],["Djibouti",1136455],["Fiji",936375],
+    ["Comoren",852075],["Guyana",813834],["Bhutan",787424],["Salomonseilanden",740424],
+    ["Luxemburg",654768],["Montenegro",626485],["Suriname",623236],["Kaapverdië",598682],
+    ["Malta",535064],["Maldiven",521021],["Brunei",452524],["Bahama's",412623],
+    ["Belize",410825],["IJsland",375318],["Vanuatu",334506],["Barbados",281995],
+    ["Sao Tomé en Principe",231856],["Samoa",225681],["Saint Lucia",180251],["Kiribati",133515],
+    ["Grenada",126183],["Micronesia",115224],["Tonga",107773],["Seychellen",107660],
+    ["Saint Vincent en de Grenadines",103698],["Antigua en Barbuda",94298],["Andorra",80088],
+    ["Dominica",73040],["Saint Kitts en Nevis",47755],["Marshalleilanden",41996],["Liechtenstein",39584],
+    ["Monaco",36297],["San Marino",33642],["Palau",18058],["Nauru",12780],["Tuvalu",11396]
+  ];
+
+  // ---------- Dataset builders (all local — no network) ----------
+  function buildPopulationDigits() {
+    return COUNTRIES.map(c => firstDigitOfNumber(c[1]));
+  }
+
+  function buildPowersOf2() {
+    // leading digit of 2^k via the fractional part of k·log10(2)
+    const LOG2 = Math.log10(2);
+    const digits = [];
+    for (let k = 1; k <= 300; k++) {
+      const frac = (k * LOG2) % 1;
+      digits.push(Math.floor(Math.pow(10, frac)));
+    }
+    return digits;
+  }
+
+  function powerOf2Sample(k) {
+    const LOG2 = Math.log10(2);
+    const exp = Math.floor(k * LOG2);
+    const mant = Math.pow(10, (k * LOG2) % 1);
+    return '2^' + k + ' ≈ ' + nlNum(mant, 1) + '·10^' + exp;
+  }
+
+  const fibSamples = [];
+  function buildFibonacci() {
+    // 300 terms with BigInt: exact leading digit
+    const digits = [];
+    let a = 1n, b = 1n;
+    for (let i = 1; i <= 300; i++) {
+      const s = a.toString();
+      digits.push(Number(s[0]));
+      if (i === 25 || i === 100 || i === 250) {
+        fibSamples.push('F(' + i + ') = ' + (s.length > 14 ? s[0] + ',' + s.slice(1, 3) + '·10^' + (s.length - 1) : Number(s).toLocaleString('nl-NL')));
+      }
+      const next = a + b;
+      a = b; b = next;
+    }
+    return digits;
+  }
+
+  const expenseValues = [];
+  function buildExpenses() {
+    // realistic multiplicative (log-normal) expense amounts — Benford-conform
+    const rnd = mulberry32(20240613);
+    const digits = [];
+    for (let i = 0; i < 500; i++) {
+      // Box-Muller
+      const u1 = Math.max(rnd(), 1e-12), u2 = rnd();
+      const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      const amount = Math.round(Math.exp(5.5 + 1.9 * z) * 100) / 100;
+      if (amount < 0.01) { i--; continue; }
+      expenseValues.push(amount);
+      digits.push(firstDigitOfNumber(amount));
+    }
+    return digits;
+  }
+
+  const fraudValues = [];
+  function buildFraud() {
+    // "human-invented" numbers: near-uniform first digits, overuse of 5 and round amounts
+    const rnd = mulberry32(7771234);
+    const digitWeights = [0.09, 0.08, 0.08, 0.09, 0.22, 0.10, 0.13, 0.11, 0.10]; // digit 1..9
+    const secondDigits = [0, 0, 0, 5, 5, 0, 2, 7, 9, 4]; // loves 0 and 5
+    const digits = [];
+    for (let i = 0; i < 500; i++) {
+      let r = rnd(), d = 9;
+      for (let j = 0; j < 9; j++) { r -= digitWeights[j]; if (r <= 0) { d = j + 1; break; } }
+      const s = secondDigits[Math.floor(rnd() * secondDigits.length)];
+      const pow = Math.pow(10, 1 + Math.floor(rnd() * 4)); // 10 .. 10.000
+      const amount = (d * 10 + s) * pow / 10;
+      fraudValues.push(amount);
+      digits.push(d);
+    }
+    return digits;
+  }
+
+  // ---------- Assemble datasets ----------
+  function countDigits(digits) {
+    const counts = new Array(9).fill(0);
+    digits.forEach(d => { if (d >= 1 && d <= 9) counts[d - 1]++; });
+    return counts;
+  }
+
+  function chiSquare(counts, n) {
+    let chi2 = 0;
+    for (let i = 0; i < 9; i++) {
+      const e = n * BENFORD[i];
+      chi2 += (counts[i] - e) * (counts[i] - e) / e;
+    }
+    return chi2;
+  }
+
+  const popDigits = buildPopulationDigits();
+  const pow2Digits = buildPowersOf2();
+  const fibDigits = buildFibonacci();
+  const expDigits = buildExpenses();
+  const fraudDigits = buildFraud();
+
+  const DATASETS = [
+    {
+      id: 'population',
+      label: '🌍 Wereldbevolking per land',
+      fraud: false,
+      digits: popDigits,
+      unit: 'landen',
+      samples: [
+        'India — ' + formatPop(1428627663),
+        'Nederland — ' + formatPop(17618299),
+        'IJsland — ' + formatPop(375318),
+        'Tuvalu — ' + formatPop(11396)
+      ],
+      insight: 'Bijna <strong>190 landen</strong>, van Tuvalu tot India — zes ordes van grootte. Niemand heeft deze getallen "ontworpen", en toch vallen de begincijfers netjes in de logaritmische curve. Dat is het kenmerk van natuurlijke data die enorme schalen overspant.'
+    },
+    {
+      id: 'powers2',
+      label: '✌️ Machten van 2',
+      fraud: false,
+      digits: pow2Digits,
+      unit: 'machten (2¹ t/m 2³⁰⁰)',
+      samples: [powerOf2Sample(10), powerOf2Sample(64), powerOf2Sample(200)],
+      insight: 'Pure wiskunde, niets menselijks: <strong>2, 4, 8, 16, …</strong> Elke stap is exact ×2, dus op de logschaal schuift de reeks gelijkmatig door — en de begincijfers volgen Benford <strong>perfect</strong>. Vermenigvuldigende groei = Benford, gegarandeerd.'
+    },
+    {
+      id: 'fibonacci',
+      label: '🌀 Fibonacci-getallen',
+      fraud: false,
+      digits: fibDigits,
+      unit: 'termen',
+      samples: fibSamples,
+      insight: 'Ook <strong>Fibonacci</strong> groeit uiteindelijk elke stap met dezelfde factor (de gulden snede, ≈ 1,618) — en valt daarmee feilloos in de Benford-verdeling. De wet maakt niet uit wát er groeit, als het maar procentueel groeit.'
+    },
+    {
+      id: 'expenses',
+      label: '🧾 Rekeningbedragen (echt gedrag)',
+      fraud: false,
+      digits: expDigits,
+      unit: 'bedragen',
+      samples: [formatEuro(expenseValues[0]), formatEuro(expenseValues[1]), formatEuro(expenseValues[2])],
+      insight: 'Echte uitgaven ontstaan <strong>multiplicatief</strong>: prijs × aantal × btw × korting. Het resultaat spant van een paar euro tot tienduizenden — en ruim 30% van de bedragen begint met een <strong>1</strong>. Een gezonde boekhouding ziet er zó uit.'
+    },
+    {
+      id: 'fraud',
+      label: '🚨 Verzonnen fraude',
+      fraud: true,
+      digits: fraudDigits,
+      unit: 'verzonnen bedragen',
+      samples: [formatEuro(fraudValues[0]), formatEuro(fraudValues[1]), formatEuro(fraudValues[2])],
+      insight: 'Hier toetste een mens zelf de bedragen in: te veel <strong>5\'en</strong>, te veel ronde getallen, veel te weinig 1\'en. Onze intuïtie zegt dat "willekeurig" betekent: elk cijfer ±11%. <strong>Precies die intuïtie verraadt de fraudeur</strong> — de meter slaat rood uit. Belastingdiensten draaien exact deze toets op verdachte administraties.'
+    }
+  ];
+
+  DATASETS.forEach(ds => {
+    ds.counts = countDigits(ds.digits);
+    ds.n = ds.digits.length;
+    ds.chi2 = chiSquare(ds.counts, ds.n);
+  });
+
+  // ---------- Build the chart skeleton ----------
+  const bars = [], pctLabels = [], barCols = [];
+  for (let d = 1; d <= 9; d++) {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    const pct = document.createElement('span');
+    pct.className = 'bar-pct';
+    pct.textContent = '';
+    bar.appendChild(pct);
+    col.appendChild(bar);
+    chartEl.appendChild(col);
+    bars.push(bar); pctLabels.push(pct); barCols.push(col);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'digit-label';
+    lbl.textContent = d;
+    digitRowEl.appendChild(lbl);
+  }
+
+  // Benford overlay (dashed line + ticks), viewBox 360x100, stretched over the chart
+  (function drawBenfordOverlay() {
+    let pts = '';
+    for (let i = 0; i < 9; i++) {
+      const x = (i + 0.5) * 40;
+      const y = 100 * (1 - BENFORD[i] / MAX_PCT);
+      pts += x + ',' + y.toFixed(2) + ' ';
+      const tick = document.createElementNS(SVG_NS, 'line');
+      tick.setAttribute('class', 'benford-tick');
+      tick.setAttribute('x1', x - 9); tick.setAttribute('x2', x + 9);
+      tick.setAttribute('y1', y.toFixed(2)); tick.setAttribute('y2', y.toFixed(2));
+      benfordTicksEl.appendChild(tick);
+    }
+    benfordLineEl.setAttribute('points', pts.trim());
+  })();
+
+  // ---------- Gauge ----------
+  const GAUGE_MAX = 60; // chi2 value at full deflection
+  const T_GOOD = 15.5;  // χ² (df=8), p ≈ 0,05
+  const T_WARN = 30;
+
+  function gaugePoint(f, r) {
+    const a = Math.PI * (1 - f);
+    return [100 + r * Math.cos(a), 100 - r * Math.sin(a)];
+  }
+  function gaugeArc(f0, f1, color) {
+    const r = 80;
+    const [x0, y0] = gaugePoint(f0, r);
+    const [x1, y1] = gaugePoint(f1, r);
+    const p = document.createElementNS(SVG_NS, 'path');
+    p.setAttribute('d', `M ${x0.toFixed(2)} ${y0.toFixed(2)} A ${r} ${r} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`);
+    p.setAttribute('fill', 'none');
+    p.setAttribute('stroke', color);
+    p.setAttribute('stroke-width', '13');
+    p.setAttribute('stroke-linecap', 'butt');
+    p.setAttribute('opacity', '0.85');
+    gaugeArcs.appendChild(p);
+  }
+  gaugeArc(0, T_GOOD / GAUGE_MAX, 'rgba(52,211,153,0.8)');
+  gaugeArc(T_GOOD / GAUGE_MAX, T_WARN / GAUGE_MAX, 'rgba(245,158,11,0.8)');
+  gaugeArc(T_WARN / GAUGE_MAX, 1, 'rgba(239,68,68,0.85)');
+
+  function updateGauge(chi2) {
+    const f = Math.min(chi2, GAUGE_MAX) / GAUGE_MAX;
+    const deg = -90 + f * 180;
+    gaugeNeedle.style.transform = 'rotate(' + deg + 'deg)';
+
+    let cls, txt;
+    if (chi2 < T_GOOD) { cls = 'good'; txt = '✓ past bij Benford'; }
+    else if (chi2 < T_WARN) { cls = 'warning'; txt = '⚠ wijkt af — onderzoek nodig'; }
+    else { cls = 'danger'; txt = '✗ verdacht!'; }
+    gaugeVerdict.className = 'gauge-verdict ' + cls;
+    gaugeVerdict.textContent = txt;
+
+    const shown = chi2 > 999 ? '> 999' : nlNum(chi2, 1);
+    gaugeScore.innerHTML = 'χ²-score: <span class="num">' + shown + '</span> &nbsp;·&nbsp; grens "natuurlijk": <span class="num">≈ 15,5</span>';
+  }
+
+  // ---------- Dataset switching ----------
+  let activeId = null;
+
+  function showDataset(ds) {
+    activeId = ds.id;
+    [...chipsEl.children].forEach(c => c.classList.toggle('active', c.dataset.id === ds.id));
+
+    countPill.textContent = ds.n + ' ' + ds.unit;
+
+    for (let i = 0; i < 9; i++) {
+      const share = ds.counts[i] / ds.n;
+      const expected = BENFORD[i];
+      const h = Math.min(share / MAX_PCT, 1) * 100;
+      const bar = bars[i];
+      bar.style.transitionDelay = (i * 45) + 'ms';
+      bar.style.height = h + '%';
+      // strong relative deviation from Benford gets the red tint
+      const relDev = Math.abs(share - expected) / expected;
+      bar.classList.toggle('deviant', relDev > 0.45 && ds.n >= 50);
+      pctLabels[i].textContent = nlNum(share * 100, 1) + '%';
+      barCols[i].title = 'Cijfer ' + (i + 1) + ': ' + ds.counts[i] + ' van ' + ds.n +
+        ' (' + nlNum(share * 100, 1) + '%) — Benford verwacht ' + nlNum(expected * 100, 1) + '%';
+    }
+
+    samplesLine.innerHTML = 'Voorbeelden uit deze dataset: ' +
+      ds.samples.map(s => '<span class="sample">' + s + '</span>').join(' · ');
+
+    updateGauge(ds.chi2);
+
+    insightEl.innerHTML = ds.insight;
+    insightEl.className = 'insight visible' + (ds.fraud ? ' hot' : '');
+  }
+
+  DATASETS.forEach(ds => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (ds.fraud ? ' fraud' : '');
+    chip.dataset.id = ds.id;
+    chip.textContent = ds.label;
+    chip.onclick = function () { showDataset(ds); };
+    chipsEl.appendChild(chip);
+  });
+
+  // ---------- Log-scale number line (why digit 1 wins) ----------
+  (function drawLogStrip() {
+    const W = 700, H = 92, STRIP_Y = 18, STRIP_H = 44;
+    const hues = [265, 250, 230, 210, 190, 170, 150, 130, 110];
+    let x = 0;
+    for (let d = 1; d <= 9; d++) {
+      const w = W * (Math.log10(d + 1) - Math.log10(d));
+      const rect = document.createElementNS(SVG_NS, 'rect');
+      rect.setAttribute('x', x.toFixed(2));
+      rect.setAttribute('y', STRIP_Y);
+      rect.setAttribute('width', Math.max(w - 1.5, 1).toFixed(2));
+      rect.setAttribute('height', STRIP_H);
+      rect.setAttribute('rx', 5);
+      rect.setAttribute('fill', `hsl(${hues[d - 1]}, 70%, ${62 - d * 2}%)`);
+      rect.setAttribute('opacity', '0.9');
+      logStripEl.appendChild(rect);
+
+      const digit = document.createElementNS(SVG_NS, 'text');
+      digit.setAttribute('x', (x + w / 2).toFixed(2));
+      digit.setAttribute('y', STRIP_Y + STRIP_H / 2 + 6);
+      digit.setAttribute('text-anchor', 'middle');
+      digit.setAttribute('fill', '#0c0e1a');
+      digit.setAttribute('font-weight', '800');
+      digit.setAttribute('font-size', d <= 4 ? '19' : '13');
+      digit.textContent = d;
+      logStripEl.appendChild(digit);
+
+      const pct = document.createElementNS(SVG_NS, 'text');
+      pct.setAttribute('x', (x + w / 2).toFixed(2));
+      pct.setAttribute('y', STRIP_Y + STRIP_H + 18);
+      pct.setAttribute('text-anchor', 'middle');
+      pct.setAttribute('fill', '#94a3b8');
+      pct.setAttribute('font-size', d <= 3 ? '12' : '9');
+      pct.textContent = nlNum(BENFORD[d - 1] * 100, 1) + '%';
+      logStripEl.appendChild(pct);
+
+      x += w;
+    }
+    // end labels "1" and "10"
+    const l1 = document.createElementNS(SVG_NS, 'text');
+    l1.setAttribute('x', 0); l1.setAttribute('y', 12);
+    l1.setAttribute('fill', '#6b7280'); l1.setAttribute('font-size', '11');
+    l1.textContent = '×1';
+    logStripEl.appendChild(l1);
+    const l10 = document.createElementNS(SVG_NS, 'text');
+    l10.setAttribute('x', W); l10.setAttribute('y', 12);
+    l10.setAttribute('text-anchor', 'end');
+    l10.setAttribute('fill', '#6b7280'); l10.setAttribute('font-size', '11');
+    l10.textContent = '×10';
+    logStripEl.appendChild(l10);
+  })();
+
+  // ---------- Live growth counter (+5% per tick) ----------
+  const tallyBars = [];
+  for (let d = 1; d <= 9; d++) {
+    const col = document.createElement('div');
+    col.className = 'tally-col';
+    const exp = document.createElement('div');
+    exp.className = 'tally-expected';
+    exp.style.bottom = Math.min(BENFORD[d - 1] / 0.45, 1) * 100 + '%';
+    const bar = document.createElement('div');
+    bar.className = 'tally-bar';
+    col.appendChild(bar);
+    col.appendChild(exp);
+    tallyEl.appendChild(col);
+    tallyBars.push(bar);
+
+    const lbl = document.createElement('div');
+    lbl.className = 'tally-digit';
+    lbl.textContent = d;
+    tallyDigitsEl.appendChild(lbl);
+  }
+
+  let counterVal = 1;
+  let counterTally = new Array(9).fill(0);
+  let counterTotal = 0;
+  let counterTimer = null;
+
+  function fmtCounter(x) {
+    if (x >= 1e9) return nlNum(x / 1e9, 2) + ' miljard';
+    if (x >= 1e6) return nlNum(x / 1e6, 2) + ' miljoen';
+    if (x >= 1000) return Math.round(x).toLocaleString('nl-NL');
+    return nlNum(x, 2);
+  }
+
+  function renderCounter() {
+    const txt = fmtCounter(counterVal);
+    counterDisplay.innerHTML = '<span class="lead-digit">' + txt.charAt(0) + '</span>' + txt.slice(1);
+    if (counterTotal > 0) {
+      const d1 = counterTally[0] / counterTotal;
+      counterSub.textContent = counterTotal + ' tikken geturfd — begint met 1: ' +
+        nlNum(d1 * 100, 1) + '% (Benford: 30,1%)';
+    } else {
+      counterSub.textContent = 'Druk op start — het getal groeit elke tik 5% en we turven het eerste cijfer.';
+    }
+    for (let i = 0; i < 9; i++) {
+      const share = counterTotal > 0 ? counterTally[i] / counterTotal : 0;
+      tallyBars[i].style.height = Math.min(share / 0.45, 1) * 100 + '%';
+    }
+  }
+
+  function counterTick() {
+    counterVal *= 1.05;
+    if (counterVal >= 1e12) counterVal = 1 + (counterVal - 1e12) / 1e12; // wrap around, keep tally
+    const d = firstDigitOfNumber(counterVal);
+    if (d) { counterTally[d - 1]++; counterTotal++; }
+    renderCounter();
+  }
+
+  counterBtn.onclick = function () {
+    if (counterTimer) {
+      clearInterval(counterTimer);
+      counterTimer = null;
+      counterBtn.textContent = '▶ Hervat';
+    } else {
+      counterTimer = setInterval(counterTick, 55);
+      counterBtn.textContent = '⏸ Pauzeer';
+    }
+  };
+
+  counterResetBtn.onclick = function () {
+    if (counterTimer) { clearInterval(counterTimer); counterTimer = null; }
+    counterVal = 1;
+    counterTally = new Array(9).fill(0);
+    counterTotal = 0;
+    counterBtn.textContent = '▶ Start groeiteller';
+    renderCounter();
+  };
+
+  renderCounter();
+
+  // ---------- Initial state ----------
+  showDataset(DATASETS[0]);
+</script>
+</body>
+</html>

@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De Kustlijnparadox</title>
+  <style>
+    :root {
+      --bg-color: #07131f;
+      --accent-color: #2dd4bf;
+      --sea-deep: #0c2d4d;
+      --sea-mid: #0e7490;
+      --land-dark: #14532d;
+      --land-light: #16a34a;
+      --measure-color: #fde047;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --text-muted: #6b7c8f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 25%, rgba(45, 212, 191, 0.09) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 20%, rgba(34, 197, 94, 0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 95%, rgba(14, 116, 144, 0.10) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 48px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, #38bdf8, #2dd4bf, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .intro {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: rgba(13, 26, 40, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-left: 3px solid var(--accent-color);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .intro strong { color: #fff; }
+
+    .glass {
+      background: rgba(13, 26, 40, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Stat boxes */
+    .stat-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: rgba(45, 212, 191, 0.07);
+      border: 1px solid rgba(45, 212, 191, 0.28);
+      padding: 14px 26px;
+      border-radius: 16px;
+      min-width: 175px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.5s, box-shadow 0.5s;
+    }
+    .stat-box.ruler { background: rgba(56, 189, 248, 0.07); border-color: rgba(56, 189, 248, 0.3); }
+    .stat-box.length { background: rgba(253, 224, 71, 0.06); border-color: rgba(253, 224, 71, 0.32); }
+    .stat-box.length.growing { box-shadow: 0 0 32px rgba(253, 224, 71, 0.18); }
+    .stat-label {
+      display: block;
+      font-size: 0.68rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      display: block;
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .stat-value.ruler { color: #38bdf8; }
+    .stat-value.length { color: var(--measure-color); }
+    .stat-sub { font-size: 0.68rem; color: var(--text-muted); margin-top: 5px; display: block; }
+
+    /* Layout */
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 1180px;
+    }
+    .coast-card { display: flex; flex-direction: column; flex: 1 1 540px; min-width: 340px; }
+    .chart-card { display: flex; flex-direction: column; flex: 1 1 400px; min-width: 320px; }
+
+    .card-title {
+      font-size: 0.75rem;
+      margin-bottom: 14px;
+      color: #94a3b8;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .seed-pill {
+      font-size: 0.68rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+      text-transform: none;
+    }
+
+    canvas#coastCanvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.1);
+      background: var(--sea-deep);
+    }
+
+    svg.chart {
+      width: 100%;
+      height: auto;
+      background: rgba(6, 15, 26, 0.8);
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.08);
+      flex: 1;
+    }
+    .chart-note {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+    .chart-note .swatch {
+      display: inline-block; width: 14px; height: 4px; border-radius: 2px;
+      vertical-align: middle; margin-right: 4px;
+    }
+
+    /* Controls */
+    .controls { width: 100%; max-width: 1180px; text-align: center; margin-top: 26px; }
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, rgba(56,189,248,0.4), rgba(45,212,191,0.45), rgba(253,224,71,0.5));
+      border-radius: 4px;
+      outline: none;
+      margin: 14px 0 4px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, #38bdf8, #2dd4bf);
+      border-radius: 50%;
+      box-shadow: 0 0 14px rgba(45,212,191,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 24px rgba(45,212,191,0.85); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 24px; height: 24px; border: none;
+      background: linear-gradient(135deg, #38bdf8, #2dd4bf);
+      border-radius: 50%;
+      box-shadow: 0 0 14px rgba(45,212,191,0.6);
+      cursor: pointer;
+    }
+    input[type=range]:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 0 4px;
+    }
+    .slider-caption {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-top: 14px;
+    }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-top: 16px;
+      transition: color 0.3s;
+    }
+    .message.hot { color: var(--measure-color); }
+
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+    button {
+      background: linear-gradient(135deg, #0ea5e9, #2dd4bf);
+      color: #04222b; border: none;
+      padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.95rem;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.3s;
+      box-shadow: 0 4px 14px rgba(45,212,191,0.35);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(45,212,191,0.5); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.14);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-weight: 600;
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.24); box-shadow: none; }
+
+    /* Insight callout */
+    .insight {
+      margin-top: 20px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      background: rgba(45, 212, 191, 0.07);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      max-width: 1180px;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s, border-color 0.4s, background 0.4s;
+      line-height: 1.55;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight.hot { background: rgba(253, 224, 71, 0.07); border-left-color: var(--measure-color); }
+    .insight strong { color: #fff; }
+    .insight .dim { color: var(--measure-color); font-weight: 700; }
+
+    /* Real-world comparison callout */
+    .real-world {
+      margin-top: 22px;
+      max-width: 1180px;
+      width: 100%;
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .real-card {
+      flex: 1 1 320px;
+      padding: 18px 20px;
+      border-radius: 14px;
+      background: rgba(13, 26, 40, 0.72);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 3px solid var(--warning-color);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+    .real-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.78rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--warning-color);
+    }
+    .real-card strong { color: #fff; }
+    .real-card .num { color: var(--measure-color); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 560px;
+      width: 100%;
+      margin: 40px auto 0;
+      padding: 24px 26px;
+      border-radius: 16px;
+      background: rgba(13, 26, 40, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 3px solid transparent;
+      border-image: linear-gradient(135deg, #38bdf8, #2dd4bf, #4ade80) 1;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.65;
+      text-align: left;
+    }
+    .explainer h2 {
+      font-size: 1.4rem;
+      margin: 0 0 14px;
+      text-align: center;
+      background: linear-gradient(135deg, #38bdf8, #2dd4bf, #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p { margin: 0 0 14px; }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer strong { color: #fff; }
+    .explainer .accent { color: var(--accent-color); font-weight: 700; }
+    .explainer code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.88em;
+      background: rgba(45, 212, 191, 0.1);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      border-radius: 5px;
+      padding: 1px 6px;
+      color: #99f6e4;
+      white-space: nowrap;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 18px rgba(253, 224, 71, 0.15); }
+      50% { box-shadow: 0 0 38px rgba(253, 224, 71, 0.32); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>De Kustlijnparadox</h1>
+<p class="subtitle">Hoe lang is een kust? Dat hangt af van je meetlat</p>
+
+<p class="intro">Hoe lang is deze rotskust? Een simpele vraag — zou je denken. Maar pak een kortere meetlat, en plotseling tellen baaien en rotspunten mee die je eerst gewoon oversloeg. De gemeten lengte <strong>stijgt en blijft stijgen</strong>, hoe kleiner je meet — zonder ooit op een "echte" lengte uit te komen. Schuif met de meetlat en zie het zelf gebeuren.</p>
+
+<div class="stat-row">
+  <div class="stat-box ruler">
+    <span class="stat-label">Liniaallengte</span>
+    <span id="rulerValue" class="stat-value ruler">50 km</span>
+    <span class="stat-sub">de stap van de passer</span>
+  </div>
+  <div class="stat-box">
+    <span class="stat-label">Aantal stappen</span>
+    <span id="stepsValue" class="stat-value">0</span>
+    <span class="stat-sub">langs de kust gelegd</span>
+  </div>
+  <div class="stat-box length" id="lengthBox">
+    <span class="stat-label">Totale gemeten lengte</span>
+    <span id="lengthValue" class="stat-value length">—</span>
+    <span class="stat-sub">stappen × liniaal + restje</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="coast-card glass">
+    <div class="card-title">
+      <span>De kust</span>
+      <span class="seed-pill" id="coastPill">hemelsbreed van kaap tot kaap: 400 km</span>
+    </div>
+    <canvas id="coastCanvas"></canvas>
+  </div>
+
+  <div class="chart-card glass">
+    <div class="card-title"><span>Richardson-plot: lengte per liniaal</span></div>
+    <svg class="chart" id="chart" viewBox="0 0 460 330" preserveAspectRatio="xMidYMid meet">
+      <g id="chartGrid"></g>
+      <line id="refLine" x1="0" y1="0" x2="0" y2="0" stroke="rgba(148,163,184,0.35)" stroke-width="1" stroke-dasharray="5 5"/>
+      <text id="refLabel" fill="rgba(148,163,184,0.7)" font-size="9"></text>
+      <path id="chartPath" fill="none" stroke="#fde047" stroke-width="3" stroke-linejoin="round"
+            style="filter: drop-shadow(0 0 6px rgba(253,224,71,0.5))"/>
+      <g id="chartDots"></g>
+    </svg>
+    <div class="chart-note">
+      <span class="swatch" style="background:#fde047"></span>Elke meting wordt een punt: liniaal (logaritmisch, groot → klein) tegen gemeten lengte.
+      De curve <strong style="color:#fde047">blijft stijgen</strong> — hij vlakt nooit af.
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="slider-caption">Meetlat: van grof (200 km) naar fijn (1 km)</div>
+  <input type="range" id="rulerSlider" min="0" max="100" value="26">
+  <div class="slider-labels">
+    <span>200 km</span><span>50 km</span><span>14 km</span><span>4 km</span><span>1 km</span>
+  </div>
+  <div id="message" class="message">Kies een liniaal en kijk hoe de passer over de kust stapt.</div>
+  <div class="btn-row">
+    <button id="autoBtn">▶ Meet alle schalen</button>
+    <button id="newCoastBtn" class="secondary">Nieuwe kust</button>
+  </div>
+</div>
+
+<div id="insight" class="insight"></div>
+
+<div class="real-world">
+  <div class="real-card">
+    <h3>Portugal vs. Spanje</h3>
+    <p style="margin:0">Portugal mat de gezamenlijke grens met Spanje als <span class="num">± 987 km</span>. Spanje kwam op <span class="num">± 1.214 km</span>. Ruim 200 km verschil — en <strong>beide landen hadden gelijk</strong>. Het kleinere land gebruikte simpelweg een kleinere meetlat, en mat dus meer bochten.</p>
+  </div>
+  <div class="real-card">
+    <h3>De kust van Noorwegen</h3>
+    <p style="margin:0">Het CIA World Factbook geeft voor de Noorse kust <span class="num">± 25.000 km</span>. De Noorse staat zelf, die elke fjord en elk eilandje meetelt, komt op <strong>meer dan 100.000 km</strong> — tienduizenden kilometers verschil, <strong>over precies dezelfde kust</strong>. Geen van beide is fout: ze maten met een andere liniaal.</p>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>Een kustlijn is geen gladde lijn maar een <strong>fractal</strong>: zoom in op een baai en je vindt kleinere baaien, met daarin nóg kleinere inhammen. Elke kortere meetlat vangt een laag detail die de vorige oversloeg — dus elke verfijning maakt de gemeten lengte <span class="accent">groter</span>, tot op het niveau van rotsblokken, kiezels en zandkorrels.</p>
+  <p>Meteoroloog <strong>Lewis Fry Richardson</strong> ontdekte dit in de jaren vijftig toen hij landsgrenzen uit verschillende atlassen vergeleek en de cijfers maar niet kloppend kreeg. Op een logaritmische schaal bleek de gemeten lengte langs een <strong>rechte lijn</strong> te stijgen: <code>L(g) ≈ M · g^(1−D)</code>, waarbij <code>g</code> de liniaallengte is.</p>
+  <p><strong>Benoit Mandelbrot</strong> gaf die helling later een naam: de <span class="accent">fractale dimensie D</span>. Een gladde lijn heeft <code>D = 1</code> en een vaste lengte. Een kust zit dáártussen: de westkust van Groot-Brittannië heeft <code>D ≈ 1,25</code>, de extreem grillige Noorse kust <code>D ≈ 1,52</code>. Hoe hoger D, hoe sneller de lengte explodeert als je meetlat krimpt.</p>
+  <p>De conclusie is even simpel als vreemd: <strong>een kustlijn heeft geen lengte</strong>. Alleen een lengte <em>bij een gekozen meetlat</em>. Wie een kust wil vergelijken, moet er dus altijd bij vertellen hoe er gemeten is.</p>
+</section>
+
+<script>
+  // ---------- DOM ----------
+  const canvas = document.getElementById('coastCanvas');
+  const ctx = canvas.getContext('2d');
+  const rulerSlider = document.getElementById('rulerSlider');
+  const rulerValue = document.getElementById('rulerValue');
+  const stepsValue = document.getElementById('stepsValue');
+  const lengthValue = document.getElementById('lengthValue');
+  const lengthBox = document.getElementById('lengthBox');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+  const autoBtn = document.getElementById('autoBtn');
+  const newCoastBtn = document.getElementById('newCoastBtn');
+  const coastPill = document.getElementById('coastPill');
+  const chartGrid = document.getElementById('chartGrid');
+  const chartPath = document.getElementById('chartPath');
+  const chartDots = document.getElementById('chartDots');
+  const refLine = document.getElementById('refLine');
+  const refLabel = document.getElementById('refLabel');
+
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // ---------- Canvas setup ----------
+  const W = 880, H = 520;
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  ctx.scale(DPR, DPR);
+
+  // ---------- Seeded RNG ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // ---------- Coast: fractal midpoint displacement ----------
+  const STRAIGHT_KM = 400; // straight-line distance cape-to-cape, by definition
+  let seed = 1973;
+  let coast = [];
+  let kmPerPx = 1;
+
+  function generateCoast() {
+    const rand = mulberry32(seed);
+    let pts = [
+      { x: 0, y: H * 0.72 },
+      { x: W * 0.5 + (rand() - 0.5) * W * 0.12, y: H * 0.5 + (rand() - 0.5) * H * 0.3 },
+      { x: W, y: H * 0.26 }
+    ];
+    const DEPTH = 10;
+    for (let d = 0; d < DEPTH; d++) {
+      const next = [pts[0]];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const a = pts[i], b = pts[i + 1];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len = Math.hypot(dx, dy) || 1;
+        const disp = (rand() - 0.5) * len * 0.95;
+        let nx = (a.x + b.x) / 2 + (-dy / len) * disp;
+        let ny = (a.y + b.y) / 2 + (dx / len) * disp;
+        ny = Math.max(H * 0.05, Math.min(H * 0.95, ny));
+        nx = Math.max(2, Math.min(W - 2, nx));
+        next.push({ x: nx, y: ny }, b);
+      }
+      pts = next;
+    }
+    coast = pts;
+    const first = coast[0], last = coast[coast.length - 1];
+    kmPerPx = STRAIGHT_KM / Math.hypot(last.x - first.x, last.y - first.y);
+  }
+
+  // ---------- Divider walk: place ruler steps along the coast ----------
+  // Smallest t in (0,1] on segment a→b at exact distance r from center c.
+  function circleSegCut(c, r, a, b) {
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const fx = a.x - c.x, fy = a.y - c.y;
+    const A = dx * dx + dy * dy;
+    if (A === 0) return null;
+    const B = 2 * (fx * dx + fy * dy);
+    const C = fx * fx + fy * fy - r * r;
+    const disc = B * B - 4 * A * C;
+    if (disc < 0) return null;
+    const s = Math.sqrt(disc);
+    const t1 = (-B - s) / (2 * A);
+    const t2 = (-B + s) / (2 * A);
+    const EPS = 1e-9;
+    if (t1 > EPS && t1 <= 1) return t1;
+    if (t2 > EPS && t2 <= 1) return t2;
+    return null;
+  }
+
+  function computeSteps(rulerPx) {
+    const steps = [{ x: coast[0].x, y: coast[0].y }];
+    let anchor = steps[0];
+    let segIdx = 0;
+    let guard = 0;
+    while (guard++ < 40000) {
+      let found = null;
+      for (let j = segIdx; j < coast.length - 1; j++) {
+        const a = (j === segIdx) ? anchor : coast[j];
+        const b = coast[j + 1];
+        const t = circleSegCut(anchor, rulerPx, a, b);
+        if (t !== null) {
+          found = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, seg: j };
+          break;
+        }
+      }
+      if (!found) break;
+      steps.push({ x: found.x, y: found.y });
+      anchor = steps[steps.length - 1];
+      segIdx = found.seg;
+    }
+    return steps;
+  }
+
+  // ---------- Number formatting (Dutch) ----------
+  function fmtKm(km) {
+    if (km >= 100) return Math.round(km).toLocaleString('nl-NL') + ' km';
+    if (km >= 10) return km.toFixed(0) + ' km';
+    return km.toFixed(1).replace('.', ',') + ' km';
+  }
+  function fmtInt(n) { return n.toLocaleString('nl-NL'); }
+
+  // ---------- Ruler slider (logarithmic 200 km → 1 km) ----------
+  const RULER_MAX = 200, RULER_MIN = 1;
+  function sliderToRuler(v) {
+    return RULER_MAX * Math.pow(RULER_MIN / RULER_MAX, v / 100);
+  }
+  function rulerToSlider(r) {
+    return 100 * Math.log(r / RULER_MAX) / Math.log(RULER_MIN / RULER_MAX);
+  }
+
+  // ---------- Measurement state ----------
+  let measurement = null; // { rulerKm, steps, leftoverKm, totalKm, visibleF, visible, rate, done }
+
+  function startMeasurement(rulerKm, fast) {
+    const rulerPx = rulerKm / kmPerPx;
+    const steps = computeSteps(rulerPx);
+    const last = steps[steps.length - 1];
+    const end = coast[coast.length - 1];
+    const leftoverKm = Math.min(rulerKm, Math.hypot(end.x - last.x, end.y - last.y) * kmPerPx);
+    const nSegs = steps.length - 1;
+    const totalKm = nSegs * rulerKm + leftoverKm;
+    // Animation pacing: small counts step slowly, big counts finish in ~2.5 s
+    const targetFrames = fast ? 80 : Math.max(40, Math.min(160, nSegs * 7));
+    const rate = Math.max(0.05, nSegs / targetFrames);
+    measurement = { rulerKm, steps, leftoverKm, totalKm, visibleF: 0, visible: 0, rate, done: nSegs === 0 };
+    rulerValue.textContent = fmtKm(rulerKm);
+    stepsValue.textContent = '0';
+    lengthValue.textContent = '…';
+    lengthBox.classList.add('growing');
+    if (measurement.done) finishMeasurement();
+  }
+
+  function finishMeasurement() {
+    const m = measurement;
+    m.done = true;
+    m.visible = m.steps.length - 1;
+    stepsValue.textContent = fmtInt(m.visible);
+    lengthValue.textContent = fmtKm(m.totalKm);
+    lengthBox.classList.remove('growing');
+    addChartPoint(m.rulerKm, m.totalKm);
+    updateMessage(m);
+    updateInsight(m.rulerKm);
+  }
+
+  // ---------- Chart (Richardson plot) ----------
+  const CH_W = 460, CH_H = 330;
+  const PAD_L = 52, PAD_R = 16, PAD_T = 18, PAD_B = 34;
+  const PLOT_W = CH_W - PAD_L - PAD_R, PLOT_H = CH_H - PAD_T - PAD_B;
+  const X_TICKS = [200, 100, 50, 20, 10, 5, 2, 1];
+
+  let chartData = new Map(); // key: ruler rounded → { rulerKm, lengthKm }
+
+  function chartX(rulerKm) {
+    const t = (Math.log10(RULER_MAX) - Math.log10(rulerKm)) / (Math.log10(RULER_MAX) - Math.log10(RULER_MIN));
+    return PAD_L + t * PLOT_W;
+  }
+
+  function chartYScale() {
+    let maxLen = STRAIGHT_KM * 1.6;
+    chartData.forEach(d => { if (d.lengthKm > maxLen) maxLen = d.lengthKm; });
+    const top = Math.ceil((maxLen * 1.1) / 100) * 100;
+    const bottom = 0;
+    return { top, bottom };
+  }
+
+  function chartY(lengthKm, scale) {
+    return PAD_T + (1 - (lengthKm - scale.bottom) / (scale.top - scale.bottom)) * PLOT_H;
+  }
+
+  function redrawChart() {
+    const scale = chartYScale();
+    // Grid + labels
+    chartGrid.innerHTML = '';
+    // y gridlines: 5 nice steps
+    const stepRaw = (scale.top - scale.bottom) / 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(stepRaw)));
+    const yStep = Math.ceil(stepRaw / mag) * mag;
+    for (let v = scale.bottom; v <= scale.top + 0.01; v += yStep) {
+      const y = chartY(v, scale);
+      if (y < PAD_T - 1) continue;
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', PAD_L); line.setAttribute('y1', y);
+      line.setAttribute('x2', CH_W - PAD_R); line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(148,163,184,0.1)');
+      chartGrid.appendChild(line);
+      const txt = document.createElementNS(SVG_NS, 'text');
+      txt.setAttribute('x', PAD_L - 6); txt.setAttribute('y', y + 3);
+      txt.setAttribute('text-anchor', 'end');
+      txt.setAttribute('fill', 'rgba(148,163,184,0.65)');
+      txt.setAttribute('font-size', '9');
+      txt.textContent = fmtInt(Math.round(v));
+      chartGrid.appendChild(txt);
+    }
+    // x gridlines (log ticks)
+    X_TICKS.forEach(r => {
+      const x = chartX(r);
+      const line = document.createElementNS(SVG_NS, 'line');
+      line.setAttribute('x1', x); line.setAttribute('y1', PAD_T);
+      line.setAttribute('x2', x); line.setAttribute('y2', CH_H - PAD_B);
+      line.setAttribute('stroke', 'rgba(148,163,184,0.1)');
+      chartGrid.appendChild(line);
+      const txt = document.createElementNS(SVG_NS, 'text');
+      txt.setAttribute('x', x); txt.setAttribute('y', CH_H - PAD_B + 14);
+      txt.setAttribute('text-anchor', 'middle');
+      txt.setAttribute('fill', 'rgba(148,163,184,0.65)');
+      txt.setAttribute('font-size', '9');
+      txt.textContent = r;
+      chartGrid.appendChild(txt);
+    });
+    // axis captions
+    const xCap = document.createElementNS(SVG_NS, 'text');
+    xCap.setAttribute('x', PAD_L + PLOT_W / 2); xCap.setAttribute('y', CH_H - 6);
+    xCap.setAttribute('text-anchor', 'middle');
+    xCap.setAttribute('fill', 'rgba(148,163,184,0.8)');
+    xCap.setAttribute('font-size', '10');
+    xCap.textContent = 'liniaal (km) — groot → klein';
+    chartGrid.appendChild(xCap);
+    const yCap = document.createElementNS(SVG_NS, 'text');
+    yCap.setAttribute('x', 12); yCap.setAttribute('y', PAD_T + PLOT_H / 2);
+    yCap.setAttribute('text-anchor', 'middle');
+    yCap.setAttribute('fill', 'rgba(148,163,184,0.8)');
+    yCap.setAttribute('font-size', '10');
+    yCap.setAttribute('transform', `rotate(-90 12 ${PAD_T + PLOT_H / 2})`);
+    yCap.textContent = 'gemeten lengte (km)';
+    chartGrid.appendChild(yCap);
+
+    // reference: straight-line distance
+    const refY = chartY(STRAIGHT_KM, scale);
+    refLine.setAttribute('x1', PAD_L); refLine.setAttribute('y1', refY);
+    refLine.setAttribute('x2', CH_W - PAD_R); refLine.setAttribute('y2', refY);
+    refLabel.setAttribute('x', CH_W - PAD_R - 4);
+    refLabel.setAttribute('y', refY - 5);
+    refLabel.setAttribute('text-anchor', 'end');
+    refLabel.textContent = 'hemelsbreed: 400 km';
+
+    // data: sorted big ruler → small ruler
+    const pts = [...chartData.values()].sort((a, b) => b.rulerKm - a.rulerKm);
+    let d = '';
+    chartDots.innerHTML = '';
+    pts.forEach((p, i) => {
+      const x = chartX(p.rulerKm), y = chartY(p.lengthKm, scale);
+      d += (i === 0 ? 'M' : 'L') + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+      const dot = document.createElementNS(SVG_NS, 'circle');
+      dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+      dot.setAttribute('r', '4.5');
+      dot.setAttribute('fill', '#fff');
+      dot.setAttribute('stroke', '#fde047');
+      dot.setAttribute('stroke-width', '3');
+      dot.style.filter = 'drop-shadow(0 0 5px rgba(253,224,71,0.8))';
+      chartDots.appendChild(dot);
+    });
+    chartPath.setAttribute('d', d.trim());
+  }
+
+  function addChartPoint(rulerKm, lengthKm) {
+    chartData.set(rulerKm.toFixed(2), { rulerKm, lengthKm });
+    redrawChart();
+  }
+
+  // ---------- Fractal dimension estimate (Richardson slope) ----------
+  function estimateDimension() {
+    const pts = [...chartData.values()];
+    if (pts.length < 3) return null;
+    let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    const n = pts.length;
+    pts.forEach(p => {
+      const x = Math.log10(p.rulerKm), y = Math.log10(p.lengthKm);
+      sx += x; sy += y; sxx += x * x; sxy += x * y;
+    });
+    const slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    return 1 - slope; // L(g) ∝ g^(1-D)
+  }
+
+  // ---------- Messages & insights ----------
+  function updateMessage(m) {
+    const n = m.steps.length - 1;
+    message.className = 'message' + (m.rulerKm < 5 ? ' hot' : '');
+    message.innerHTML = `Liniaal van <strong>${fmtKm(m.rulerKm)}</strong>: ` +
+      `<strong>${fmtInt(n)}</strong> ${n === 1 ? 'stap' : 'stappen'} + een restje → ` +
+      `<strong>${fmtKm(m.totalKm)}</strong> kust.`;
+  }
+
+  function updateInsight(rulerKm) {
+    let html, hot = false;
+    if (rulerKm >= 80) {
+      html = 'Met zo’n grove liniaal stap je dwars over hele baaien heen — je meet de kust zoals je hem vanuit een vliegtuig ziet. Dit is hoe een atlas op wereldschaal meet. <strong>Onthoud dit getal en verklein nu de meetlat.</strong>';
+    } else if (rulerKm >= 15) {
+      html = 'De liniaal krimpt — en kijk naar de gele curve: <strong>de gemeten lengte stijgt</strong>. Elke bocht die de grove meting oversloeg, telt nu ineens mee. Dezelfde kust, een langere uitkomst.';
+    } else if (rulerKm >= 4) {
+      html = 'Dit is precies wat <strong>Lewis Fry Richardson</strong> in de jaren vijftig ontdekte: zet liniaal en lengte op logaritmische schaal, en de metingen klimmen langs een vrijwel <strong>rechte lijn</strong> omhoog. Geen plafond in zicht.';
+      hot = true;
+    } else {
+      html = '<strong>Hoe kleiner de liniaal, hoe langer de kust — zonder einde.</strong> Een kustlijn heeft geen “echte” lengte; alleen een lengte bij een gekozen meetlat. Mandelbrot vatte de helling van deze lijn samen in één getal: de <strong>fractale dimensie</strong>.';
+      hot = true;
+    }
+    const D = estimateDimension();
+    if (D !== null && D > 1 && D < 2) {
+      html += ` <span class="dim">Jouw metingen tot nu toe: fractale dimensie D ≈ ${D.toFixed(2).replace('.', ',')}</span> — een gladde lijn zou D = 1 hebben.`;
+    }
+    insight.innerHTML = html;
+    insight.className = 'insight visible' + (hot ? ' hot' : '');
+  }
+
+  // ---------- Drawing ----------
+  function drawScene(now) {
+    ctx.clearRect(0, 0, W, H);
+
+    // Sea
+    const seaGrad = ctx.createLinearGradient(0, 0, W * 0.3, H);
+    seaGrad.addColorStop(0, '#0a3a5c');
+    seaGrad.addColorStop(0.55, '#0c2d4d');
+    seaGrad.addColorStop(1, '#081f38');
+    ctx.fillStyle = seaGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Animated wave shimmer in the sea
+    ctx.save();
+    ctx.lineWidth = 1.5;
+    for (let w = 0; w < 5; w++) {
+      const baseY = H * (0.35 + w * 0.14);
+      const phase = now / 1600 + w * 1.7;
+      ctx.strokeStyle = `rgba(125, 211, 252, ${0.05 + 0.03 * Math.sin(phase * 1.3)})`;
+      ctx.beginPath();
+      for (let x = 0; x <= W; x += 12) {
+        const y = baseY + Math.sin(x / 70 + phase) * 5 + Math.sin(x / 23 - phase * 1.4) * 2;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // Land polygon (above/right of the coastline)
+    ctx.beginPath();
+    ctx.moveTo(coast[0].x, coast[0].y);
+    for (let i = 1; i < coast.length; i++) ctx.lineTo(coast[i].x, coast[i].y);
+    ctx.lineTo(W, 0);
+    ctx.lineTo(0, 0);
+    ctx.closePath();
+    const landGrad = ctx.createLinearGradient(W, 0, W * 0.35, H);
+    landGrad.addColorStop(0, '#1d7a3f');
+    landGrad.addColorStop(0.55, '#166534');
+    landGrad.addColorStop(1, '#14532d');
+    ctx.fillStyle = landGrad;
+    ctx.fill();
+
+    // Beach strip + crisp coastline
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(coast[0].x, coast[0].y);
+    for (let i = 1; i < coast.length; i++) ctx.lineTo(coast[i].x, coast[i].y);
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(250, 204, 21, 0.28)';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.strokeStyle = '#e8f4f8';
+    ctx.lineWidth = 1.6;
+    ctx.shadowColor = 'rgba(186, 230, 253, 0.7)';
+    ctx.shadowBlur = 4;
+    ctx.stroke();
+    ctx.restore();
+
+    // Measurement overlay
+    if (measurement) {
+      const m = measurement;
+      if (!m.done) {
+        m.visibleF += m.rate;
+        const nSegs = m.steps.length - 1;
+        m.visible = Math.min(nSegs, Math.floor(m.visibleF));
+        stepsValue.textContent = fmtInt(m.visible);
+        lengthValue.textContent = fmtKm(m.visible * m.rulerKm);
+        if (m.visible >= nSegs) finishMeasurement();
+      }
+      const upto = m.visible;
+      if (upto > 0 || m.done) {
+        ctx.save();
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        // segments
+        ctx.beginPath();
+        ctx.moveTo(m.steps[0].x, m.steps[0].y);
+        for (let i = 1; i <= upto; i++) ctx.lineTo(m.steps[i].x, m.steps[i].y);
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 2.6;
+        ctx.shadowColor = 'rgba(253, 224, 71, 0.8)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        // leftover tail (dashed) once finished
+        if (m.done && m.leftoverKm > 0.01) {
+          const last = m.steps[m.steps.length - 1];
+          const end = coast[coast.length - 1];
+          ctx.beginPath();
+          ctx.moveTo(last.x, last.y);
+          ctx.lineTo(end.x, end.y);
+          ctx.setLineDash([5, 5]);
+          ctx.strokeStyle = 'rgba(253, 224, 71, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        // joint dots
+        const dotEvery = Math.max(1, Math.floor(upto / 220));
+        for (let i = 0; i <= upto; i += dotEvery) {
+          ctx.beginPath();
+          ctx.arc(m.steps[i].x, m.steps[i].y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = '#fff';
+          ctx.fill();
+          ctx.lineWidth = 1.6;
+          ctx.strokeStyle = '#eab308';
+          ctx.stroke();
+        }
+        // walking compass: pulsing reach-circle at the leading point
+        if (!m.done && upto < m.steps.length - 1) {
+          const lead = m.steps[upto];
+          const rPx = m.rulerKm / kmPerPx;
+          const pulse = 0.18 + 0.12 * Math.sin(now / 130);
+          ctx.beginPath();
+          ctx.arc(lead.x, lead.y, rPx, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(253, 224, 71, ${pulse})`;
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(lead.x, lead.y, 5.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#fde047';
+          ctx.shadowColor = 'rgba(253, 224, 71, 1)';
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+        ctx.restore();
+      }
+    }
+    requestAnimationFrame(drawScene);
+  }
+
+  // ---------- Auto-play: measure every scale ----------
+  const AUTO_RULERS = [200, 100, 50, 20, 10, 5, 2, 1];
+  let autoRunning = false;
+
+  function runAuto() {
+    if (autoRunning) return;
+    autoRunning = true;
+    autoBtn.disabled = true;
+    newCoastBtn.disabled = true;
+    rulerSlider.disabled = true;
+    let idx = 0;
+    const next = () => {
+      if (idx >= AUTO_RULERS.length) {
+        autoRunning = false;
+        autoBtn.disabled = false;
+        newCoastBtn.disabled = false;
+        rulerSlider.disabled = false;
+        message.classList.add('hot');
+        message.innerHTML = 'Acht metingen, dezelfde kust — en <strong>acht verschillende lengtes</strong>. De curve blijft stijgen.';
+        return;
+      }
+      const r = AUTO_RULERS[idx++];
+      rulerSlider.value = Math.round(rulerToSlider(r));
+      startMeasurement(r, true);
+      const waitDone = () => {
+        if (measurement && measurement.done) setTimeout(next, 420);
+        else setTimeout(waitDone, 80);
+      };
+      waitDone();
+    };
+    next();
+  }
+
+  // ---------- Wiring ----------
+  rulerSlider.oninput = function () {
+    const r = sliderToRuler(parseFloat(this.value));
+    startMeasurement(r, false);
+  };
+
+  autoBtn.onclick = runAuto;
+
+  newCoastBtn.onclick = function () {
+    seed = Math.floor(Math.random() * 2 ** 31);
+    generateCoast();
+    chartData = new Map();
+    redrawChart();
+    insight.classList.remove('visible');
+    coastPill.textContent = 'nieuwe kust — hemelsbreed van kaap tot kaap: 400 km';
+    startMeasurement(sliderToRuler(parseFloat(rulerSlider.value)), false);
+  };
+
+  // ---------- Init ----------
+  generateCoast();
+  redrawChart();
+  startMeasurement(sliderToRuler(parseFloat(rulerSlider.value)), false);
+  requestAnimationFrame(drawScene);
+</script>
+</body>
+</html>

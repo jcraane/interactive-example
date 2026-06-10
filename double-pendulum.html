@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De dubbele slinger — het vlindereffect</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --pend-a: #38bdf8;
+      --pend-b: #fb7185;
+      --accent-color: #a78bfa;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(56,189,248,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 25%, rgba(251,113,133,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 90%, rgba(167,139,250,0.06) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 22px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(167, 139, 250, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Stage tabs */
+    .stage-tabs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .stage-tab {
+      background: rgba(148, 163, 184, 0.1);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      padding: 10px 20px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: background 0.25s, color 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+    .stage-tab:hover { background: rgba(148, 163, 184, 0.2); }
+    .stage-tab.active {
+      background: var(--accent-color);
+      color: #0f172a;
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(167,139,250,0.4);
+    }
+    .stage-tab.pulse { animation: tabPulse 1.4s ease-in-out infinite; }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .sim-container { text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; }
+    #sim {
+      border-radius: 10px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12), 0 0 30px rgba(0,0,0,0.4);
+      width: 480px;
+      height: 430px;
+      max-width: 86vw;
+      touch-action: none;
+    }
+    .legend {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+    .swatch.a { background: var(--pend-a); box-shadow: 0 0 8px rgba(56,189,248,0.7); }
+    .swatch.b { background: var(--pend-b); box-shadow: 0 0 8px rgba(251,113,133,0.7); }
+
+    /* Flash banner over the canvas at the split moment */
+    .flash-banner {
+      position: absolute;
+      top: 38px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(167, 139, 250, 0.6);
+      color: #ddd6fe;
+      font-weight: 800;
+      font-size: 1rem;
+      padding: 10px 22px;
+      border-radius: 999px;
+      box-shadow: 0 0 30px rgba(167,139,250,0.45);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s, transform 0.3s;
+      white-space: nowrap;
+    }
+    .flash-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+      animation: bannerGlow 1.2s ease-in-out infinite alternate;
+    }
+
+    .panel { width: 340px; display: flex; flex-direction: column; }
+
+    .metric-row { display: flex; gap: 12px; }
+    .metric {
+      flex: 1;
+      background: rgba(167, 139, 250, 0.06);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      text-align: center;
+      transition: border-color 0.4s, background 0.4s;
+    }
+    .metric .label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .metric .value {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+      transition: color 0.4s;
+    }
+    .metric.dist .value { color: var(--good-color); }
+    .metric.dist.split .value { color: var(--warning-color); }
+    .metric.dist.diverged { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.07); }
+    .metric.dist.diverged .value { color: var(--danger-color); }
+
+    /* Divergence bar */
+    .div-bar-block { margin-bottom: 12px; }
+    .div-bar-block .label {
+      font-size: 0.7rem; letter-spacing: 1.4px; text-transform: uppercase;
+      color: #64748b; margin-bottom: 6px; display: flex; justify-content: space-between;
+    }
+    .div-bar {
+      height: 10px;
+      border-radius: 5px;
+      background: rgba(148, 163, 184, 0.12);
+      overflow: hidden;
+      position: relative;
+    }
+    .div-bar .fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 5px;
+      background: linear-gradient(90deg, var(--good-color), var(--warning-color) 55%, var(--danger-color));
+      transition: width 0.12s linear;
+    }
+
+    /* Chart */
+    .chart-block { margin-bottom: 12px; }
+    .chart-block .label {
+      font-size: 0.7rem; letter-spacing: 1.4px; text-transform: uppercase;
+      color: #64748b; margin-bottom: 6px;
+    }
+    #divChart {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.1);
+    }
+    .diverged-status {
+      font-size: 0.82rem;
+      color: #64748b;
+      margin-top: 6px;
+      min-height: 1.3em;
+      font-variant-numeric: tabular-nums;
+      transition: color 0.4s;
+    }
+    .diverged-status.hit { color: #fca5a5; font-weight: 700; }
+
+    /* Slider */
+    .control-block { margin-top: 4px; }
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .control-block label .num {
+      font-weight: 700;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .hint { font-size: 0.74rem; color: #64748b; margin-top: 2px; line-height: 1.45; min-height: 2.1em; }
+    .hint em { color: #a5b4fc; font-style: normal; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--pend-a) 0%, var(--accent-color) 50%, var(--pend-b) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(167,139,250,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(167,139,250,0.8); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(167,139,250,0.6);
+      cursor: pointer;
+    }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+    button {
+      background: var(--accent-color); color: #0f172a; border: none;
+      padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(167,139,250,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(167,139,250,0.45); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.6em;
+      font-weight: 500;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-top: 14px;
+      text-align: center;
+    }
+    .message strong { color: var(--accent-color); }
+
+    .insight {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(167, 139, 250, 0.07);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      line-height: 1.55;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #ddd6fe; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(167, 139, 250, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa, #fb7185);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(167, 139, 250, 0.08);
+      border-left: 3px solid var(--accent-color);
+      color: #ddd6fe;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--pend-a); font-weight: 700; }
+    .explainer em { color: var(--accent-color); font-style: normal; font-weight: 600; }
+
+    @keyframes tabPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(167,139,250,0.5); }
+      50% { box-shadow: 0 0 0 9px rgba(167,139,250,0); }
+    }
+    @keyframes bannerGlow {
+      from { box-shadow: 0 0 18px rgba(167,139,250,0.35); }
+      to   { box-shadow: 0 0 42px rgba(167,139,250,0.7); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>De dubbele slinger</h1>
+<p class="subtitle">Deterministisch &mdash; en toch onvoorspelbaar</p>
+
+<p class="intro">
+  Geen toeval, geen ruis: deze slingers gehoorzamen exact dezelfde natuurwetten, tot op oneindig veel
+  decimalen. Het enige verschil is hun startpositie &mdash; <strong>een duizendste van een graad</strong>,
+  minder dan de dikte van een haar op vijf meter afstand. Een gewone slinger haalt z'n schouders erover op.
+  Maar geef hem &eacute;&eacute;n extra scharnier&hellip;
+  <span class="cue">Begin bij stap 1, en kijk daarna hoe lang stap 2 het volhoudt.</span>
+</p>
+
+<div class="stage-tabs">
+  <button class="stage-tab active" id="tab1">1 &middot; E&eacute;n slinger</button>
+  <button class="stage-tab" id="tab2">2 &middot; De dubbele slinger</button>
+</div>
+
+<div class="layout">
+  <div class="sim-container glass">
+    <canvas id="sim" width="480" height="430"></canvas>
+    <div class="flash-banner" id="flashBanner">&#10022; Hier splitsen de paden!</div>
+    <div class="legend">
+      <span><span class="swatch a"></span> Slinger A</span>
+      <span><span class="swatch b"></span> Slinger B (start een fractie anders)</span>
+    </div>
+  </div>
+
+  <div class="panel glass">
+    <div class="metric-row">
+      <div class="metric">
+        <span class="label">Verstreken tijd</span>
+        <span class="value" id="timeValue">0,0 s</span>
+      </div>
+      <div class="metric dist" id="distMetric">
+        <span class="label">Afstand tussen tippen</span>
+        <span class="value" id="distValue">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="div-bar-block">
+      <div class="label"><span>Divergentie-meter</span><span>volledig uiteen &rarr;</span></div>
+      <div class="div-bar"><div class="fill" id="divBarFill"></div></div>
+    </div>
+
+    <div class="chart-block">
+      <div class="label">Afstand in de tijd (logaritmische schaal)</div>
+      <canvas id="divChart" width="300" height="120"></canvas>
+      <div class="diverged-status" id="divergedStatus">Nog niet losgelaten.</div>
+    </div>
+
+    <div class="control-block">
+      <label for="deltaSlider">
+        Startverschil
+        <span class="num" id="deltaLabel">0,001&deg;</span>
+      </label>
+      <input type="range" id="deltaSlider" min="0" max="300" value="0">
+      <div class="hint" id="deltaHuman"></div>
+    </div>
+
+    <div class="btn-row">
+      <button id="releaseBtn">Laat los</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div class="message" id="message"></div>
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Beide slingers volgen exact dezelfde bewegingsvergelijkingen &mdash; klassieke mechanica, volledig
+    <strong>deterministisch</strong>. Ken je de startpositie perfect, dan ligt elke seconde van de toekomst
+    onwrikbaar vast. Bij een gewone slinger werkt dat ook in de praktijk: een minuscuul startverschil blijft
+    minuscuul, dus een bijna-perfecte meting geeft een bijna-perfecte voorspelling.
+  </p>
+  <p>
+    De dubbele slinger is <em>chaotisch</em>: een startverschil wordt niet opgeteld maar
+    <em>vermenigvuldigd</em> &mdash; bij elke zwaai groeit het met een vaste factor. Zulke exponenti&euml;le groei is
+    genadeloos: of je nu begint met een duizendste of een miljoenste graad verschil, je wint er maar een paar
+    seconden voorspelbaarheid mee. Perfect meten kan niet, dus voorbij die horizon is het systeem
+    praktisch onvoorspelbaar &mdash; terwijl er nergens ook maar &eacute;&eacute;n greintje toeval in zit.
+  </p>
+  <p>
+    Precies dit is het <strong>vlindereffect</strong>, ontdekt door meteoroloog Edward Lorenz in 1963. De atmosfeer
+    is &eacute;&eacute;n gigantische dubbele slinger: de vleugelslag van een vlinder &mdash; een meetfout die geen enkel
+    weerstation kan zien &mdash; groeit in ruwweg tien dagen uit tot het verschil tussen zon en storm. Daarom worden
+    weersverwachtingen na een dag of tien geen voorspelling meer, maar een gok.
+  </p>
+  <p>
+    Deterministisch betekent dus niet voorspelbaar. De toekomst kan volledig vastliggen in het heden &mdash;
+    en toch voor altijd buiten ons bereik blijven.
+  </p>
+</section>
+
+<script>
+  // ---------- DOM ----------
+  const canvas = document.getElementById('sim');
+  const ctx = canvas.getContext('2d');
+  const chart = document.getElementById('divChart');
+  const cctx = chart.getContext('2d');
+
+  const tab1 = document.getElementById('tab1');
+  const tab2 = document.getElementById('tab2');
+  const flashBanner = document.getElementById('flashBanner');
+
+  const timeValue = document.getElementById('timeValue');
+  const distValue = document.getElementById('distValue');
+  const distMetric = document.getElementById('distMetric');
+  const divBarFill = document.getElementById('divBarFill');
+  const divergedStatus = document.getElementById('divergedStatus');
+
+  const deltaSlider = document.getElementById('deltaSlider');
+  const deltaLabel = document.getElementById('deltaLabel');
+  const deltaHuman = document.getElementById('deltaHuman');
+
+  const releaseBtn = document.getElementById('releaseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+
+  // ---------- Physics constants ----------
+  const G = 9.81;
+  const M1 = 1, M2 = 1;       // bob masses (kg)
+  const L1 = 1, L2 = 1;       // double-pendulum arm lengths (m)
+  const LS = 1.7;             // single-pendulum arm length (m)
+  const DT = 1 / 240;         // fixed physics timestep (s)
+
+  const SCALE = 100;          // pixels per meter
+  const PX = canvas.width / 2, PY = 212;   // pivot
+
+  const COLOR_A = { hex: '#38bdf8', rgb: '56,189,248' };
+  const COLOR_B = { hex: '#fb7185', rgb: '251,113,133' };
+
+  // ---------- State ----------
+  let stage = 1;              // 1 = single pendulum, 2 = double pendulum
+  let mode = 'ready';         // 'ready' | 'running'
+  let deltaDeg = 0.001;       // starting-angle difference in degrees
+
+  let stateA = [];            // stage 1: [theta, omega]   stage 2: [t1, w1, t2, w2]
+  let stateB = [];
+  let startA = [];            // saved start position (for Reset)
+
+  let simTime = 0;
+  let trailA = [], trailB = [];
+  let chartData = [];
+  let lastSampleT = -1;
+
+  let splitDetected = false;
+  let fullyDiverged = false;
+  let divergedAtT = 0;
+  let slowmoT = 0;            // remaining slow-motion time (real seconds)
+  let stage1InsightShown = false;
+
+  let dragTarget = 0;         // 0 = none, 1 = bob1, 2 = bob2
+  let bannerTimeout = null;
+
+  const TRAIL_MAX = 480;
+  const SPLIT_FRAC = 0.05;    // fraction of reach: visibly split
+  const FULL_FRAC = 0.5;      // fraction of reach: fully diverged
+
+  // ---------- Formatting (Dutch) ----------
+  function fmt(x, d) {
+    return x.toLocaleString('nl-NL', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function fmtDeg(deg) {
+    return deg.toLocaleString('nl-NL', { maximumSignificantDigits: 2 }) + '°';
+  }
+  function fmtDist(m) {
+    if (m < 1e-7) return '< 1 µm';
+    if (m < 1e-4) return fmt(m * 1e6, 0) + ' µm';
+    if (m < 0.01) return fmt(m * 1000, 2) + ' mm';
+    if (m < 1)    return fmt(m * 100, 1) + ' cm';
+    return fmt(m, 2) + ' m';
+  }
+  function describeDelta(deg) {
+    const arcMm = deg * Math.PI / 180 * 5000;   // arc length at 5 m, in mm
+    if (deg <= 0.00105) return 'een duizendste van een graad — minder dan de dikte van een haar op 5 meter afstand';
+    if (arcMm < 0.15) return 'minder dan de dikte van een haar op 5 meter afstand';
+    if (arcMm < 1.2)  return 'ongeveer zo dik als een speldenknop, gezien op 5 meter afstand';
+    if (arcMm < 12)   return 'nog geen centimeter, gezien op 5 meter afstand';
+    return 'ongeveer een handbreedte, op 5 meter afstand';
+  }
+
+  // ---------- Integrator ----------
+  function rk4(s, h, f) {
+    const k1 = f(s);
+    const s2 = s.map((v, i) => v + h / 2 * k1[i]);
+    const k2 = f(s2);
+    const s3 = s.map((v, i) => v + h / 2 * k2[i]);
+    const k3 = f(s3);
+    const s4 = s.map((v, i) => v + h * k3[i]);
+    const k4 = f(s4);
+    return s.map((v, i) => v + h / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+  }
+
+  function derivSingle(s) {
+    return [s[1], -(G / LS) * Math.sin(s[0])];
+  }
+
+  // Standard double-pendulum equations of motion.
+  function derivDouble(s) {
+    const t1 = s[0], w1 = s[1], t2 = s[2], w2 = s[3];
+    const d = t1 - t2;
+    const cd = Math.cos(d), sd = Math.sin(d);
+    const den = 2 * M1 + M2 - M2 * Math.cos(2 * d);
+    const a1 = (-G * (2 * M1 + M2) * Math.sin(t1)
+                - M2 * G * Math.sin(t1 - 2 * t2)
+                - 2 * sd * M2 * (w2 * w2 * L2 + w1 * w1 * L1 * cd)) / (L1 * den);
+    const a2 = (2 * sd * (w1 * w1 * L1 * (M1 + M2)
+                + G * (M1 + M2) * Math.cos(t1)
+                + w2 * w2 * L2 * M2 * cd)) / (L2 * den);
+    return [w1, a1, w2, a2];
+  }
+
+  // ---------- Geometry ----------
+  function reach() { return stage === 1 ? LS : (L1 + L2); }
+
+  function positions(s) {
+    if (stage === 1) {
+      const x = PX + LS * SCALE * Math.sin(s[0]);
+      const y = PY + LS * SCALE * Math.cos(s[0]);
+      return { b1: { x, y }, tip: { x, y } };
+    }
+    const x1 = PX + L1 * SCALE * Math.sin(s[0]);
+    const y1 = PY + L1 * SCALE * Math.cos(s[0]);
+    const x2 = x1 + L2 * SCALE * Math.sin(s[2]);
+    const y2 = y1 + L2 * SCALE * Math.cos(s[2]);
+    return { b1: { x: x1, y: y1 }, b2: { x: x2, y: y2 }, tip: { x: x2, y: y2 } };
+  }
+
+  function tipDistanceMeters() {
+    const a = positions(stateA).tip, b = positions(stateB).tip;
+    return Math.hypot(a.x - b.x, a.y - b.y) / SCALE;
+  }
+
+  // ---------- Setup / state transitions ----------
+  function defaultStart() {
+    return stage === 1 ? [35 * Math.PI / 180, 0] : [2.0, 0, 2.0, 0];
+  }
+
+  function applyDelta() {
+    const dRad = deltaDeg * Math.PI / 180;
+    stateB = stateA.slice();
+    stateB[0] = stateA[0] + dRad;   // tiny offset on the first angle only
+    for (let i = 1; i < stateB.length; i += 2) stateB[i] = 0;
+  }
+
+  function armAt(start) {
+    mode = 'ready';
+    stateA = start.slice();
+    for (let i = 1; i < stateA.length; i += 2) stateA[i] = 0;
+    applyDelta();
+    simTime = 0;
+    trailA = []; trailB = [];
+    chartData = []; lastSampleT = -1;
+    splitDetected = false;
+    fullyDiverged = false;
+    stage1InsightShown = false;
+    slowmoT = 0;
+    releaseBtn.disabled = false;
+    flashBanner.classList.remove('show');
+    distMetric.classList.remove('split', 'diverged');
+    divergedStatus.classList.remove('hit');
+    divergedStatus.textContent = 'Nog niet losgelaten.';
+    timeValue.textContent = '0,0 s';
+    distValue.innerHTML = '&mdash;';
+    divBarFill.style.width = '0%';
+    insight.classList.remove('visible');
+    setReadyMessage();
+  }
+
+  function setReadyMessage() {
+    if (stage === 1) {
+      message.innerHTML = 'Twee gewone slingers, startverschil <strong>' + fmtDeg(deltaDeg) +
+        '</strong>. Druk op &laquo;Laat los&raquo;.';
+    } else {
+      message.innerHTML = 'Sleep de bollen naar een startpositie (of laat ze staan) en druk op <strong>&laquo;Laat los&raquo;</strong>.';
+    }
+  }
+
+  function release() {
+    if (mode !== 'ready') return;
+    startA = stateA.slice();
+    applyDelta();
+    mode = 'running';
+    releaseBtn.disabled = true;
+    divergedStatus.textContent = 'Wachten op divergentie…';
+    if (stage === 1) {
+      message.innerHTML = 'Verschil van <strong>' + fmtDeg(deltaDeg) +
+        '</strong> &mdash; en toch &eacute;&eacute;n lijn. Saai? Pr&eacute;cies. Dit is voorspelbaarheid.';
+    } else {
+      message.innerHTML = 'Zelfde wetten, zelfde zwaartekracht, verschil van <strong>' + fmtDeg(deltaDeg) +
+        '</strong>. Hoe lang blijven ze samen&hellip;?';
+    }
+  }
+
+  function reset() {
+    armAt(startA.length === stateA.length && startA.length > 0 ? startA : defaultStart());
+  }
+
+  function setStage(n) {
+    stage = n;
+    tab1.classList.toggle('active', n === 1);
+    tab2.classList.toggle('active', n === 2);
+    tab2.classList.remove('pulse');
+    startA = defaultStart();
+    armAt(startA);
+    canvas.style.cursor = n === 2 ? 'grab' : 'default';
+  }
+
+  // ---------- Simulation loop ----------
+  function advance(rawDt) {
+    let timeScale = 1;
+    if (slowmoT > 0) {
+      slowmoT -= rawDt;
+      timeScale = slowmoT > 0.6 ? 0.2 : 0.2 + 0.8 * (1 - Math.max(slowmoT, 0) / 0.6);
+    }
+    const eff = rawDt * timeScale;
+    if (eff <= 0) return;
+    const n = Math.max(1, Math.ceil(eff / DT));
+    const h = eff / n;
+    const f = stage === 1 ? derivSingle : derivDouble;
+    for (let i = 0; i < n; i++) {
+      stateA = rk4(stateA, h, f);
+      stateB = rk4(stateB, h, f);
+    }
+    simTime += eff;
+
+    // Trails
+    trailA.push(positions(stateA).tip);
+    trailB.push(positions(stateB).tip);
+    if (trailA.length > TRAIL_MAX) trailA.shift();
+    if (trailB.length > TRAIL_MAX) trailB.shift();
+
+    // Chart sampling at ~20 Hz
+    const dist = tipDistanceMeters();
+    if (simTime - lastSampleT >= 0.05) {
+      lastSampleT = simTime;
+      chartData.push({ t: simTime, d: dist });
+      if (chartData.length > 2400) chartData.shift();
+    }
+
+    checkThresholds(dist);
+    updateReadouts(dist);
+  }
+
+  function checkThresholds(dist) {
+    const r = reach();
+    if (!splitDetected && dist > SPLIT_FRAC * r) {
+      splitDetected = true;
+      distMetric.classList.add('split');
+      if (stage === 2) {
+        slowmoT = 1.8;                       // brief slow motion so the moment lands
+        flashBanner.classList.add('show');
+        clearTimeout(bannerTimeout);
+        bannerTimeout = setTimeout(() => flashBanner.classList.remove('show'), 2600);
+        message.innerHTML = '<strong>Daar!</strong> Na ' + fmt(simTime, 1) +
+          ' s splitsen de paden zichtbaar &mdash; het verschil verdubbelt bij elke zwaai.';
+        insight.innerHTML = '<strong>Deterministisch &ne; voorspelbaar.</strong> ' +
+          'Er is geen toeval in het spel: beide slingers volgen exact dezelfde vergelijkingen. ' +
+          'Maar een chaotisch systeem <strong>vermenigvuldigt</strong> elk startverschil, hoe klein ook — ' +
+          'en exponentiële groei wint altijd.';
+        insight.classList.add('visible');
+      }
+    }
+    if (!fullyDiverged && dist > FULL_FRAC * r) {
+      fullyDiverged = true;
+      divergedAtT = simTime;
+      distMetric.classList.add('diverged');
+      divergedStatus.classList.add('hit');
+      divergedStatus.textContent = 'Na ' + fmt(divergedAtT, 1) + ' seconden volledig uiteen.';
+      if (stage === 2) {
+        message.innerHTML = 'Na <strong>' + fmt(divergedAtT, 1) +
+          ' s</strong> hebben de slingers niets meer met elkaar te maken. Startverschil: ' + fmtDeg(deltaDeg) + '.';
+        insight.innerHTML = 'Dit is het <strong>vlindereffect</strong>. De atmosfeer is net zo chaotisch als deze slinger: ' +
+          'een meetfout zo klein als de vleugelslag van een vlinder groeit exponentieel. ' +
+          'Daarom is een weersverwachting voorbij <strong>±10 dagen</strong> fysisch onmogelijk — ' +
+          'niet omdat het weer willekeurig is, maar omdat het chaotisch is.';
+        insight.classList.add('visible');
+      }
+    }
+    // Stage 1 payoff: it just keeps NOT diverging.
+    if (stage === 1 && !stage1InsightShown && simTime > 6) {
+      stage1InsightShown = true;
+      insight.innerHTML = 'Na ' + fmt(simTime, 0) + ' seconden is het verschil nóg steeds microscopisch: ' +
+        'een gewone slinger is deterministisch <strong>én</strong> voorspelbaar. ' +
+        'Ga nu naar <strong>stap 2</strong>: zelfde natuurkunde, één extra scharnier…';
+      insight.classList.add('visible');
+      tab2.classList.add('pulse');
+      message.innerHTML = 'Ze blijven samen, voor altijd. Klaar voor de chaos? <strong>Stap 2 &rarr;</strong>';
+    }
+  }
+
+  function updateReadouts(dist) {
+    timeValue.textContent = fmt(simTime, 1) + ' s';
+    distValue.textContent = fmtDist(dist);
+    divBarFill.style.width = Math.min(100, dist / (FULL_FRAC * reach()) * 100) + '%';
+  }
+
+  // ---------- Rendering ----------
+  function drawTrail(trail, rgb) {
+    const len = trail.length;
+    if (len < 2) return;
+    ctx.lineCap = 'round';
+    for (let i = 1; i < len; i++) {
+      const alpha = (i / len) * 0.8;
+      ctx.strokeStyle = 'rgba(' + rgb + ',' + alpha.toFixed(3) + ')';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(trail[i - 1].x, trail[i - 1].y);
+      ctx.lineTo(trail[i].x, trail[i].y);
+      ctx.stroke();
+    }
+  }
+
+  function drawPendulum(s, color, armWidth, bobR) {
+    const p = positions(s);
+    ctx.strokeStyle = 'rgba(' + color.rgb + ',0.85)';
+    ctx.lineWidth = armWidth;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(PX, PY);
+    ctx.lineTo(p.b1.x, p.b1.y);
+    if (stage === 2) ctx.lineTo(p.b2.x, p.b2.y);
+    ctx.stroke();
+
+    ctx.shadowColor = color.hex;
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = color.hex;
+    ctx.beginPath();
+    ctx.arc(p.b1.x, p.b1.y, bobR, 0, Math.PI * 2);
+    ctx.fill();
+    if (stage === 2) {
+      ctx.beginPath();
+      ctx.arc(p.b2.x, p.b2.y, bobR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Reach circle (faint) + pivot mount
+    ctx.strokeStyle = 'rgba(148,163,184,0.07)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(PX, PY, reach() * SCALE, 0, Math.PI * 2);
+    ctx.stroke();
+
+    drawTrail(trailA, COLOR_A.rgb);
+    drawTrail(trailB, COLOR_B.rgb);
+
+    drawPendulum(stateB, COLOR_B, 3, 8);
+    drawPendulum(stateA, COLOR_A, 4.5, 11);
+
+    // Pivot on top
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.arc(PX, PY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#94a3b8';
+    ctx.beginPath();
+    ctx.arc(PX, PY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    drawChart();
+  }
+
+  function drawChart() {
+    const w = chart.width, h = chart.height;
+    cctx.clearRect(0, 0, w, h);
+
+    const padL = 34, padR = 6, padT = 8, padB = 14;
+    const yMin = -6, yMax = 0.7;   // log10(meters)
+    const tMin = chartData.length ? chartData[0].t : 0;
+    const tMax = Math.max(10, simTime);
+    const xOf = t => padL + (t - tMin) / (tMax - tMin || 1) * (w - padL - padR);
+    const yOf = lg => padT + (yMax - lg) / (yMax - yMin) * (h - padT - padB);
+
+    // Grid lines
+    cctx.font = '9px sans-serif';
+    cctx.textBaseline = 'middle';
+    const gridLines = [[0, '1 m'], [-3, '1 mm'], [-6, '1 µm']];
+    for (const [lg, lbl] of gridLines) {
+      cctx.strokeStyle = 'rgba(148,163,184,0.12)';
+      cctx.lineWidth = 1;
+      cctx.beginPath();
+      cctx.moveTo(padL, yOf(lg));
+      cctx.lineTo(w - padR, yOf(lg));
+      cctx.stroke();
+      cctx.fillStyle = '#64748b';
+      cctx.fillText(lbl, 4, yOf(lg));
+    }
+
+    // "Fully diverged" threshold
+    const thrLg = Math.log10(FULL_FRAC * reach());
+    cctx.strokeStyle = 'rgba(239,68,68,0.45)';
+    cctx.setLineDash([4, 4]);
+    cctx.beginPath();
+    cctx.moveTo(padL, yOf(thrLg));
+    cctx.lineTo(w - padR, yOf(thrLg));
+    cctx.stroke();
+    cctx.setLineDash([]);
+    cctx.fillStyle = 'rgba(252,165,165,0.85)';
+    cctx.fillText('uiteen', w - 36, yOf(thrLg) - 7);
+
+    // Divergence curve
+    if (chartData.length > 1) {
+      cctx.strokeStyle = '#a78bfa';
+      cctx.lineWidth = 2;
+      cctx.lineJoin = 'round';
+      cctx.beginPath();
+      for (let i = 0; i < chartData.length; i++) {
+        const lg = Math.max(yMin, Math.log10(Math.max(chartData[i].d, 1e-7)));
+        const x = xOf(chartData[i].t), y = yOf(Math.min(lg, yMax));
+        if (i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
+      }
+      cctx.stroke();
+    }
+  }
+
+  // ---------- Dragging the start position (stage 2) ----------
+  function toCanvas(e) {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * canvas.width / r.width,
+      y: (e.clientY - r.top) * canvas.height / r.height
+    };
+  }
+  function near(p, q, rad) { return Math.hypot(p.x - q.x, p.y - q.y) < rad; }
+
+  canvas.addEventListener('pointerdown', e => {
+    if (stage !== 2 || mode !== 'ready') return;
+    const p = toCanvas(e);
+    const pos = positions(stateA);
+    if (near(p, pos.b2, 28)) dragTarget = 2;
+    else if (near(p, pos.b1, 28)) dragTarget = 1;
+    if (dragTarget) {
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = 'grabbing';
+      e.preventDefault();
+    }
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    if (stage !== 2) return;
+    const p = toCanvas(e);
+    if (dragTarget) {
+      if (dragTarget === 1) {
+        stateA[0] = Math.atan2(p.x - PX, p.y - PY);
+      } else {
+        const b1 = positions(stateA).b1;
+        stateA[2] = Math.atan2(p.x - b1.x, p.y - b1.y);
+      }
+      stateA[1] = 0; stateA[3] = 0;
+      applyDelta();
+    } else if (mode === 'ready') {
+      const pos = positions(stateA);
+      canvas.style.cursor = (near(p, pos.b1, 28) || near(p, pos.b2, 28)) ? 'grab' : 'default';
+    }
+  });
+
+  function endDrag() {
+    if (dragTarget) {
+      dragTarget = 0;
+      canvas.style.cursor = 'grab';
+    }
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  // ---------- Controls ----------
+  function updateDeltaUI() {
+    deltaLabel.textContent = fmtDeg(deltaDeg);
+    let txt = describeDelta(deltaDeg);
+    if (mode === 'running') txt += ' — <em>geldt vanaf de volgende start</em>';
+    deltaHuman.innerHTML = txt;
+  }
+
+  deltaSlider.oninput = function () {
+    deltaDeg = Math.pow(10, this.value / 100 - 3);   // 0.001° … 1°, logarithmic
+    updateDeltaUI();
+    if (mode === 'ready') {
+      applyDelta();
+      setReadyMessage();
+    }
+  };
+
+  releaseBtn.onclick = release;
+  resetBtn.onclick = reset;
+  tab1.onclick = () => setStage(1);
+  tab2.onclick = () => setStage(2);
+
+  // ---------- Main loop ----------
+  let lastTs = null;
+  function frame(ts) {
+    const rawDt = lastTs === null ? 0 : Math.min((ts - lastTs) / 1000, 1 / 30);
+    lastTs = ts;
+    if (mode === 'running') advance(rawDt);
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- Init ----------
+  startA = defaultStart();
+  armAt(startA);
+  updateDeltaUI();
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>
