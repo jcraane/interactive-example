@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Compound Interest Race: Why Starting Early Beats Saving More</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --early-color: #22c55e;     /* Early Bird */
+      --early-soft: rgba(34,197,94,0.7);
+      --late-color: #f59e0b;      /* Late Starter */
+      --late-soft: rgba(245,158,11,0.7);
+      --accent-color: #3b82f6;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 15% 40%, rgba(34,197,94,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 25%, rgba(245,158,11,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(59,130,246,0.06) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      text-align: center;
+      background: linear-gradient(135deg, #22c55e, #3b82f6, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      max-width: 900px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 28px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .main {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 1180px;
+    }
+
+    /* ---- Saver scoreboard cards ---- */
+    .savers {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 320px;
+      flex: 1 1 320px;
+      max-width: 380px;
+    }
+
+    .saver-card {
+      border-radius: 16px;
+      padding: 20px 22px;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.4s, box-shadow 0.4s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .saver-card.early {
+      background: rgba(34,197,94,0.07);
+      border: 1px solid rgba(34,197,94,0.3);
+    }
+    .saver-card.late {
+      background: rgba(245,158,11,0.07);
+      border: 1px solid rgba(245,158,11,0.3);
+    }
+    .saver-card.leading {
+      box-shadow: 0 0 38px rgba(255,255,255,0.05);
+    }
+    .saver-card.early.leading {
+      border-color: rgba(34,197,94,0.7);
+      box-shadow: 0 0 38px rgba(34,197,94,0.22);
+    }
+    .saver-card.late.leading {
+      border-color: rgba(245,158,11,0.7);
+      box-shadow: 0 0 38px rgba(245,158,11,0.22);
+    }
+
+    .saver-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .saver-name {
+      font-size: 1.15rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+    .early .dot { background: var(--early-color); color: var(--early-color); }
+    .late .dot { background: var(--late-color); color: var(--late-color); }
+    .early .saver-name { color: var(--early-color); }
+    .late .saver-name { color: var(--late-color); }
+
+    .lead-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 4px 9px;
+      border-radius: 999px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .early .lead-badge { background: rgba(34,197,94,0.2); color: var(--early-color); }
+    .late .lead-badge { background: rgba(245,158,11,0.2); color: var(--late-color); }
+    .saver-card.leading .lead-badge { opacity: 1; }
+
+    .saver-sub {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+      min-height: 2.3em;
+    }
+    .saver-card.contributing .saver-sub strong { color: #cbd5e1; }
+
+    .balance {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+    .early .balance { color: var(--early-color); }
+    .late .balance { color: var(--late-color); }
+    .balance-label {
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+
+    .metric-row {
+      display: flex;
+      gap: 14px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(148,163,184,0.12);
+    }
+    .metric { flex: 1; }
+    .metric .m-label {
+      font-size: 0.6rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .metric .m-value {
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: #e2e8f0;
+    }
+    .metric .m-value.growth { color: var(--accent-color); }
+
+    /* contributing pulse indicator */
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 999px;
+      margin-top: 12px;
+      background: rgba(148,163,184,0.12);
+      color: var(--muted);
+      transition: background 0.3s, color 0.3s;
+    }
+    .saver-card.contributing.early .status-chip { background: rgba(34,197,94,0.18); color: var(--early-color); }
+    .saver-card.contributing.late .status-chip { background: rgba(245,158,11,0.18); color: var(--late-color); }
+    .status-chip .pulse { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .saver-card.contributing .status-chip .pulse { animation: blink 1.1s ease-in-out infinite; }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+    /* ---- Graph ---- */
+    .graph-container {
+      flex: 2 1 520px;
+      max-width: 700px;
+      display: flex;
+      flex-direction: column;
+    }
+    .graph-title {
+      font-size: 0.75rem;
+      margin-bottom: 6px;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .age-display {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: white;
+      letter-spacing: 0;
+      text-transform: none;
+      font-variant-numeric: tabular-nums;
+    }
+    .age-display span.small { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+    svg.graph {
+      width: 100%;
+      height: auto;
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 2px solid rgba(148, 163, 184, 0.3);
+      border-bottom: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+    }
+    .graph-grid { stroke: rgba(148, 163, 184, 0.08); stroke-width: 1; }
+    .grid-strong { stroke: rgba(148, 163, 184, 0.16); stroke-width: 1; stroke-dasharray: 3 4; }
+    .axis-label { fill: var(--muted); font-size: 11px; }
+    .y-axis-label { fill: var(--muted); font-size: 10px; text-anchor: end; }
+
+    .curve-early { fill: none; stroke: var(--early-color); stroke-width: 3; stroke-linejoin: round; filter: drop-shadow(0 0 5px rgba(34,197,94,0.45)); }
+    .curve-late  { fill: none; stroke: var(--late-color);  stroke-width: 3; stroke-linejoin: round; filter: drop-shadow(0 0 5px rgba(245,158,11,0.45)); }
+    .fill-early { fill: url(#gradEarly); opacity: 0.85; }
+    .fill-late  { fill: url(#gradLate);  opacity: 0.85; }
+    .marker-early { fill: var(--early-color); filter: drop-shadow(0 0 5px rgba(34,197,94,0.7)); }
+    .marker-late  { fill: var(--late-color);  filter: drop-shadow(0 0 5px rgba(245,158,11,0.7)); }
+    .stop-line { stroke: var(--early-color); stroke-width: 1.5; stroke-dasharray: 4 4; opacity: 0.55; }
+    .cross-line { stroke: rgba(255,255,255,0.55); stroke-width: 1.5; stroke-dasharray: 2 3; }
+    .annot { fill: #cbd5e1; font-size: 10px; font-weight: 600; }
+
+    /* ---- Controls ---- */
+    .controls {
+      width: 100%;
+      max-width: 1180px;
+      margin-top: 26px;
+    }
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 8px 28px;
+    }
+    .slider-group { padding: 4px 0; }
+    .slider-group label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .slider-group label .val {
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      outline: none;
+      margin: 10px 0 4px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(59,130,246,0.5);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(59,130,246,0.7); }
+    input[type=range]::-webkit-slider-thumb:active { transform: scale(1.1); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border: none;
+      background: var(--accent-color); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(59,130,246,0.5); cursor: pointer;
+    }
+
+    .scenario-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.2);
+    }
+    .scenario-text { font-size: 0.88rem; color: #cbd5e1; line-height: 1.5; flex: 1 1 320px; }
+    .scenario-text b { color: var(--early-color); }
+
+    /* toggle switch */
+    .switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+    .switch .track {
+      width: 50px; height: 28px; border-radius: 999px;
+      background: rgba(148,163,184,0.25);
+      transition: background 0.3s;
+      position: relative;
+    }
+    .switch .knob {
+      position: absolute; top: 3px; left: 3px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: white;
+      transition: left 0.3s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .switch.on .track { background: var(--early-color); }
+    .switch.on .knob { left: 25px; }
+    .switch .switch-label { font-size: 0.8rem; font-weight: 700; color: #cbd5e1; }
+
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+    button {
+      background: var(--accent-color); color: white; border: none;
+      padding: 12px 26px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button.playing { background: var(--danger-color); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+    button.continue {
+      background: var(--early-color);
+      box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+      animation: pulse-continue 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-continue {
+      0%,100% { box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
+      50% { box-shadow: 0 4px 24px rgba(34,197,94,0.65); }
+    }
+
+    /* ---- Insight callout ---- */
+    .insight {
+      max-width: 1180px;
+      width: 100%;
+      margin-top: 22px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 1rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+      background: rgba(59, 130, 246, 0.07);
+      border-left: 4px solid var(--accent-color);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.45s, transform 0.45s, border-color 0.4s, background 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight.win {
+      background: rgba(34,197,94,0.09);
+      border-left-color: var(--early-color);
+    }
+    .insight.crossover {
+      background: rgba(59,130,246,0.1);
+      border-left-color: var(--accent-color);
+    }
+    .insight b.early { color: var(--early-color); }
+    .insight b.late { color: var(--late-color); }
+
+    .footnote {
+      max-width: 1180px;
+      width: 100%;
+      margin-top: 18px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<h1>The Compound Interest Race</h1>
+<p class="subtitle">Why starting early beats saving more</p>
+
+<div class="main">
+  <!-- Saver scoreboard -->
+  <div class="savers">
+    <div class="saver-card early contributing leading" id="cardEarly">
+      <div class="saver-head">
+        <div class="saver-name"><span class="dot"></span>Early Bird</div>
+        <span class="lead-badge">Leading</span>
+      </div>
+      <div class="saver-sub" id="subEarly"></div>
+      <div class="balance-label">Balance</div>
+      <div class="balance" id="balEarly">$0</div>
+      <div class="status-chip" id="chipEarly"><span class="pulse"></span><span id="chipEarlyTxt">Contributing</span></div>
+      <div class="metric-row">
+        <div class="metric">
+          <div class="m-label">Total put in</div>
+          <div class="m-value" id="contribEarly">$0</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Growth earned</div>
+          <div class="m-value growth" id="growthEarly">$0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="saver-card late contributing" id="cardLate">
+      <div class="saver-head">
+        <div class="saver-name"><span class="dot"></span>Late Starter</div>
+        <span class="lead-badge">Leading</span>
+      </div>
+      <div class="saver-sub" id="subLate"></div>
+      <div class="balance-label">Balance</div>
+      <div class="balance" id="balLate">$0</div>
+      <div class="status-chip" id="chipLate"><span class="pulse"></span><span id="chipLateTxt">Waiting</span></div>
+      <div class="metric-row">
+        <div class="metric">
+          <div class="m-label">Total put in</div>
+          <div class="m-value" id="contribLate">$0</div>
+        </div>
+        <div class="metric">
+          <div class="m-label">Growth earned</div>
+          <div class="m-value growth" id="growthLate">$0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph -->
+  <div class="graph-container glass">
+    <div class="graph-title">
+      <span>Balance vs. Age</span>
+      <span class="age-display">Age <span id="ageNow">25</span> <span class="small" id="ageMaxLbl">/ 65</span></span>
+    </div>
+    <svg class="graph" id="graph" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="gradEarly" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#22c55e" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="gradLate" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.28"/>
+          <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <g id="gridLayer"></g>
+      <g id="yLabels"></g>
+      <line id="stopLine" class="stop-line" x1="0" y1="0" x2="0" y2="0" style="opacity:0"/>
+      <line id="crossLine" class="cross-line" x1="0" y1="0" x2="0" y2="0" style="opacity:0"/>
+      <path id="fillLate"  class="fill-late"  d=""/>
+      <path id="fillEarly" class="fill-early" d=""/>
+      <path id="curveLate"  class="curve-late"  d=""/>
+      <path id="curveEarly" class="curve-early" d=""/>
+      <text id="stopAnnot" class="annot" x="0" y="0" style="opacity:0">Early Bird stops saving</text>
+      <text id="crossAnnot" class="annot" x="0" y="0" text-anchor="middle" style="opacity:0">overtakes!</text>
+      <circle id="markEarly" class="marker-early" cx="0" cy="0" r="5"/>
+      <circle id="markLate"  class="marker-late"  cx="0" cy="0" r="5"/>
+      <g id="xLabels"></g>
+    </svg>
+  </div>
+</div>
+
+<div id="insight" class="insight"></div>
+
+<!-- Controls -->
+<div class="controls glass">
+  <div class="sliders-grid">
+    <div class="slider-group">
+      <label>Monthly deposit <span class="val" id="depVal">$500</span></label>
+      <input type="range" id="depSlider" min="50" max="2000" step="50" value="500">
+    </div>
+    <div class="slider-group">
+      <label>Annual return <span class="val" id="rateVal">7%</span></label>
+      <input type="range" id="rateSlider" min="1" max="12" step="0.5" value="7">
+    </div>
+    <div class="slider-group">
+      <label>Early Bird starts at age <span class="val" id="earlyStartVal">25</span></label>
+      <input type="range" id="earlyStartSlider" min="18" max="45" step="1" value="25">
+    </div>
+    <div class="slider-group">
+      <label>Late Starter starts at age <span class="val" id="lateStartVal">35</span></label>
+      <input type="range" id="lateStartSlider" min="25" max="55" step="1" value="35">
+    </div>
+    <div class="slider-group">
+      <label>Early Bird saves for <span class="val" id="earlyYearsVal">10 yrs</span></label>
+      <input type="range" id="earlyYearsSlider" min="5" max="40" step="1" value="10">
+    </div>
+    <div class="slider-group">
+      <label>Retirement age <span class="val" id="endAgeVal">65</span></label>
+      <input type="range" id="endAgeSlider" min="55" max="75" step="1" value="65">
+    </div>
+  </div>
+
+  <div class="scenario-row">
+    <div class="scenario-text">
+      <b>The killer scenario:</b> Early Bird saves for a few years, then <b>STOPS contributing</b> but keeps compounding. Late Starter keeps saving until retirement. Watch who wins.
+    </div>
+    <div class="switch on" id="stopSwitch">
+      <span class="switch-label">Early Bird stops early</span>
+      <div class="track"><div class="knob"></div></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button id="playBtn" class="secondary">▶ Auto-play the years</button>
+    <button id="resetBtn" class="secondary">Reset to retirement</button>
+  </div>
+</div>
+
+<div class="footnote">
+  Compounded monthly. Returns are illustrative, not a forecast — real markets fluctuate. The point: the <b>curve</b>, not the deposit, does the heavy lifting, so <b>time in the market</b> matters more than the amount.
+</div>
+
+<script>
+  // ---- Elements ----
+  const depSlider = document.getElementById('depSlider');
+  const rateSlider = document.getElementById('rateSlider');
+  const earlyStartSlider = document.getElementById('earlyStartSlider');
+  const lateStartSlider = document.getElementById('lateStartSlider');
+  const earlyYearsSlider = document.getElementById('earlyYearsSlider');
+  const endAgeSlider = document.getElementById('endAgeSlider');
+
+  const depVal = document.getElementById('depVal');
+  const rateVal = document.getElementById('rateVal');
+  const earlyStartVal = document.getElementById('earlyStartVal');
+  const lateStartVal = document.getElementById('lateStartVal');
+  const earlyYearsVal = document.getElementById('earlyYearsVal');
+  const endAgeVal = document.getElementById('endAgeVal');
+
+  const stopSwitch = document.getElementById('stopSwitch');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const ageNow = document.getElementById('ageNow');
+  const ageMaxLbl = document.getElementById('ageMaxLbl');
+
+  const cardEarly = document.getElementById('cardEarly');
+  const cardLate = document.getElementById('cardLate');
+  const balEarly = document.getElementById('balEarly');
+  const balLate = document.getElementById('balLate');
+  const subEarly = document.getElementById('subEarly');
+  const subLate = document.getElementById('subLate');
+  const contribEarly = document.getElementById('contribEarly');
+  const contribLate = document.getElementById('contribLate');
+  const growthEarly = document.getElementById('growthEarly');
+  const growthLate = document.getElementById('growthLate');
+  const chipEarly = document.getElementById('chipEarly');
+  const chipLate = document.getElementById('chipLate');
+  const chipEarlyTxt = document.getElementById('chipEarlyTxt');
+  const chipLateTxt = document.getElementById('chipLateTxt');
+
+  const insight = document.getElementById('insight');
+
+  // SVG
+  const gridLayer = document.getElementById('gridLayer');
+  const yLabels = document.getElementById('yLabels');
+  const xLabels = document.getElementById('xLabels');
+  const curveEarly = document.getElementById('curveEarly');
+  const curveLate = document.getElementById('curveLate');
+  const fillEarly = document.getElementById('fillEarly');
+  const fillLate = document.getElementById('fillLate');
+  const markEarly = document.getElementById('markEarly');
+  const markLate = document.getElementById('markLate');
+  const stopLine = document.getElementById('stopLine');
+  const stopAnnot = document.getElementById('stopAnnot');
+  const crossLine = document.getElementById('crossLine');
+  const crossAnnot = document.getElementById('crossAnnot');
+
+  // SVG plot geometry
+  const VW = 640, VH = 380;
+  const PAD_L = 8, PAD_R = 14, PAD_T = 16, PAD_B = 28;
+  const PLOT_W = VW - PAD_L - PAD_R;
+  const PLOT_H = VH - PAD_T - PAD_B;
+
+  // ---- State ----
+  let monthly = 500;
+  let annualRate = 7;
+  let earlyStart = 25;
+  let lateStart = 35;
+  let earlyYears = 10;
+  let endAge = 65;
+  let earlyStops = true;
+
+  // The whole timeline begins at the earliest start age.
+  let timelineStart = 18;     // recomputed
+  let currentAge = 65;        // the age the user is "viewing" (sweeps during auto-play)
+
+  let playing = false;
+  let pausedAtBreakpoint = false;
+  let playTimer = null;
+
+  // ---- Currency formatting (human friendly) ----
+  function fmtMoney(n) {
+    n = Math.round(n);
+    if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return '$' + n.toLocaleString('en-US');
+    return '$' + n.toLocaleString('en-US');
+  }
+  function fmtMoneyShort(n) {
+    n = Math.round(n);
+    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
+    return '$' + n;
+  }
+
+  // ---- Core simulation ----
+  // Returns balance for a saver at a given target age, compounding monthly.
+  // contributes while startAge <= age < stopAge.
+  function balanceAt(targetAge, startAge, stopAge) {
+    if (targetAge <= startAge) return 0;
+    const m = annualRate / 100 / 12;
+    let bal = 0;
+    const endMonth = Math.round((targetAge - timelineStart) * 12);
+    for (let step = 0; step < endMonth; step++) {
+      const age = timelineStart + step / 12;
+      if (age >= startAge && age < stopAge) bal += monthly;
+      bal *= (1 + m);
+    }
+    return bal;
+  }
+
+  function contributedAt(targetAge, startAge, stopAge) {
+    if (targetAge <= startAge) return 0;
+    const monthsContrib = (Math.min(targetAge, stopAge) - startAge) * 12;
+    return Math.max(0, monthsContrib) * monthly;
+  }
+
+  function earlyStopAge() {
+    return earlyStops ? Math.min(earlyStart + earlyYears, endAge) : endAge;
+  }
+
+  // Find BALANCE crossover age where Early overtakes Late from behind.
+  // Returns null if Early is never behind Late (the classic "head start wins outright" case).
+  function findCrossover() {
+    const eStop = earlyStopAge();
+    let prevDiff = null;
+    let cross = null;
+    for (let age = lateStart; age <= endAge + 0.001; age += 0.25) {
+      const e = balanceAt(age, earlyStart, eStop);
+      const l = balanceAt(age, lateStart, endAge);
+      const diff = e - l;
+      if (prevDiff !== null && prevDiff < 0 && diff >= 0) { cross = age; break; }
+      prevDiff = diff;
+    }
+    return cross;
+  }
+
+  // The "money overtake" age: the moment Late Starter's TOTAL contributions surpass
+  // everything Early Bird ever put in — yet (in the killer scenario) Early still leads on balance.
+  // This always exists when Late contributes more total than Early. Returns null otherwise.
+  function findMoneyOvertake() {
+    const eStop = earlyStopAge();
+    const eTotalIn = contributedAt(endAge, earlyStart, eStop);
+    const lTotalIn = contributedAt(endAge, lateStart, endAge);
+    if (lTotalIn <= eTotalIn) return null;
+    for (let age = lateStart; age <= endAge + 0.001; age += 0.25) {
+      if (contributedAt(age, lateStart, endAge) >= eTotalIn) return age;
+    }
+    return null;
+  }
+
+  // ---- Build static grid ----
+  function buildGrid() {
+    timelineStart = Math.min(earlyStart, lateStart);
+    ageMaxLbl.textContent = '/ ' + endAge;
+
+    gridLayer.innerHTML = '';
+    yLabels.innerHTML = '';
+    xLabels.innerHTML = '';
+
+    // horizontal grid (y)
+    for (let i = 0; i <= 4; i++) {
+      const y = PAD_T + (PLOT_H * i / 4);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'graph-grid');
+      line.setAttribute('x1', PAD_L); line.setAttribute('x2', VW - PAD_R);
+      line.setAttribute('y1', y); line.setAttribute('y2', y);
+      gridLayer.appendChild(line);
+    }
+    // vertical grid (x) by age
+    const ageSpan = endAge - timelineStart;
+    const xTicks = 5;
+    for (let i = 0; i <= xTicks; i++) {
+      const age = timelineStart + ageSpan * i / xTicks;
+      const x = PAD_L + (PLOT_W * i / xTicks);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'graph-grid');
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      line.setAttribute('y1', PAD_T); line.setAttribute('y2', PAD_T + PLOT_H);
+      gridLayer.appendChild(line);
+
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('class', 'axis-label');
+      t.setAttribute('x', x);
+      t.setAttribute('y', VH - 8);
+      t.setAttribute('text-anchor', i === 0 ? 'start' : (i === xTicks ? 'end' : 'middle'));
+      t.textContent = i === 0 ? 'Age ' + Math.round(age) : Math.round(age);
+      xLabels.appendChild(t);
+    }
+  }
+
+  // y scale max (based on the bigger final balance, with headroom)
+  function computeYMax() {
+    const eStop = earlyStopAge();
+    const eFinal = balanceAt(endAge, earlyStart, eStop);
+    const lFinal = balanceAt(endAge, lateStart, endAge);
+    const top = Math.max(eFinal, lFinal, 1);
+    // round up to a nice number
+    const mag = Math.pow(10, Math.floor(Math.log10(top)));
+    const yMax = Math.ceil(top / mag) * mag;
+    return yMax * 1.08;
+  }
+
+  function xForAge(age) {
+    return PAD_L + ((age - timelineStart) / (endAge - timelineStart)) * PLOT_W;
+  }
+  function yForVal(v, yMax) {
+    return PAD_T + PLOT_H - (v / yMax) * PLOT_H;
+  }
+
+  // ---- Render the curves up to currentAge ----
+  function render() {
+    const yMax = computeYMax();
+    const eStop = earlyStopAge();
+
+    // y labels
+    yLabels.innerHTML = '';
+    for (let i = 0; i <= 4; i++) {
+      const v = yMax * (4 - i) / 4;
+      const y = PAD_T + (PLOT_H * i / 4);
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('class', 'y-axis-label');
+      t.setAttribute('x', VW - PAD_R - 4);
+      t.setAttribute('y', y - 4);
+      t.textContent = i === 0 ? '' : fmtMoneyShort(v);
+      yLabels.appendChild(t);
+    }
+
+    // Build paths sampling monthly-ish (every 0.25 yr is smooth enough)
+    const stepYr = 0.25;
+    let dE = '', dF_E = '';
+    let dL = '', dF_L = '';
+    let startedE = false, startedL = false;
+    let lastXE = xForAge(timelineStart), lastXL = xForAge(timelineStart);
+
+    for (let age = timelineStart; age <= currentAge + 1e-6; age += stepYr) {
+      const a = Math.min(age, currentAge);
+      const e = balanceAt(a, earlyStart, eStop);
+      const l = balanceAt(a, lateStart, endAge);
+      const xe = xForAge(a), ye = yForVal(e, yMax);
+      const xl = xForAge(a), yl = yForVal(l, yMax);
+      dE += (startedE ? ' L ' : 'M ') + xe.toFixed(2) + ' ' + ye.toFixed(2);
+      dL += (startedL ? ' L ' : 'M ') + xl.toFixed(2) + ' ' + yl.toFixed(2);
+      startedE = startedL = true;
+      lastXE = xe; lastXL = xl;
+    }
+
+    curveEarly.setAttribute('d', dE);
+    curveLate.setAttribute('d', dL);
+
+    const baseY = PAD_T + PLOT_H;
+    fillEarly.setAttribute('d', dE + ' L ' + lastXE.toFixed(2) + ' ' + baseY + ' L ' + xForAge(timelineStart) + ' ' + baseY + ' Z');
+    fillLate.setAttribute('d', dL + ' L ' + lastXL.toFixed(2) + ' ' + baseY + ' L ' + xForAge(timelineStart) + ' ' + baseY + ' Z');
+
+    // markers
+    const eNow = balanceAt(currentAge, earlyStart, eStop);
+    const lNow = balanceAt(currentAge, lateStart, endAge);
+    markEarly.setAttribute('cx', xForAge(currentAge));
+    markEarly.setAttribute('cy', yForVal(eNow, yMax));
+    markLate.setAttribute('cx', xForAge(currentAge));
+    markLate.setAttribute('cy', yForVal(lNow, yMax));
+
+    // stop line (when Early Bird stops contributing)
+    if (earlyStops && eStop < endAge && currentAge >= eStop) {
+      const sx = xForAge(eStop);
+      stopLine.setAttribute('x1', sx); stopLine.setAttribute('x2', sx);
+      stopLine.setAttribute('y1', PAD_T); stopLine.setAttribute('y2', PAD_T + PLOT_H);
+      stopLine.style.opacity = 1;
+      stopAnnot.setAttribute('x', Math.min(sx + 6, VW - 150));
+      stopAnnot.setAttribute('y', PAD_T + 14);
+      stopAnnot.style.opacity = 1;
+    } else {
+      stopLine.style.opacity = 0;
+      stopAnnot.style.opacity = 0;
+    }
+
+    // crossover line: prefer the balance overtake (Early passes Late from behind);
+    // otherwise show the "money overtake" (Late has now contributed more than Early ever did).
+    const cross = findCrossover();
+    const moneyCross = cross === null ? findMoneyOvertake() : null;
+    const markAge = cross !== null ? cross : moneyCross;
+    if (markAge !== null && currentAge >= markAge) {
+      const cx = xForAge(markAge);
+      crossLine.setAttribute('x1', cx); crossLine.setAttribute('x2', cx);
+      crossLine.setAttribute('y1', PAD_T); crossLine.setAttribute('y2', PAD_T + PLOT_H);
+      crossLine.style.opacity = 1;
+      crossAnnot.setAttribute('x', Math.max(40, Math.min(cx, VW - 60)));
+      crossAnnot.setAttribute('y', PAD_T + 28);
+      crossAnnot.textContent = cross !== null ? 'overtakes!' : 'Late has now paid in more';
+      crossAnnot.style.opacity = 1;
+    } else {
+      crossLine.style.opacity = 0;
+      crossAnnot.style.opacity = 0;
+    }
+
+    updateCards(eNow, lNow, eStop, cross, moneyCross);
+  }
+
+  function updateCards(eNow, lNow, eStop, cross, moneyCross) {
+    ageNow.textContent = Math.round(currentAge);
+
+    balEarly.textContent = fmtMoney(eNow);
+    balLate.textContent = fmtMoney(lNow);
+
+    const eContrib = contributedAt(currentAge, earlyStart, eStop);
+    const lContrib = contributedAt(currentAge, lateStart, endAge);
+    contribEarly.textContent = fmtMoney(eContrib);
+    contribLate.textContent = fmtMoney(lContrib);
+    growthEarly.textContent = fmtMoney(Math.max(0, eNow - eContrib));
+    growthLate.textContent = fmtMoney(Math.max(0, lNow - lContrib));
+
+    // subtitles
+    subEarly.innerHTML = 'Saves <strong>' + fmtMoneyShort(monthly) + '/mo</strong> from age <strong>' + earlyStart + '</strong>' +
+      (earlyStops ? ', stops at <strong>' + Math.round(eStop) + '</strong>, then just compounds.' : ' all the way to ' + endAge + '.');
+    subLate.innerHTML = 'Saves <strong>' + fmtMoneyShort(monthly) + '/mo</strong> from age <strong>' + lateStart + '</strong> until retirement at <strong>' + endAge + '</strong>.';
+
+    // contributing status chips
+    const eContributing = currentAge >= earlyStart && currentAge < eStop;
+    const lContributing = currentAge >= lateStart && currentAge < endAge;
+    cardEarly.classList.toggle('contributing', eContributing);
+    cardLate.classList.toggle('contributing', lContributing);
+    if (currentAge < earlyStart) chipEarlyTxt.textContent = 'Not started';
+    else if (eContributing) chipEarlyTxt.textContent = 'Contributing';
+    else chipEarlyTxt.textContent = 'Compounding only';
+    if (currentAge < lateStart) chipLateTxt.textContent = 'Waiting to start';
+    else if (lContributing) chipLateTxt.textContent = 'Contributing';
+    else chipLateTxt.textContent = 'Compounding only';
+
+    // leading badge
+    const eLead = eNow >= lNow;
+    cardEarly.classList.toggle('leading', eLead);
+    cardLate.classList.toggle('leading', !eLead);
+
+    updateInsight(eNow, lNow, eStop, cross, moneyCross, eContrib, lContrib);
+  }
+
+  // ---- Insight callouts ----
+  function updateInsight(eNow, lNow, eStop, cross, moneyCross, eContrib, lContrib) {
+    let html = null, cls = '';
+
+    const atEnd = Math.round(currentAge) >= endAge;
+    const eTotalIn = contributedAt(endAge, earlyStart, eStop);
+
+    if (currentAge < lateStart) {
+      html = '<b class="early">Early Bird</b> has a head start. <b class="late">Late Starter</b> hasn\'t even begun — every year of delay is a year of compounding lost forever.';
+    } else if (earlyStops && Math.round(currentAge) === Math.round(eStop) && eStop < endAge) {
+      html = '<b class="early">Early Bird stops contributing now</b> after putting in just ' + fmtMoney(eContrib) + '. From here the balance grows on compounding alone — no new money added.';
+    } else if (cross !== null && Math.abs(currentAge - cross) < 0.6 && currentAge >= cross) {
+      cls = 'crossover';
+      html = '<b>Crossover!</b> Around age ' + Math.round(cross) + ', <b class="early">Early Bird</b> overtakes <b class="late">Late Starter</b> — even though Late Starter has been pumping in fresh cash this whole time.';
+    } else if (moneyCross !== null && Math.abs(currentAge - moneyCross) < 0.6 && currentAge >= moneyCross && eNow > lNow) {
+      cls = 'crossover';
+      html = 'Right here, <b class="late">Late Starter</b> has now paid in more total cash (' + fmtMoney(lContrib) + ') than <b class="early">Early Bird</b> ever did (' + fmtMoney(eTotalIn) + ') — and is <b>still behind</b>. The head start is uncatchable.';
+    } else if (atEnd) {
+      const eWins = eNow >= lNow;
+      const gap = Math.abs(eNow - lNow);
+      const moreMoney = lContrib > eContrib;
+      cls = eWins ? 'win' : '';
+      if (eWins && moreMoney) {
+        const ratio = (lContrib / Math.max(eContrib, 1));
+        html = 'At retirement, <b class="early">Early Bird</b> ends with <b>' + fmtMoney(eNow) + '</b> after contributing only <b>' + fmtMoney(eContrib) + '</b>. ' +
+          '<b class="late">Late Starter</b> put in <b>' + fmtMoney(lContrib) + '</b> (' + ratio.toFixed(1) + '× more) yet finishes at <b>' + fmtMoney(lNow) + '</b> — behind by <b>' + fmtMoney(gap) + '</b>. ' +
+          'Less money in, more money out. The curve did the work.';
+      } else if (eWins) {
+        html = 'At retirement, <b class="early">Early Bird</b> wins with <b>' + fmtMoney(eNow) + '</b> vs <b>' + fmtMoney(lNow) + '</b> — a <b>' + fmtMoney(gap) + '</b> lead built mostly by time.';
+      } else {
+        html = 'Here <b class="late">Late Starter</b> finishes ahead (' + fmtMoney(lNow) + ' vs ' + fmtMoney(eNow) + '). Try letting Early Bird keep compounding longer, or saving fewer years late — and watch the head start win.';
+      }
+    } else if (eNow >= lNow) {
+      html = '<b class="early">Early Bird</b> is ahead with ' + fmtMoney(eNow) + '. The gap is widening because compounding grows the whole balance, not just the new deposits.';
+    } else {
+      const behind = lNow - eNow;
+      html = '<b class="late">Late Starter</b> is temporarily ahead by ' + fmtMoney(behind) + ' by sheer brute-force saving — but watch the compounding curve catch up.';
+    }
+
+    if (html) {
+      insight.innerHTML = html;
+      insight.className = 'insight visible' + (cls ? ' ' + cls : '');
+    } else {
+      insight.classList.remove('visible');
+    }
+  }
+
+  // ---- Slider wiring ----
+  function syncLabels() {
+    depVal.textContent = '$' + monthly.toLocaleString('en-US');
+    rateVal.textContent = annualRate + '%';
+    earlyStartVal.textContent = earlyStart;
+    lateStartVal.textContent = lateStart;
+    earlyYearsVal.textContent = earlyYears + ' yr' + (earlyYears === 1 ? '' : 's');
+    endAgeVal.textContent = endAge;
+  }
+
+  function clampDependencies() {
+    // Late start should be >= early start (it's the "late" one)
+    if (lateStart < earlyStart) { lateStart = earlyStart; lateStartSlider.value = lateStart; }
+    // End age must exceed both starts
+    if (endAge <= lateStart) { endAge = lateStart + 1; endAgeSlider.value = endAge; }
+    if (endAge <= earlyStart) { endAge = earlyStart + 1; endAgeSlider.value = endAge; }
+    // Early Bird can't save past retirement
+    if (earlyStart + earlyYears > endAge) {
+      // allow but cap visually; earlyStopAge already caps at endAge
+    }
+  }
+
+  function recompute(resetView) {
+    clampDependencies();
+    syncLabels();
+    buildGrid();
+    if (resetView) currentAge = endAge;
+    if (currentAge > endAge) currentAge = endAge;
+    if (currentAge < timelineStart) currentAge = timelineStart;
+    render();
+  }
+
+  function onSliderChange() {
+    if (playing || pausedAtBreakpoint) stopPlay();
+    monthly = parseInt(depSlider.value);
+    annualRate = parseFloat(rateSlider.value);
+    earlyStart = parseInt(earlyStartSlider.value);
+    lateStart = parseInt(lateStartSlider.value);
+    earlyYears = parseInt(earlyYearsSlider.value);
+    endAge = parseInt(endAgeSlider.value);
+    recompute(true);
+  }
+
+  [depSlider, rateSlider, earlyStartSlider, lateStartSlider, earlyYearsSlider, endAgeSlider]
+    .forEach(s => s.addEventListener('input', onSliderChange));
+
+  stopSwitch.addEventListener('click', () => {
+    if (playing || pausedAtBreakpoint) stopPlay();
+    earlyStops = !earlyStops;
+    stopSwitch.classList.toggle('on', earlyStops);
+    recompute(true);
+  });
+
+  // ---- Auto-play sweep with teaching breakpoints ----
+  let breakpoints = [];
+  function computeBreakpoints() {
+    const eStop = earlyStopAge();
+    const cross = findCrossover();
+    const moneyCross = cross === null ? findMoneyOvertake() : null;
+    const bp = new Set();
+    bp.add(lateStart);                 // Late starter begins
+    if (earlyStops && eStop < endAge) bp.add(Math.round(eStop)); // Early stops
+    if (cross !== null) bp.add(Math.round(cross));               // balance crossover
+    else if (moneyCross !== null) bp.add(Math.round(moneyCross)); // money overtake moment
+    bp.add(endAge);                    // finish
+    breakpoints = [...bp].filter(a => a > timelineStart && a <= endAge).sort((a, b) => a - b);
+  }
+
+  function startPlay() {
+    playing = true;
+    pausedAtBreakpoint = false;
+    playBtn.textContent = '❚❚ Pause';
+    playBtn.classList.add('playing');
+    playBtn.classList.remove('secondary', 'continue');
+    computeBreakpoints();
+    if (currentAge >= endAge) currentAge = timelineStart;
+
+    playTimer = setInterval(() => {
+      currentAge += 0.5;
+      if (currentAge >= endAge) {
+        currentAge = endAge;
+        render();
+        stopPlay();
+        return;
+      }
+      render();
+      // pause at any breakpoint we just crossed
+      const hit = breakpoints.find(a => Math.abs(currentAge - a) < 0.26);
+      if (hit !== undefined) pauseAtBreakpoint();
+    }, 90);
+  }
+
+  function pauseAtBreakpoint() {
+    clearInterval(playTimer);
+    playTimer = null;
+    playing = false;
+    pausedAtBreakpoint = true;
+    playBtn.textContent = '▶ Continue';
+    playBtn.classList.remove('playing', 'secondary');
+    playBtn.classList.add('continue');
+  }
+
+  function stopPlay() {
+    playing = false;
+    pausedAtBreakpoint = false;
+    clearInterval(playTimer);
+    playTimer = null;
+    playBtn.textContent = '▶ Auto-play the years';
+    playBtn.classList.remove('playing', 'continue');
+    playBtn.classList.add('secondary');
+  }
+
+  playBtn.addEventListener('click', () => {
+    if (pausedAtBreakpoint) {
+      // nudge past the breakpoint so we don't immediately re-pause
+      currentAge += 0.3;
+      startPlay();
+      return;
+    }
+    if (playing) stopPlay();
+    else startPlay();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    stopPlay();
+    currentAge = endAge;
+    render();
+  });
+
+  // ---- Init ----
+  recompute(true);
+</script>
+</body>
+</html>

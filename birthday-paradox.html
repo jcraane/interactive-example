@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Birthday Paradox</title>
+  <style>
+    :root {
+      --bg-color: #0d0f1a;
+      --accent-color: #a855f7;
+      --accent-2: #ec4899;
+      --teal: #2dd4bf;
+      --graph-line: #ec4899;
+      --warning-color: #f59e0b;
+      --danger-color: #ef4444;
+      --good-color: #2dd4bf;
+      --text-muted: #6b7280;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 30%, rgba(168,85,247,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 82% 25%, rgba(236,72,153,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 90%, rgba(45,212,191,0.05) 0%, transparent 55%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 48px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, #a855f7, #ec4899, #2dd4bf);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .layout {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    .glass {
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Stat boxes */
+    .stat-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .stat-box {
+      background: rgba(168, 85, 247, 0.08);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      padding: 16px 28px;
+      border-radius: 16px;
+      min-width: 200px;
+      text-align: center;
+      transition: border-color 0.5s, background 0.5s, box-shadow 0.5s;
+      backdrop-filter: blur(8px);
+    }
+    .stat-box.warning {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.12);
+    }
+    .stat-box.danger {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.45);
+      box-shadow: 0 0 40px rgba(239, 68, 68, 0.18);
+    }
+    .stat-box.critical { animation: pulse-glow 1.1s ease-in-out infinite; }
+    .stat-label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #94a3b8;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      display: block;
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: var(--accent-color);
+      transition: color 0.5s;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .stat-value.warning { color: var(--warning-color); }
+    .stat-value.danger { color: var(--danger-color); }
+    .stat-box.people { background: rgba(45, 212, 191, 0.08); border-color: rgba(45,212,191,0.3); }
+    .stat-value.people { color: var(--teal); }
+    .stat-sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; display: block; }
+
+    /* Room card */
+    .room-container { display: flex; flex-direction: column; flex: 1 1 460px; min-width: 320px; }
+    .card-title {
+      font-size: 0.75rem;
+      margin-bottom: 14px;
+      color: #94a3b8;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .match-pill {
+      font-size: 0.7rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+      color: #94a3b8;
+      letter-spacing: 0.5px;
+      text-transform: none;
+      transition: all 0.4s;
+    }
+    .match-pill.hit {
+      background: rgba(236, 72, 153, 0.18);
+      color: #f9a8d4;
+      box-shadow: 0 0 16px rgba(236,72,153,0.3);
+    }
+    .room {
+      position: relative;
+      flex: 1;
+      min-height: 340px;
+      border-radius: 12px;
+      background: rgba(10, 12, 24, 0.6);
+      border: 1px solid rgba(148,163,184,0.08);
+      overflow: hidden;
+    }
+    .room-svg { display: block; width: 100%; height: 100%; background: transparent; border: none; border-radius: 12px; }
+
+    /* Graph card */
+    .graph-container { display: flex; flex-direction: column; flex: 1 1 380px; min-width: 320px; }
+    svg.graph {
+      background: rgba(10, 12, 24, 0.8);
+      border-left: 2px solid rgba(148, 163, 184, 0.3);
+      border-bottom: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+      width: 100%;
+      height: auto;
+    }
+    .graph-grid { stroke: rgba(148, 163, 184, 0.08); stroke-width: 1; }
+    .graph-grid-label { fill: var(--text-muted); font-size: 9px; }
+    .graph-path { fill: none; stroke: var(--graph-line); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(236,72,153,0.45)); }
+    .graph-fill { fill: url(#graphGradient); opacity: 0.35; }
+    .data-point { fill: #fff; stroke: var(--graph-line); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(236,72,153,0.8)); }
+    .milestone-line { stroke: rgba(148,163,184,0.25); stroke-width: 1; stroke-dasharray: 4 4; }
+    .milestone-dot { fill: var(--warning-color); }
+    .empirical-dot { fill: var(--teal); opacity: 0.85; filter: drop-shadow(0 0 4px rgba(45,212,191,0.7)); }
+    .graph-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-muted); margin-top: 6px; }
+
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 12px; font-size: 0.72rem; color: #94a3b8; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-swatch { width: 14px; height: 4px; border-radius: 2px; display: inline-block; }
+
+    /* Controls */
+    .controls { width: 100%; max-width: 1080px; text-align: center; margin-top: 28px; }
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: rgba(30, 33, 56, 0.9);
+      border-radius: 4px;
+      outline: none;
+      margin: 20px 0 6px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 24px; height: 24px;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 50%;
+      box-shadow: 0 0 14px rgba(168,85,247,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 24px rgba(236,72,153,0.8); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 24px; height: 24px; border: none;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 50%;
+      box-shadow: 0 0 14px rgba(168,85,247,0.6);
+      cursor: pointer;
+    }
+
+    .slider-wrapper { position: relative; padding: 0 12px; }
+    .milestone-markers { position: absolute; top: 32px; left: 12px; right: 12px; height: 24px; pointer-events: none; }
+    .milestone {
+      position: absolute;
+      width: 2px; height: 11px;
+      background: var(--warning-color);
+      transform: translateX(-1px);
+      box-shadow: 0 0 6px rgba(245,158,11,0.6);
+    }
+    .milestone-label {
+      position: absolute;
+      top: 13px;
+      font-size: 0.62rem;
+      color: var(--warning-color);
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 1.1rem;
+      transition: color 0.3s;
+      line-height: 1.5;
+      margin-top: 18px;
+    }
+    .message.danger { color: var(--accent-2); }
+    .message.good { color: var(--good-color); }
+
+    .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+    button {
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      color: white; border: none;
+      padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.3s;
+      box-shadow: 0 4px 14px rgba(168,85,247,0.35);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(236,72,153,0.45); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+
+    /* Insight callout */
+    .insight {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      background: rgba(168, 85, 247, 0.07);
+      border-left: 3px solid var(--accent-color);
+      text-align: left;
+      max-width: 1080px;
+      width: 100%;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s, border-color 0.4s, background 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight.hot { background: rgba(236, 72, 153, 0.08); border-left-color: var(--accent-2); }
+    .insight strong { color: #fff; }
+
+    .montecarlo-readout {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      min-height: 1.4em;
+      transition: color 0.3s;
+    }
+    .montecarlo-readout .num { color: var(--teal); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+    .person-label { font-size: 8px; fill: rgba(255,255,255,0.55); text-anchor: middle; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.18); }
+      50% { box-shadow: 0 0 42px rgba(239, 68, 68, 0.38); }
+    }
+    @keyframes pop-in {
+      0% { transform: scale(0); opacity: 0; }
+      70% { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>The Birthday Paradox</h1>
+<p class="subtitle">Why a small crowd hides a near-certain coincidence</p>
+
+<div class="stat-row">
+  <div class="stat-box people" id="peopleBox">
+    <span class="stat-label">People in the room</span>
+    <span id="peopleValue" class="stat-value people">23</span>
+  </div>
+  <div class="stat-box" id="probBox">
+    <span class="stat-label">Chance two share a birthday</span>
+    <span id="probValue" class="stat-value">50.7%</span>
+    <span class="stat-sub">theoretical</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="room-container glass">
+    <div class="card-title">
+      <span>The Room</span>
+      <span id="matchPill" class="match-pill">no shared birthday</span>
+    </div>
+    <div class="room">
+      <svg class="room-svg" id="roomSvg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <div class="graph-container glass">
+    <div class="card-title"><span>Probability Curve</span></div>
+    <svg class="graph" id="graph" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="graphGradient" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ec4899" stop-opacity="0.45"/>
+          <stop offset="100%" stop-color="#ec4899" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- horizontal gridlines at 25/50/75/100% -->
+      <line class="graph-grid" x1="0" y1="15" x2="320" y2="15"/>
+      <line class="graph-grid" x1="0" y1="68.75" x2="320" y2="68.75"/>
+      <line class="graph-grid" x1="0" y1="122.5" x2="320" y2="122.5"/>
+      <line class="graph-grid" x1="0" y1="176.25" x2="320" y2="176.25"/>
+      <text class="graph-grid-label" x="3" y="12">100%</text>
+      <text class="graph-grid-label" x="3" y="66">75%</text>
+      <text class="graph-grid-label" x="3" y="120">50%</text>
+      <text class="graph-grid-label" x="3" y="174">25%</text>
+      <!-- 50% milestone reference -->
+      <line class="milestone-line" id="ms23line" x1="0" y1="122.5" x2="0" y2="230"/>
+      <!-- curve -->
+      <path id="curveFill" class="graph-fill" d="M 0 230"/>
+      <path id="curve" class="graph-path" d="M 0 230"/>
+      <g id="empiricalDots"></g>
+      <circle id="marker" class="data-point" cx="0" cy="230" r="5"/>
+    </svg>
+    <div class="graph-labels" id="graphLabels">
+      <span>0</span><span>19</span><span>38</span><span>57</span><span>75</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--graph-line)"></span>Theoretical</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--teal)"></span>Empirical (Monte Carlo)</div>
+    </div>
+    <div class="montecarlo-readout" id="mcReadout">Press “Run 100 random rooms” to test the theory.</div>
+  </div>
+</div>
+
+<div class="controls">
+  <div class="slider-wrapper">
+    <input type="range" id="sizeSlider" min="1" max="75" value="23">
+    <div class="milestone-markers" id="milestones"></div>
+  </div>
+  <div id="message" class="message">A room of 23 people — what are the odds two share a birthday?</div>
+  <div class="btn-row">
+    <button id="shuffleBtn" class="secondary">Reshuffle birthdays</button>
+    <button id="mcBtn">Run 100 random rooms</button>
+  </div>
+</div>
+
+<div id="insight" class="insight"></div>
+
+<script>
+  const slider = document.getElementById('sizeSlider');
+  const peopleValue = document.getElementById('peopleValue');
+  const peopleBox = document.getElementById('peopleBox');
+  const probValue = document.getElementById('probValue');
+  const probBox = document.getElementById('probBox');
+  const roomSvg = document.getElementById('roomSvg');
+  const matchPill = document.getElementById('matchPill');
+  const curve = document.getElementById('curve');
+  const curveFill = document.getElementById('curveFill');
+  const marker = document.getElementById('marker');
+  const empiricalDots = document.getElementById('empiricalDots');
+  const ms23line = document.getElementById('ms23line');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+  const mcBtn = document.getElementById('mcBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const mcReadout = document.getElementById('mcReadout');
+  const milestonesEl = document.getElementById('milestones');
+
+  const MIN_N = 1, MAX_N = 75;
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  // ---- Geometry of the graph ----
+  const G_W = 320, G_H = 240;
+  const G_TOP = 15, G_BOTTOM = 230; // y for 100% and 0%
+  function probToY(p) { return G_BOTTOM - p * (G_BOTTOM - G_TOP); }
+  function nToX(n) { return (n - 1) / (MAX_N - 1) * G_W; }
+
+  // ---- Theoretical probability that >=2 of n people share a birthday ----
+  function birthdayProb(n) {
+    if (n <= 1) return 0;
+    if (n > 365) return 1;
+    let pNoMatch = 1;
+    for (let i = 0; i < n; i++) {
+      pNoMatch *= (365 - i) / 365;
+    }
+    return 1 - pNoMatch;
+  }
+
+  function formatPct(p) {
+    const pct = p * 100;
+    if (p > 0 && pct < 0.1) return '<0.1%';
+    if (pct >= 99.95 && p < 1) return '99.9%';
+    if (pct >= 10) return pct.toFixed(1) + '%';
+    return pct.toFixed(1) + '%';
+  }
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DAYS_IN_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31];
+  function dayToDate(d) { // d in 0..364
+    let m = 0;
+    while (d >= DAYS_IN_MONTH[m]) { d -= DAYS_IN_MONTH[m]; m++; }
+    return MONTHS[m] + ' ' + (d + 1);
+  }
+
+  // Distinct hue per matched date group
+  function hueForDay(day) { return (day * 137.508) % 360; }
+
+  // ---- State: current random birthday assignment ----
+  let birthdays = []; // birthdays[i] = day index 0..364
+
+  function rollBirthdays(n) {
+    birthdays = [];
+    for (let i = 0; i < n; i++) birthdays.push(Math.floor(Math.random() * 365));
+  }
+
+  // Build milestone markers on slider
+  function buildMilestones() {
+    const marks = [
+      { n: 23, label: '23 → 50%' },
+      { n: 70, label: '70 → 99.9%' }
+    ];
+    milestonesEl.innerHTML = '';
+    marks.forEach(m => {
+      const pct = (m.n - MIN_N) / (MAX_N - MIN_N) * 100;
+      const dot = document.createElement('div');
+      dot.className = 'milestone';
+      dot.style.left = pct + '%';
+      const lbl = document.createElement('div');
+      lbl.className = 'milestone-label';
+      lbl.style.left = pct + '%';
+      lbl.textContent = m.label;
+      milestonesEl.appendChild(dot);
+      milestonesEl.appendChild(lbl);
+    });
+  }
+  buildMilestones();
+
+  // Position the 50% milestone dashed reference line on the graph
+  ms23line.setAttribute('x1', nToX(23));
+  ms23line.setAttribute('x2', nToX(23));
+
+  // ---- Draw the theoretical curve once ----
+  function drawCurve() {
+    let d = '';
+    let fill = '';
+    for (let n = 1; n <= MAX_N; n++) {
+      const x = nToX(n);
+      const y = probToY(birthdayProb(n));
+      d += (n === 1 ? 'M' : 'L') + ' ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+    }
+    fill = 'M ' + nToX(1).toFixed(2) + ' ' + G_BOTTOM + ' ';
+    for (let n = 1; n <= MAX_N; n++) {
+      fill += 'L ' + nToX(n).toFixed(2) + ' ' + probToY(birthdayProb(n)).toFixed(2) + ' ';
+    }
+    fill += 'L ' + nToX(MAX_N).toFixed(2) + ' ' + G_BOTTOM + ' Z';
+    curve.setAttribute('d', d.trim());
+    curveFill.setAttribute('d', fill.trim());
+  }
+  drawCurve();
+
+  // ---- Render the room (people as circles, matches highlighted + connected) ----
+  function renderRoom(n) {
+    roomSvg.innerHTML = '';
+    const W = 460, H = 360;
+    const PAD = 26;
+
+    // Layout in a grid that adapts to n
+    const cols = Math.ceil(Math.sqrt(n * (W / H)));
+    const rows = Math.ceil(n / cols);
+    const cellW = (W - PAD * 2) / cols;
+    const cellH = (H - PAD * 2) / rows;
+    const r = Math.max(7, Math.min(20, Math.min(cellW, cellH) * 0.34));
+
+    // Position each person
+    const pos = [];
+    for (let i = 0; i < n; i++) {
+      const c = i % cols, row = Math.floor(i / cols);
+      // Center the last (possibly partial) row
+      const inThisRow = (row === rows - 1) ? (n - row * cols) : cols;
+      const rowOffset = (cols - inThisRow) * cellW / 2;
+      const x = PAD + rowOffset + c * cellW + cellW / 2;
+      const y = PAD + row * cellH + cellH / 2;
+      pos.push({ x, y });
+    }
+
+    // Find matching groups (same birthday, group size >= 2)
+    const groups = {};
+    for (let i = 0; i < n; i++) {
+      const d = birthdays[i];
+      (groups[d] = groups[d] || []).push(i);
+    }
+    const matchedDays = Object.keys(groups).filter(d => groups[d].length >= 2).map(Number);
+    const matchedIdx = new Set();
+    matchedDays.forEach(d => groups[d].forEach(i => matchedIdx.add(i)));
+
+    // Draw connecting lines first (behind dots)
+    matchedDays.forEach(d => {
+      const members = groups[d];
+      const hue = hueForDay(d);
+      const stroke = `hsl(${hue}, 85%, 65%)`;
+      // connect members in a chain
+      for (let k = 0; k < members.length - 1; k++) {
+        const a = pos[members[k]], b = pos[members[k + 1]];
+        const line = document.createElementNS(SVG_NS, 'line');
+        line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+        line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+        line.setAttribute('stroke', stroke);
+        line.setAttribute('stroke-width', '2.5');
+        line.setAttribute('stroke-opacity', '0.7');
+        line.setAttribute('stroke-linecap', 'round');
+        line.style.filter = `drop-shadow(0 0 4px ${stroke})`;
+        roomSvg.appendChild(line);
+      }
+    });
+
+    // Draw people
+    for (let i = 0; i < n; i++) {
+      const p = pos[i];
+      const isMatch = matchedIdx.has(i);
+      const g = document.createElementNS(SVG_NS, 'g');
+      g.style.transformOrigin = `${p.x}px ${p.y}px`;
+      g.style.animation = `pop-in 0.35s ease-out both`;
+      g.style.animationDelay = (Math.min(i, 40) * 0.012) + 's';
+
+      const circle = document.createElementNS(SVG_NS, 'circle');
+      circle.setAttribute('cx', p.x);
+      circle.setAttribute('cy', p.y);
+      circle.setAttribute('r', r);
+      if (isMatch) {
+        const hue = hueForDay(birthdays[i]);
+        circle.setAttribute('fill', `hsl(${hue}, 85%, 60%)`);
+        circle.setAttribute('stroke', `hsl(${hue}, 90%, 80%)`);
+        circle.setAttribute('stroke-width', '2.5');
+        circle.style.filter = `drop-shadow(0 0 7px hsl(${hue}, 85%, 60%))`;
+      } else {
+        circle.setAttribute('fill', 'rgba(99,102,141,0.35)');
+        circle.setAttribute('stroke', 'rgba(148,163,184,0.4)');
+        circle.setAttribute('stroke-width', '1.5');
+      }
+      g.appendChild(circle);
+
+      // date label for matched people (if dots are big enough)
+      if (isMatch && r >= 11) {
+        const t = document.createElementNS(SVG_NS, 'text');
+        t.setAttribute('class', 'person-label');
+        t.setAttribute('x', p.x);
+        t.setAttribute('y', p.y + r + 9);
+        t.textContent = dayToDate(birthdays[i]);
+        g.appendChild(t);
+      }
+      roomSvg.appendChild(g);
+    }
+
+    return { matchedDays, groups };
+  }
+
+  // ---- Insight callouts ----
+  const insights = {
+    1:  { t: "One person can't share a birthday with anyone. Probability: <strong>0%</strong>. We start from nothing.", hot: false },
+    2:  { t: "Two strangers: only a <strong>0.27%</strong> chance. This is the intuition we wrongly extend to bigger groups.", hot: false },
+    10: { t: "Ten people already gives an <strong>11.7%</strong> chance — one in nine rooms. Still feels safe, right?", hot: false },
+    20: { t: "Getting warm. With 20 people you're at <strong>41%</strong> — there are 190 invisible <em>pairs</em> quietly being compared.", hot: false },
+    23: { t: "<strong>Just 23 people — already a coin flip.</strong> Most people guess you'd need ~180. The real answer is 23. That's the paradox.", hot: true },
+    30: { t: "30 people: <strong>70.6%</strong>. The growth isn't about you matching everyone — it's about every <em>pair</em> matching. 30 people make 435 pairs.", hot: true },
+    41: { t: "Past 41 people the chance crosses <strong>90%</strong>. A shared birthday is now the expected outcome, not the surprise.", hot: true },
+    50: { t: "50 people: <strong>97%</strong>. A room of no shared birthdays is now the rare event.", hot: true },
+    70: { t: "<strong>70 people → 99.9%.</strong> Practically guaranteed. We needed nowhere near 365 — coincidence scales with pairs, and pairs explode.", hot: true },
+  };
+
+  function pickInsight(n) {
+    let chosen = null, chosenKey = -1;
+    for (const k of Object.keys(insights)) {
+      const key = parseInt(k);
+      if (n >= key && key > chosenKey) { chosen = insights[k]; chosenKey = key; }
+    }
+    return chosen;
+  }
+
+  // ---- Main update ----
+  function update(n, reshuffle) {
+    n = parseInt(n);
+    if (reshuffle || birthdays.length !== n) rollBirthdays(n);
+
+    peopleValue.textContent = n;
+
+    const p = birthdayProb(n);
+    probValue.textContent = formatPct(p);
+
+    // Color states for the probability box
+    let state = '';
+    if (p >= 0.9) state = 'danger';
+    else if (p >= 0.5) state = 'warning';
+    probBox.className = 'stat-box' + (state ? ' ' + state : '') + (p >= 0.99 ? ' critical' : '');
+    probValue.className = 'stat-value' + (state ? ' ' + state : '');
+
+    // Render the room and detect actual matches in THIS random sample
+    const { matchedDays } = renderRoom(n);
+    const hasMatch = matchedDays.length > 0;
+
+    if (hasMatch) {
+      matchPill.className = 'match-pill hit';
+      const dates = matchedDays.map(dayToDate);
+      matchPill.textContent = '★ shared: ' + dates.slice(0, 2).join(', ') + (dates.length > 2 ? ' +' + (dates.length - 2) : '');
+    } else {
+      matchPill.className = 'match-pill';
+      matchPill.textContent = n <= 1 ? '—' : 'no shared birthday (this draw)';
+    }
+
+    // Move graph marker
+    marker.setAttribute('cx', nToX(n));
+    marker.setAttribute('cy', probToY(p));
+
+    // Message
+    message.className = 'message';
+    if (n === 1) {
+      message.textContent = 'A single person — no one to match with. The journey starts here.';
+    } else if (n < 23) {
+      message.textContent = `${n} people: ${formatPct(p)} chance. Feels unlikely... but watch how fast it climbs.`;
+    } else if (n === 23) {
+      message.textContent = 'At 23 people it is a literal coin flip — 50.7%.';
+      message.classList.add('danger');
+    } else if (n < 70) {
+      message.textContent = `${n} people: ${formatPct(p)}. A shared birthday is now more likely than not.`;
+      message.classList.add('danger');
+    } else {
+      message.textContent = `${n} people: ${formatPct(p)} — all but certain.`;
+      message.classList.add('danger');
+    }
+    if (hasMatch && n > 1) {
+      message.textContent += ' This room actually has one!';
+    }
+
+    // Insight callout
+    const ins = pickInsight(n);
+    if (ins) {
+      insight.innerHTML = ins.t;
+      insight.className = 'insight visible' + (ins.hot ? ' hot' : '');
+    } else {
+      insight.classList.remove('visible');
+    }
+  }
+
+  slider.oninput = function () { update(this.value, true); };
+  shuffleBtn.onclick = function () { update(slider.value, true); };
+
+  // ---- Monte Carlo: run 100 random rooms at the current group size ----
+  let mcRunning = false;
+  function roomHasMatch(n) {
+    const seen = new Uint8Array(365);
+    for (let i = 0; i < n; i++) {
+      const d = Math.floor(Math.random() * 365);
+      if (seen[d]) return true;
+      seen[d] = 1;
+    }
+    return false;
+  }
+
+  mcBtn.onclick = function () {
+    if (mcRunning) return;
+    const n = parseInt(slider.value);
+    if (n <= 1) {
+      mcReadout.innerHTML = 'With 1 person a match is impossible — try a bigger room first.';
+      return;
+    }
+    mcRunning = true;
+    mcBtn.disabled = true;
+    shuffleBtn.disabled = true;
+    slider.disabled = true;
+
+    // Clear previous empirical dots for a fresh run at this n... but keep dots from other n.
+    // Remove any existing dot at this exact x to avoid stacking.
+    [...empiricalDots.querySelectorAll('circle')].forEach(c => {
+      if (Math.abs(parseFloat(c.getAttribute('cx')) - nToX(n)) < 0.5) c.remove();
+    });
+
+    const TOTAL = 100;
+    let done = 0, hits = 0;
+    const theo = birthdayProb(n);
+
+    const tick = () => {
+      // run a batch per frame for a lively but visible animation
+      const batch = 4;
+      for (let b = 0; b < batch && done < TOTAL; b++) {
+        if (roomHasMatch(n)) hits++;
+        done++;
+      }
+      const empirical = hits / done;
+      mcReadout.innerHTML =
+        `<span class="num">${hits}</span> of <span class="num">${done}</span> rooms of ${n} had a shared birthday ` +
+        `→ empirical <span class="num">${(empirical * 100).toFixed(0)}%</span> ` +
+        `vs theory <span class="num">${(theo * 100).toFixed(1)}%</span>`;
+
+      if (done < TOTAL) {
+        requestAnimationFrame(tick);
+      } else {
+        // Plot the converged empirical point on the curve
+        const dot = document.createElementNS(SVG_NS, 'circle');
+        dot.setAttribute('class', 'empirical-dot');
+        dot.setAttribute('cx', nToX(n));
+        dot.setAttribute('cy', probToY(empirical));
+        dot.setAttribute('r', '4');
+        empiricalDots.appendChild(dot);
+
+        const diff = Math.abs(empirical - theo) * 100;
+        mcReadout.innerHTML += ` &nbsp;·&nbsp; within ${diff.toFixed(1)} pts of theory.`;
+
+        mcRunning = false;
+        mcBtn.disabled = false;
+        shuffleBtn.disabled = false;
+        slider.disabled = false;
+      }
+    };
+    requestAnimationFrame(tick);
+  };
+
+  // Initial render
+  update(23, true);
+</script>
+</body>
+</html>

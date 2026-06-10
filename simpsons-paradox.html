@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simpson's Paradox: The Trend That Flips</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --groupA-color: #38bdf8;   /* cyan  */
+      --groupB-color: #f472b6;   /* pink  */
+      --combined-color: #facc15; /* amber */
+      --accent-color: #3b82f6;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 40%, rgba(56,189,248,0.09) 0%, transparent 55%),
+        radial-gradient(ellipse at 82% 20%, rgba(244,114,182,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(250,204,21,0.05) 0%, transparent 60%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 60px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2.1rem;
+      text-align: center;
+      background: linear-gradient(135deg, var(--groupA-color), var(--groupB-color), var(--combined-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 22px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .plot-card { display: flex; flex-direction: column; }
+    .plot-title {
+      font-size: 0.75rem;
+      margin-bottom: 10px;
+      color: var(--muted);
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    svg.scatter {
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 2px solid rgba(148, 163, 184, 0.3);
+      border-bottom: 2px solid rgba(148, 163, 184, 0.3);
+      border-radius: 4px;
+      display: block;
+      touch-action: none;
+    }
+    .grid-line { stroke: rgba(148, 163, 184, 0.07); stroke-width: 1; }
+    .axis-label { fill: var(--muted); font-size: 11px; }
+
+    .pt-a { fill: var(--groupA-color); }
+    .pt-b { fill: var(--groupB-color); }
+    .point {
+      filter: drop-shadow(0 0 3px rgba(0,0,0,0.5));
+      transition: r 0.15s;
+    }
+
+    .reg-line {
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      transition: opacity 0.6s;
+    }
+    .reg-a { stroke: var(--groupA-color); filter: drop-shadow(0 0 6px rgba(56,189,248,0.55)); }
+    .reg-b { stroke: var(--groupB-color); filter: drop-shadow(0 0 6px rgba(244,114,182,0.55)); }
+    .reg-combined { stroke: var(--combined-color); filter: drop-shadow(0 0 8px rgba(250,204,21,0.6)); }
+
+    .hull {
+      fill-opacity: 0.06;
+      stroke-width: 1.5;
+      stroke-dasharray: 6 5;
+      transition: opacity 0.6s;
+    }
+    .hull-a { fill: var(--groupA-color); stroke: rgba(56,189,248,0.4); }
+    .hull-b { fill: var(--groupB-color); stroke: rgba(244,114,182,0.4); }
+
+    /* Drag handles */
+    .handle {
+      cursor: grab;
+      transition: r 0.15s;
+    }
+    .handle:active { cursor: grabbing; }
+    .handle.a { fill: rgba(56,189,248,0.18); stroke: var(--groupA-color); }
+    .handle.b { fill: rgba(244,114,182,0.18); stroke: var(--groupB-color); }
+    .handle-ring { stroke-width: 2; pointer-events: none; }
+
+    /* Right column */
+    .side { width: 360px; display: flex; flex-direction: column; gap: 20px; }
+
+    .verdict {
+      padding: 18px 20px;
+      border-radius: 14px;
+      text-align: center;
+      transition: border-color 0.5s, background 0.5s, box-shadow 0.5s;
+      border: 1px solid rgba(148,163,184,0.2);
+      background: rgba(148,163,184,0.06);
+    }
+    .verdict.paradox {
+      border-color: rgba(250,204,21,0.5);
+      background: rgba(250,204,21,0.08);
+      box-shadow: 0 0 40px rgba(250,204,21,0.14);
+      animation: pulse-glow 1.8s ease-in-out infinite;
+    }
+    .verdict.noparadox {
+      border-color: rgba(34,197,94,0.4);
+      background: rgba(34,197,94,0.07);
+    }
+    .verdict-eyebrow {
+      font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .verdict-headline {
+      font-size: 1.25rem; font-weight: 800; line-height: 1.3;
+    }
+    .verdict.paradox .verdict-headline { color: var(--combined-color); }
+    .verdict.noparadox .verdict-headline { color: var(--good-color); }
+
+    .slopes {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .slope-chip {
+      border-radius: 12px;
+      padding: 12px 8px;
+      text-align: center;
+      background: rgba(15,23,42,0.6);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .slope-chip .lbl {
+      font-size: 0.62rem; letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); display: block; margin-bottom: 6px;
+    }
+    .slope-chip .val {
+      font-size: 1.35rem; font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .slope-chip.a .val { color: var(--groupA-color); }
+    .slope-chip.b .val { color: var(--groupB-color); }
+    .slope-chip.c .val { color: var(--combined-color); }
+    .arrow { font-size: 1rem; }
+
+    .insight {
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+      background: rgba(59, 130, 246, 0.07);
+      border-left: 3px solid var(--accent-color);
+      transition: opacity 0.4s, transform 0.4s, border-color 0.4s, background 0.4s;
+    }
+    .insight.paradox {
+      background: rgba(250,204,21,0.07);
+      border-left-color: var(--combined-color);
+    }
+    .insight b { color: white; }
+    .insight .a-txt { color: var(--groupA-color); font-weight: 700; }
+    .insight .b-txt { color: var(--groupB-color); font-weight: 700; }
+    .insight .c-txt { color: var(--combined-color); font-weight: 700; }
+
+    .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.78rem; color: #cbd5e1; margin-top: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+    .swatch { width: 22px; height: 4px; border-radius: 2px; }
+    .swatch.dot { width: 11px; height: 11px; border-radius: 50%; }
+    .sw-a { background: var(--groupA-color); }
+    .sw-b { background: var(--groupB-color); }
+    .sw-c { background: var(--combined-color); }
+
+    .controls { margin-top: 4px; }
+    .ctrl-title {
+      font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 4px;
+    }
+    .toggle-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 16px;
+      background: rgba(15,23,42,0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .toggle-row .state-name {
+      font-weight: 700; font-size: 0.95rem;
+      transition: color 0.4s;
+    }
+    .toggle-row .state-name.split { color: var(--groupA-color); }
+    .toggle-row .state-name.combined { color: var(--combined-color); }
+    .toggle-desc { font-size: 0.78rem; color: var(--muted); margin-left: auto; text-align: right; max-width: 150px; }
+
+    /* Switch */
+    .switch { position: relative; display: inline-block; width: 58px; height: 30px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider-sw {
+      position: absolute; cursor: pointer; inset: 0;
+      background: rgba(56,189,248,0.3);
+      border-radius: 30px; transition: background 0.4s;
+    }
+    .slider-sw:before {
+      content: ""; position: absolute; height: 22px; width: 22px;
+      left: 4px; bottom: 4px; background: white; border-radius: 50%;
+      transition: transform 0.4s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .switch input:checked + .slider-sw { background: rgba(250,204,21,0.45); }
+    .switch input:checked + .slider-sw:before { transform: translateX(28px); }
+
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    button {
+      background: var(--accent-color); color: white; border: none;
+      padding: 11px 18px; border-radius: 9px; cursor: pointer; font-weight: 600;
+      font-size: 0.88rem; flex: 1;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+
+    .hint {
+      font-size: 0.78rem; color: var(--muted); text-align: center;
+      margin-top: 14px; line-height: 1.5;
+    }
+    .hint b { color: #94a3b8; }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 30px rgba(250,204,21,0.10); }
+      50% { box-shadow: 0 0 48px rgba(250,204,21,0.22); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Simpson's Paradox</h1>
+<p class="subtitle">When every group goes up &mdash; yet the whole goes down</p>
+
+<div class="layout">
+  <!-- LEFT: scatter plot -->
+  <div class="plot-card glass">
+    <div class="plot-title">Hours studied  vs.  exam score &mdash; two classes</div>
+    <svg class="scatter" id="plot" width="560" height="460" viewBox="0 0 560 460">
+      <defs>
+        <linearGradient id="fadeA" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="var(--groupA-color)" stop-opacity="0.9"/>
+          <stop offset="100%" stop-color="var(--groupA-color)" stop-opacity="0.9"/>
+        </linearGradient>
+      </defs>
+      <g id="gridLayer"></g>
+      <g id="hullLayer"></g>
+      <g id="lineLayer">
+        <line id="lineA" class="reg-line reg-a" x1="0" y1="0" x2="0" y2="0"/>
+        <line id="lineB" class="reg-line reg-b" x1="0" y1="0" x2="0" y2="0"/>
+        <line id="lineC" class="reg-line reg-combined" x1="0" y1="0" x2="0" y2="0"/>
+      </g>
+      <g id="pointLayer"></g>
+      <g id="handleLayer"></g>
+      <text x="280" y="452" text-anchor="middle" class="axis-label">Hours studied &rarr;</text>
+      <text x="14" y="230" text-anchor="middle" class="axis-label" transform="rotate(-90 14 230)">Exam score &rarr;</text>
+    </svg>
+    <div class="legend">
+      <div class="legend-item"><span class="swatch dot sw-a"></span> Class A points</div>
+      <div class="legend-item"><span class="swatch dot sw-b"></span> Class B points</div>
+      <div class="legend-item"><span class="swatch sw-a"></span> Class A trend</div>
+      <div class="legend-item"><span class="swatch sw-b"></span> Class B trend</div>
+      <div class="legend-item"><span class="swatch sw-c"></span> Combined trend</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: readouts + controls -->
+  <div class="side">
+    <div class="verdict" id="verdict">
+      <span class="verdict-eyebrow">The Verdict</span>
+      <div class="verdict-headline" id="verdictHeadline">&mdash;</div>
+    </div>
+
+    <div class="slopes">
+      <div class="slope-chip a">
+        <span class="lbl">Class A</span>
+        <span class="val" id="slopeA">&mdash;</span>
+      </div>
+      <div class="slope-chip b">
+        <span class="lbl">Class B</span>
+        <span class="val" id="slopeB">&mdash;</span>
+      </div>
+      <div class="slope-chip c">
+        <span class="lbl">Combined</span>
+        <span class="val" id="slopeC">&mdash;</span>
+      </div>
+    </div>
+
+    <div class="insight" id="insight"></div>
+
+    <div class="controls glass" style="padding:18px;">
+      <div class="ctrl-title">Watch the line flip</div>
+      <div class="toggle-row">
+        <label class="switch">
+          <input type="checkbox" id="viewToggle">
+          <span class="slider-sw"></span>
+        </label>
+        <span class="state-name split" id="stateName">Split view</span>
+        <span class="toggle-desc" id="toggleDesc">Each class on its own</span>
+      </div>
+      <div class="hint">
+        Flip the switch to merge the two classes into one cloud and watch
+        the <b>yellow line swing the other way</b>.
+      </div>
+
+      <div class="ctrl-title" style="margin-top:18px;">Break it yourself</div>
+      <div class="btn-row">
+        <button class="secondary" id="resetBtn">Reset paradox</button>
+        <button class="secondary" id="alignBtn">Align classes</button>
+      </div>
+      <div class="hint">
+        <b>Drag</b> either glowing ring to move a whole class. Pull the classes onto
+        the same diagonal and the paradox dissolves &mdash; separate them and it snaps back.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Plot geometry ----------
+  const W = 560, H = 460;
+  const PAD = { l: 46, r: 24, t: 24, b: 46 };
+  const PX0 = PAD.l, PX1 = W - PAD.r;          // pixel x range
+  const PY0 = H - PAD.b, PY1 = PAD.t;          // pixel y range (inverted)
+  // Data domain (abstract "hours" 0..20, "score" 0..100)
+  const DX0 = 0, DX1 = 20, DY0 = 0, DY1 = 100;
+
+  const dataToPx = (x) => PX0 + (x - DX0) / (DX1 - DX0) * (PX1 - PX0);
+  const dataToPy = (y) => PY0 + (y - DY0) / (DY1 - DY0) * (PY1 - PY0);
+  const pxToDataX = (px) => DX0 + (px - PX0) / (PX1 - PX0) * (DX1 - DX0);
+  const pyToDataY = (py) => DY0 + (py - PY0) / (PY1 - PY0) * (DY1 - DY0);
+
+  // ---------- Cluster model ----------
+  // Each cluster: a center (cx,cy) plus fixed relative offsets that encode an
+  // UPWARD within-group trend (positive local slope). Moving the center just
+  // translates the whole cloud, preserving each group's internal slope.
+  const N_PER = 9;
+  // Deterministic offsets: x spread with y rising (+ small jitter), centered at 0.
+  function makeOffsets(seed) {
+    const offs = [];
+    // pseudo-random but deterministic jitter
+    let s = seed;
+    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    for (let i = 0; i < N_PER; i++) {
+      const t = i / (N_PER - 1) - 0.5;        // -0.5 .. 0.5
+      const dx = t * 6.0;                       // horizontal spread (data units)
+      const localSlope = 3.4;                   // upward within group
+      const dy = t * 6.0 * localSlope + (rnd() - 0.5) * 7.0; // rising + jitter
+      offs.push({ dx, dy });
+    }
+    return offs;
+  }
+  const offsetsA = makeOffsets(11);
+  const offsetsB = makeOffsets(57);
+
+  // Default centers chosen so the paradox holds:
+  //  - A: low hours, HIGH score
+  //  - B: high hours, LOW score
+  // Within each: more hours -> higher score (positive). Across both: the
+  // high-hours class scores lower, so combined slope is negative.
+  const DEFAULT = {
+    A: { cx: 6.5, cy: 72 },
+    B: { cx: 13.5, cy: 40 }
+  };
+  const clusters = {
+    A: { cx: DEFAULT.A.cx, cy: DEFAULT.A.cy, offs: offsetsA },
+    B: { cx: DEFAULT.B.cx, cy: DEFAULT.B.cy, offs: offsetsB }
+  };
+
+  function pointsOf(cl) {
+    return cl.offs.map(o => ({
+      x: Math.max(DX0 + 0.3, Math.min(DX1 - 0.3, cl.cx + o.dx)),
+      y: Math.max(DY0 + 1, Math.min(DY1 - 1, cl.cy + o.dy))
+    }));
+  }
+
+  // ---------- Least squares ----------
+  function leastSquares(pts) {
+    const n = pts.length;
+    if (n < 2) return null;
+    let sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (const p of pts) { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; }
+    const denom = n * sxx - sx * sx;
+    if (Math.abs(denom) < 1e-9) return null;
+    const slope = (n * sxy - sx * sy) / denom;
+    const intercept = (sy - slope * sx) / n;
+    return { slope, intercept };
+  }
+
+  // ---------- SVG layers ----------
+  const svg = document.getElementById('plot');
+  const gridLayer = document.getElementById('gridLayer');
+  const hullLayer = document.getElementById('hullLayer');
+  const pointLayer = document.getElementById('pointLayer');
+  const handleLayer = document.getElementById('handleLayer');
+  const lineA = document.getElementById('lineA');
+  const lineB = document.getElementById('lineB');
+  const lineC = document.getElementById('lineC');
+
+  const slopeAEl = document.getElementById('slopeA');
+  const slopeBEl = document.getElementById('slopeB');
+  const slopeCEl = document.getElementById('slopeC');
+  const verdict = document.getElementById('verdict');
+  const verdictHeadline = document.getElementById('verdictHeadline');
+  const insight = document.getElementById('insight');
+  const viewToggle = document.getElementById('viewToggle');
+  const stateName = document.getElementById('stateName');
+  const toggleDesc = document.getElementById('toggleDesc');
+
+  const SVGNS = 'http://www.w3.org/2000/svg';
+
+  // Build static grid
+  (function buildGrid() {
+    for (let i = 0; i <= 4; i++) {
+      const gx = PX0 + i / 4 * (PX1 - PX0);
+      const v = document.createElementNS(SVGNS, 'line');
+      v.setAttribute('class', 'grid-line');
+      v.setAttribute('x1', gx); v.setAttribute('y1', PY1);
+      v.setAttribute('x2', gx); v.setAttribute('y2', PY0);
+      gridLayer.appendChild(v);
+
+      const gy = PY0 + i / 4 * (PY1 - PY0);
+      const h = document.createElementNS(SVGNS, 'line');
+      h.setAttribute('class', 'grid-line');
+      h.setAttribute('x1', PX0); h.setAttribute('y1', gy);
+      h.setAttribute('x2', PX1); h.setAttribute('y2', gy);
+      gridLayer.appendChild(h);
+    }
+  })();
+
+  // Create point + hull + handle elements once, then update positions.
+  const ptEls = { A: [], B: [] };
+  const hullEls = {};
+  const handleEls = {};
+  (function buildDynamic() {
+    for (const key of ['A', 'B']) {
+      const hull = document.createElementNS(SVGNS, 'polygon');
+      hull.setAttribute('class', 'hull hull-' + key.toLowerCase());
+      hullLayer.appendChild(hull);
+      hullEls[key] = hull;
+
+      for (let i = 0; i < N_PER; i++) {
+        const c = document.createElementNS(SVGNS, 'circle');
+        c.setAttribute('class', 'point pt-' + key.toLowerCase());
+        c.setAttribute('r', 5.5);
+        pointLayer.appendChild(c);
+        ptEls[key].push(c);
+      }
+
+      // Handle: a draggable ring at the cluster center
+      const g = document.createElementNS(SVGNS, 'g');
+      g.setAttribute('class', 'handle-group');
+      const hit = document.createElementNS(SVGNS, 'circle');
+      hit.setAttribute('class', 'handle ' + key.toLowerCase());
+      hit.setAttribute('r', 17);
+      hit.setAttribute('stroke-width', 2);
+      const ring = document.createElementNS(SVGNS, 'circle');
+      ring.setAttribute('class', 'handle-ring');
+      ring.setAttribute('r', 17);
+      ring.setAttribute('fill', 'none');
+      ring.setAttribute('stroke', key === 'A' ? 'var(--groupA-color)' : 'var(--groupB-color)');
+      const lbl = document.createElementNS(SVGNS, 'text');
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('dy', '4');
+      lbl.setAttribute('font-size', '12');
+      lbl.setAttribute('font-weight', '800');
+      lbl.setAttribute('fill', key === 'A' ? 'var(--groupA-color)' : 'var(--groupB-color)');
+      lbl.setAttribute('pointer-events', 'none');
+      lbl.textContent = key;
+      g.appendChild(hit); g.appendChild(ring); g.appendChild(lbl);
+      handleLayer.appendChild(g);
+      handleEls[key] = { g, hit, ring, lbl };
+    }
+  })();
+
+  // Convex hull (Andrew's monotone chain) for the cluster "cloud" outline.
+  function convexHull(pts) {
+    const p = pts.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    if (p.length < 3) return p;
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    for (const pt of p) {
+      while (lower.length >= 2 && cross(lower[lower.length-2], lower[lower.length-1], pt) <= 0) lower.pop();
+      lower.push(pt);
+    }
+    const upper = [];
+    for (let i = p.length - 1; i >= 0; i--) {
+      const pt = p[i];
+      while (upper.length >= 2 && cross(upper[upper.length-2], upper[upper.length-1], pt) <= 0) upper.pop();
+      upper.push(pt);
+    }
+    upper.pop(); lower.pop();
+    return lower.concat(upper);
+  }
+
+  function fmtSlope(s) {
+    if (s === null || !isFinite(s)) return '&mdash;';
+    return (s > 0 ? '+' : '') + s.toFixed(1);
+  }
+  function arrowFor(s) {
+    if (s > 0.15) return '<span class="arrow" style="color:var(--good-color)">&#9650;</span>';
+    if (s < -0.15) return '<span class="arrow" style="color:var(--danger-color)">&#9660;</span>';
+    return '<span class="arrow" style="color:var(--muted)">&#8594;</span>';
+  }
+
+  // ---------- Animated blend between split (0) and combined (1) ----------
+  let blend = 0;              // 0 = split, 1 = combined
+  let blendTarget = 0;
+  let rafActive = false;
+
+  function setBlendTarget(t) {
+    blendTarget = t;
+    if (!rafActive) { rafActive = true; requestAnimationFrame(animateBlend); }
+  }
+  function animateBlend() {
+    const diff = blendTarget - blend;
+    if (Math.abs(diff) < 0.002) {
+      blend = blendTarget;
+      render();
+      rafActive = false;
+      return;
+    }
+    blend += diff * 0.12;     // ease toward target
+    render();
+    requestAnimationFrame(animateBlend);
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const ptsA = pointsOf(clusters.A);
+    const ptsB = pointsOf(clusters.B);
+    const all = ptsA.concat(ptsB);
+
+    const regA = leastSquares(ptsA);
+    const regB = leastSquares(ptsB);
+    const regC = leastSquares(all);
+
+    // Draw points
+    ptEls.A.forEach((el, i) => { el.setAttribute('cx', dataToPx(ptsA[i].x)); el.setAttribute('cy', dataToPy(ptsA[i].y)); });
+    ptEls.B.forEach((el, i) => { el.setAttribute('cx', dataToPx(ptsB[i].x)); el.setAttribute('cy', dataToPy(ptsB[i].y)); });
+
+    // Hulls
+    const hullStr = (pts) => convexHull(pts).map(p => dataToPx(p.x) + ',' + dataToPy(p.y)).join(' ');
+    hullEls.A.setAttribute('points', hullStr(ptsA));
+    hullEls.B.setAttribute('points', hullStr(ptsB));
+    // Group hulls fade out as we merge into the combined cloud
+    const hullOpacity = 1 - blend;
+    hullEls.A.style.opacity = hullOpacity;
+    hullEls.B.style.opacity = hullOpacity;
+
+    // Handles
+    handleEls.A.g.setAttribute('transform', `translate(${dataToPx(clusters.A.cx)},${dataToPy(clusters.A.cy)})`);
+    handleEls.B.g.setAttribute('transform', `translate(${dataToPx(clusters.B.cx)},${dataToPy(clusters.B.cy)})`);
+    handleEls.A.g.style.opacity = hullOpacity * 0.9 + 0.1;
+    handleEls.B.g.style.opacity = hullOpacity * 0.9 + 0.1;
+
+    // Regression lines — drawn across the x-extent of the points they describe.
+    function drawLine(el, reg, pts) {
+      if (!reg) { el.style.opacity = 0; return; }
+      const xs = pts.map(p => p.x);
+      const xmin = Math.min(...xs), xmax = Math.max(...xs);
+      const y1 = reg.slope * xmin + reg.intercept;
+      const y2 = reg.slope * xmax + reg.intercept;
+      el.setAttribute('x1', dataToPx(xmin));
+      el.setAttribute('y1', dataToPy(y1));
+      el.setAttribute('x2', dataToPx(xmax));
+      el.setAttribute('y2', dataToPy(y2));
+    }
+    drawLine(lineA, regA, ptsA);
+    drawLine(lineB, regB, ptsB);
+    drawLine(lineC, regC, all);
+
+    // Group lines visible in split view; combined line visible in combined view.
+    lineA.style.opacity = (1 - blend);
+    lineB.style.opacity = (1 - blend);
+    lineC.style.opacity = blend;
+
+    // Readouts (always reflect the real math)
+    slopeAEl.innerHTML = fmtSlope(regA ? regA.slope : null) + ' ' + arrowFor(regA ? regA.slope : 0);
+    slopeBEl.innerHTML = fmtSlope(regB ? regB.slope : null) + ' ' + arrowFor(regB ? regB.slope : 0);
+    slopeCEl.innerHTML = fmtSlope(regC ? regC.slope : null) + ' ' + arrowFor(regC ? regC.slope : 0);
+
+    updateVerdict(regA, regB, regC);
+  }
+
+  function updateVerdict(regA, regB, regC) {
+    if (!regA || !regB || !regC) return;
+    const sA = regA.slope, sB = regB.slope, sC = regC.slope;
+    const groupsAgree = Math.sign(sA) === Math.sign(sB) && Math.abs(sA) > 0.05 && Math.abs(sB) > 0.05;
+    const reversed = groupsAgree && Math.sign(sC) === -Math.sign(sA) && Math.abs(sC) > 0.05;
+
+    const dir = sA > 0 ? 'UP' : 'DOWN';
+    const cdir = sC > 0 ? 'UP' : 'DOWN';
+
+    if (reversed) {
+      verdict.className = 'verdict paradox';
+      verdictHeadline.textContent = "Simpson's Paradox is ON";
+      insight.className = 'insight paradox';
+      insight.innerHTML =
+        `Both classes trend <b>${dir}</b> &mdash; in <span class="a-txt">A</span> and ` +
+        `<span class="b-txt">B</span>, more hours means a higher score. Yet stir them ` +
+        `together and the <span class="c-txt">combined line</span> points <b>${cdir}</b>. ` +
+        `The class that studies more simply started lower, and that hidden grouping ` +
+        `flips the headline. <b>That is Simpson's Paradox.</b>`;
+    } else if (groupsAgree && Math.sign(sC) === Math.sign(sA)) {
+      verdict.className = 'verdict noparadox';
+      verdictHeadline.textContent = 'No paradox — trends agree';
+      insight.className = 'insight';
+      insight.innerHTML =
+        `Right now every line points the <b>same way</b> (${dir}). The groups and the ` +
+        `combined data tell one consistent story. <b>Drag class B down and to the right</b> ` +
+        `(or hit “Reset paradox”) to make the combined line betray the groups.`;
+    } else {
+      verdict.className = 'verdict';
+      verdictHeadline.textContent = 'Mixed signals';
+      insight.className = 'insight';
+      insight.innerHTML =
+        `The two classes no longer trend the same way, so there is no single ` +
+        `“every group agrees” story to reverse. Nudge the classes until both ` +
+        `<span class="a-txt">A</span> and <span class="b-txt">B</span> climb together, ` +
+        `then separate their centers to summon the paradox.`;
+    }
+  }
+
+  // ---------- Toggle (split <-> combined) ----------
+  viewToggle.addEventListener('change', () => {
+    if (viewToggle.checked) {
+      setBlendTarget(1);
+      stateName.textContent = 'Combined view';
+      stateName.className = 'state-name combined';
+      toggleDesc.textContent = 'All points as one cloud';
+    } else {
+      setBlendTarget(0);
+      stateName.textContent = 'Split view';
+      stateName.className = 'state-name split';
+      toggleDesc.textContent = 'Each class on its own';
+    }
+  });
+
+  // ---------- Buttons ----------
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    clusters.A.cx = DEFAULT.A.cx; clusters.A.cy = DEFAULT.A.cy;
+    clusters.B.cx = DEFAULT.B.cx; clusters.B.cy = DEFAULT.B.cy;
+    render();
+  });
+  document.getElementById('alignBtn').addEventListener('click', () => {
+    // Put both clusters on a shared rising diagonal -> paradox vanishes.
+    clusters.A.cx = 6.5;  clusters.A.cy = 42;
+    clusters.B.cx = 13.5; clusters.B.cy = 72;
+    render();
+  });
+
+  // ---------- Dragging cluster centers ----------
+  let dragKey = null;
+  function svgPoint(evt) {
+    const rect = svg.getBoundingClientRect();
+    const cx = (evt.touches ? evt.touches[0].clientX : evt.clientX) - rect.left;
+    const cy = (evt.touches ? evt.touches[0].clientY : evt.clientY) - rect.top;
+    // account for viewBox scaling
+    return { x: cx * (W / rect.width), y: cy * (H / rect.height) };
+  }
+  function startDrag(key) {
+    return (e) => { e.preventDefault(); dragKey = key; };
+  }
+  handleEls.A.hit.addEventListener('mousedown', startDrag('A'));
+  handleEls.B.hit.addEventListener('mousedown', startDrag('B'));
+  handleEls.A.hit.addEventListener('touchstart', startDrag('A'), { passive: false });
+  handleEls.B.hit.addEventListener('touchstart', startDrag('B'), { passive: false });
+
+  function moveDrag(e) {
+    if (!dragKey) return;
+    e.preventDefault();
+    const p = svgPoint(e);
+    let dx = pxToDataX(p.x);
+    let dy = pyToDataY(p.y);
+    // Keep centers comfortably inside the field.
+    dx = Math.max(DX0 + 2.5, Math.min(DX1 - 2.5, dx));
+    dy = Math.max(DY0 + 12, Math.min(DY1 - 12, dy));
+    clusters[dragKey].cx = dx;
+    clusters[dragKey].cy = dy;
+    render();
+  }
+  function endDrag() { dragKey = null; }
+  window.addEventListener('mousemove', moveDrag);
+  window.addEventListener('touchmove', moveDrag, { passive: false });
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
+
+  // ---------- Init ----------
+  render();
+</script>
+</body>
+</html>
