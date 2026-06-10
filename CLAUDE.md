@@ -19,10 +19,17 @@ in a browser (`file://`) and it just works.
 
 ## Files
 
-- `exponential-growth.html` — "The Exponential Growth Trap": a bacteria-in-a-jar simulation
-  with a time slider, auto-play with teaching breakpoints, live growth curve (SVG), and
-  canvas particle animation. `lang="en"`.
-- `three-door-problem.html` — the Monty Hall problem ("Het driedeurenprobleem"). `lang="nl"`.
+All examples are in **Dutch** (`lang="nl"`).
+
+- `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
+  slider, auto-play with teaching breakpoints, live growth curve (SVG), canvas particle animation.
+- `three-door-problem.html` — the Monty Hall problem ("Het driedeurenprobleem").
+- `birthday-paradox.html` — the birthday paradox: group-size slider, exact probability curve,
+  and a Monte Carlo "run 100 rooms" simulation that converges on the theory.
+- `compound-interest.html` — compound interest vs. linear saving: two savers racing on a shared
+  curve, showing that starting early beats saving more.
+- `simpsons-paradox.html` — Simpson's paradox: draggable scatter clusters whose per-group
+  regression lines reverse direction when combined.
 
 Examples are independent — there is no shared library or cross-file dependency.
 
@@ -36,8 +43,13 @@ Examples are independent — there is no shared library or cross-file dependency
   `requestAnimationFrame` loops for continuous animation.
 - **Pedagogy first:** the interaction should reveal the concept. Use staged reveals, insight
   callouts, milestone markers, and auto-play that pauses at key moments to let the idea land.
-- **Language:** examples may be authored in English or Dutch — match the `lang` attribute and
-  keep all user-facing copy in that language consistently within a file.
+- **Intro card:** each example opens with a short (2–4 sentence) intro card placed after the
+  title/subtitle and before the interactive widget. It frames the puzzle in plain language and
+  teases the counterintuitive payoff — without giving away every number. Style it to match the
+  file's palette and keep it readable (centered, ~560px max-width).
+- **Language:** all examples are written in **Dutch** (`lang="nl"`). Keep every user-facing
+  string — markup, button labels, messages, insight copy, number words (miljoen/miljard/…) —
+  in natural Dutch. Element IDs, class names, and JS identifiers stay in English.
 - **Self-documenting numbers:** format large/small values for humans (e.g. "1.2 billion",
   "< 0.001%") rather than raw figures.
 
@@ -46,6 +58,8 @@ Examples are independent — there is no shared library or cross-file dependency
 1. Create one new `<concept-name>.html` (kebab-case) at the repo root.
 2. Inline everything; depend on nothing local. Make it open-and-run.
 3. Pick one concept and make the interaction *demonstrate* it — not just illustrate it.
+4. Open with a short Dutch intro card (see Conventions); set `lang="nl"` and keep all
+   user-facing copy in Dutch.
 
 ## Testing
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Birthday Paradox</title>
+  <title>De Verjaardagenparadox</title>
   <style>
     :root {
       --bg-color: #0d0f1a;
@@ -307,30 +307,51 @@
       70% { transform: scale(1.15); }
       100% { transform: scale(1); opacity: 1; }
     }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      width: 100%;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      border-radius: 16px;
+      background: rgba(22, 25, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-left: 3px solid var(--accent-color);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .intro strong { color: #fff; }
   </style>
 </head>
 <body>
 
-<h1>The Birthday Paradox</h1>
-<p class="subtitle">Why a small crowd hides a near-certain coincidence</p>
+<h1>De Verjaardagenparadox</h1>
+<p class="subtitle">Waarom een kleine groep een bijna zekere toevalstreffer verbergt</p>
+
+<p class="intro">Verzamel een handvol vreemden in een kamer: hoeveel heb je er nodig voordat twee van hen waarschijnlijk dezelfde verjaardag hebben? De meeste mensen gokken op ongeveer <strong>180</strong> — de helft van de 365 dagen in een jaar. Het verrassende is dat slechts <strong>23</strong> mensen al genoeg zijn voor een kans van meer dan vijftig procent. Schuif en ontdek hoe snel de toevalstreffer bijna zeker wordt.</p>
 
 <div class="stat-row">
   <div class="stat-box people" id="peopleBox">
-    <span class="stat-label">People in the room</span>
+    <span class="stat-label">Mensen in de kamer</span>
     <span id="peopleValue" class="stat-value people">23</span>
   </div>
   <div class="stat-box" id="probBox">
-    <span class="stat-label">Chance two share a birthday</span>
-    <span id="probValue" class="stat-value">50.7%</span>
-    <span class="stat-sub">theoretical</span>
+    <span class="stat-label">Kans dat twee dezelfde verjaardag hebben</span>
+    <span id="probValue" class="stat-value">50,7%</span>
+    <span class="stat-sub">theoretisch</span>
   </div>
 </div>
 
 <div class="layout">
   <div class="room-container glass">
     <div class="card-title">
-      <span>The Room</span>
-      <span id="matchPill" class="match-pill">no shared birthday</span>
+      <span>De kamer</span>
+      <span id="matchPill" class="match-pill">geen gedeelde verjaardag</span>
     </div>
     <div class="room">
       <svg class="room-svg" id="roomSvg" viewBox="0 0 460 360" preserveAspectRatio="xMidYMid meet"></svg>
@@ -338,7 +359,7 @@
   </div>
 
   <div class="graph-container glass">
-    <div class="card-title"><span>Probability Curve</span></div>
+    <div class="card-title"><span>Kanscurve</span></div>
     <svg class="graph" id="graph" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid meet">
       <defs>
         <linearGradient id="graphGradient" x1="0" y1="0" x2="0" y2="1">
@@ -367,10 +388,10 @@
       <span>0</span><span>19</span><span>38</span><span>57</span><span>75</span>
     </div>
     <div class="legend">
-      <div class="legend-item"><span class="legend-swatch" style="background:var(--graph-line)"></span>Theoretical</div>
-      <div class="legend-item"><span class="legend-swatch" style="background:var(--teal)"></span>Empirical (Monte Carlo)</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--graph-line)"></span>Theoretisch</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--teal)"></span>Empirisch (Monte Carlo)</div>
     </div>
-    <div class="montecarlo-readout" id="mcReadout">Press “Run 100 random rooms” to test the theory.</div>
+    <div class="montecarlo-readout" id="mcReadout">Klik op “Test 100 willekeurige kamers” om de theorie te toetsen.</div>
   </div>
 </div>
 
@@ -379,10 +400,10 @@
     <input type="range" id="sizeSlider" min="1" max="75" value="23">
     <div class="milestone-markers" id="milestones"></div>
   </div>
-  <div id="message" class="message">A room of 23 people — what are the odds two share a birthday?</div>
+  <div id="message" class="message">Een kamer met 23 mensen — hoe groot is de kans dat twee dezelfde verjaardag hebben?</div>
   <div class="btn-row">
-    <button id="shuffleBtn" class="secondary">Reshuffle birthdays</button>
-    <button id="mcBtn">Run 100 random rooms</button>
+    <button id="shuffleBtn" class="secondary">Verjaardagen herschudden</button>
+    <button id="mcBtn">Test 100 willekeurige kamers</button>
   </div>
 </div>
 
@@ -430,18 +451,18 @@
 
   function formatPct(p) {
     const pct = p * 100;
-    if (p > 0 && pct < 0.1) return '<0.1%';
-    if (pct >= 99.95 && p < 1) return '99.9%';
-    if (pct >= 10) return pct.toFixed(1) + '%';
-    return pct.toFixed(1) + '%';
+    if (p > 0 && pct < 0.1) return '<0,1%';
+    if (pct >= 99.95 && p < 1) return '99,9%';
+    if (pct >= 10) return pct.toFixed(1).replace('.', ',') + '%';
+    return pct.toFixed(1).replace('.', ',') + '%';
   }
 
-  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const MONTHS = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
   const DAYS_IN_MONTH = [31,28,31,30,31,30,31,31,30,31,30,31];
   function dayToDate(d) { // d in 0..364
     let m = 0;
     while (d >= DAYS_IN_MONTH[m]) { d -= DAYS_IN_MONTH[m]; m++; }
-    return MONTHS[m] + ' ' + (d + 1);
+    return (d + 1) + ' ' + MONTHS[m];
   }
 
   // Distinct hue per matched date group
@@ -459,7 +480,7 @@
   function buildMilestones() {
     const marks = [
       { n: 23, label: '23 → 50%' },
-      { n: 70, label: '70 → 99.9%' }
+      { n: 70, label: '70 → 99,9%' }
     ];
     milestonesEl.innerHTML = '';
     marks.forEach(m => {
@@ -598,15 +619,15 @@
 
   // ---- Insight callouts ----
   const insights = {
-    1:  { t: "One person can't share a birthday with anyone. Probability: <strong>0%</strong>. We start from nothing.", hot: false },
-    2:  { t: "Two strangers: only a <strong>0.27%</strong> chance. This is the intuition we wrongly extend to bigger groups.", hot: false },
-    10: { t: "Ten people already gives an <strong>11.7%</strong> chance — one in nine rooms. Still feels safe, right?", hot: false },
-    20: { t: "Getting warm. With 20 people you're at <strong>41%</strong> — there are 190 invisible <em>pairs</em> quietly being compared.", hot: false },
-    23: { t: "<strong>Just 23 people — already a coin flip.</strong> Most people guess you'd need ~180. The real answer is 23. That's the paradox.", hot: true },
-    30: { t: "30 people: <strong>70.6%</strong>. The growth isn't about you matching everyone — it's about every <em>pair</em> matching. 30 people make 435 pairs.", hot: true },
-    41: { t: "Past 41 people the chance crosses <strong>90%</strong>. A shared birthday is now the expected outcome, not the surprise.", hot: true },
-    50: { t: "50 people: <strong>97%</strong>. A room of no shared birthdays is now the rare event.", hot: true },
-    70: { t: "<strong>70 people → 99.9%.</strong> Practically guaranteed. We needed nowhere near 365 — coincidence scales with pairs, and pairs explode.", hot: true },
+    1:  { t: "Eén persoon kan met niemand een verjaardag delen. Kans: <strong>0%</strong>. We beginnen bij nul.", hot: false },
+    2:  { t: "Twee vreemden: slechts <strong>0,27%</strong> kans. Dit is de intuïtie die we ten onrechte doortrekken naar grotere groepen.", hot: false },
+    10: { t: "Tien mensen geven al <strong>11,7%</strong> kans — één op de negen kamers. Voelt nog veilig, toch?", hot: false },
+    20: { t: "Het wordt warm. Met 20 mensen zit je op <strong>41%</strong> — er zijn 190 onzichtbare <em>paren</em> die stilletjes worden vergeleken.", hot: false },
+    23: { t: "<strong>Slechts 23 mensen — al een kop-of-munt.</strong> De meeste mensen gokken op ~180. Het echte antwoord is 23. Dat is de paradox.", hot: true },
+    30: { t: "30 mensen: <strong>70,6%</strong>. De groei draait er niet om dat jij met iedereen matcht — het gaat erom dat élk <em>paar</em> kan matchen. 30 mensen vormen 435 paren.", hot: true },
+    41: { t: "Voorbij de 41 mensen passeert de kans de <strong>90%</strong>. Een gedeelde verjaardag is nu de verwachte uitkomst, niet de verrassing.", hot: true },
+    50: { t: "50 mensen: <strong>97%</strong>. Een kamer zónder gedeelde verjaardag is nu de zeldzame gebeurtenis.", hot: true },
+    70: { t: "<strong>70 mensen → 99,9%.</strong> Praktisch gegarandeerd. We hadden er bij lange na geen 365 nodig — toeval schaalt met paren, en paren exploderen.", hot: true },
   };
 
   function pickInsight(n) {
@@ -642,10 +663,10 @@
     if (hasMatch) {
       matchPill.className = 'match-pill hit';
       const dates = matchedDays.map(dayToDate);
-      matchPill.textContent = '★ shared: ' + dates.slice(0, 2).join(', ') + (dates.length > 2 ? ' +' + (dates.length - 2) : '');
+      matchPill.textContent = '★ gedeeld: ' + dates.slice(0, 2).join(', ') + (dates.length > 2 ? ' +' + (dates.length - 2) : '');
     } else {
       matchPill.className = 'match-pill';
-      matchPill.textContent = n <= 1 ? '—' : 'no shared birthday (this draw)';
+      matchPill.textContent = n <= 1 ? '—' : 'geen gedeelde verjaardag (deze trekking)';
     }
 
     // Move graph marker
@@ -655,21 +676,21 @@
     // Message
     message.className = 'message';
     if (n === 1) {
-      message.textContent = 'A single person — no one to match with. The journey starts here.';
+      message.textContent = 'Eén enkele persoon — niemand om mee te matchen. Hier begint de reis.';
     } else if (n < 23) {
-      message.textContent = `${n} people: ${formatPct(p)} chance. Feels unlikely... but watch how fast it climbs.`;
+      message.textContent = `${n} mensen: ${formatPct(p)} kans. Voelt onwaarschijnlijk... maar kijk hoe snel het oploopt.`;
     } else if (n === 23) {
-      message.textContent = 'At 23 people it is a literal coin flip — 50.7%.';
+      message.textContent = 'Bij 23 mensen is het letterlijk kop-of-munt — 50,7%.';
       message.classList.add('danger');
     } else if (n < 70) {
-      message.textContent = `${n} people: ${formatPct(p)}. A shared birthday is now more likely than not.`;
+      message.textContent = `${n} mensen: ${formatPct(p)}. Een gedeelde verjaardag is nu waarschijnlijker dan niet.`;
       message.classList.add('danger');
     } else {
-      message.textContent = `${n} people: ${formatPct(p)} — all but certain.`;
+      message.textContent = `${n} mensen: ${formatPct(p)} — vrijwel zeker.`;
       message.classList.add('danger');
     }
     if (hasMatch && n > 1) {
-      message.textContent += ' This room actually has one!';
+      message.textContent += ' Deze kamer heeft er daadwerkelijk een!';
     }
 
     // Insight callout
@@ -701,7 +722,7 @@
     if (mcRunning) return;
     const n = parseInt(slider.value);
     if (n <= 1) {
-      mcReadout.innerHTML = 'With 1 person a match is impossible — try a bigger room first.';
+      mcReadout.innerHTML = 'Met 1 persoon is een match onmogelijk — probeer eerst een grotere kamer.';
       return;
     }
     mcRunning = true;
@@ -728,9 +749,9 @@
       }
       const empirical = hits / done;
       mcReadout.innerHTML =
-        `<span class="num">${hits}</span> of <span class="num">${done}</span> rooms of ${n} had a shared birthday ` +
-        `→ empirical <span class="num">${(empirical * 100).toFixed(0)}%</span> ` +
-        `vs theory <span class="num">${(theo * 100).toFixed(1)}%</span>`;
+        `<span class="num">${hits}</span> van <span class="num">${done}</span> kamers van ${n} hadden een gedeelde verjaardag ` +
+        `→ empirisch <span class="num">${(empirical * 100).toFixed(0)}%</span> ` +
+        `vs theorie <span class="num">${(theo * 100).toFixed(1).replace('.', ',')}%</span>`;
 
       if (done < TOTAL) {
         requestAnimationFrame(tick);
@@ -744,7 +765,7 @@
         empiricalDots.appendChild(dot);
 
         const diff = Math.abs(empirical - theo) * 100;
-        mcReadout.innerHTML += ` &nbsp;·&nbsp; within ${diff.toFixed(1)} pts of theory.`;
+        mcReadout.innerHTML += ` &nbsp;·&nbsp; binnen ${diff.toFixed(1).replace('.', ',')} pt van de theorie.`;
 
         mcRunning = false;
         mcBtn.disabled = false;

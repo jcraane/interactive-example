@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Compound Interest Race: Why Starting Early Beats Saving More</title>
+  <title>De Samengestelde-Interestrace: Waarom Vroeg Beginnen Wint Van Meer Sparen</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -54,6 +54,24 @@
       text-transform: uppercase;
       text-align: center;
     }
+
+    .intro {
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto 30px;
+      padding: 18px 24px;
+      border-radius: 14px;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    }
+    .intro b.early { color: var(--early-color); }
+    .intro b.late { color: var(--late-color); }
 
     .glass {
       background: rgba(30, 41, 59, 0.7);
@@ -418,50 +436,54 @@
 </head>
 <body>
 
-<h1>The Compound Interest Race</h1>
-<p class="subtitle">Why starting early beats saving more</p>
+<h1>De Samengestelde-Interestrace</h1>
+<p class="subtitle">Waarom vroeg beginnen wint van meer sparen</p>
+
+<p class="intro">
+  Wie is bij pensioen het rijkst: de spaarder die jong begint maar slechts <b class="early">10 jaar</b> geld opzijzet, of degene die <b>3× zo veel geld</b> spaart, verdeeld over <b class="late">30 jaar</b>? Het verrassende antwoord is dat de vroege starter ronduit kan winnen — want het is de <b>samengestelde curve</b>, niet de hoogte van de inleg, die het zware werk doet. Verschuif de schuiven hieronder en zie de race zelf ontvouwen.
+</p>
 
 <div class="main">
   <!-- Saver scoreboard -->
   <div class="savers">
     <div class="saver-card early contributing leading" id="cardEarly">
       <div class="saver-head">
-        <div class="saver-name"><span class="dot"></span>Early Bird</div>
-        <span class="lead-badge">Leading</span>
+        <div class="saver-name"><span class="dot"></span>Vroege Spaarder</div>
+        <span class="lead-badge">Aan kop</span>
       </div>
       <div class="saver-sub" id="subEarly"></div>
-      <div class="balance-label">Balance</div>
-      <div class="balance" id="balEarly">$0</div>
-      <div class="status-chip" id="chipEarly"><span class="pulse"></span><span id="chipEarlyTxt">Contributing</span></div>
+      <div class="balance-label">Saldo</div>
+      <div class="balance" id="balEarly">€0</div>
+      <div class="status-chip" id="chipEarly"><span class="pulse"></span><span id="chipEarlyTxt">Aan het inleggen</span></div>
       <div class="metric-row">
         <div class="metric">
-          <div class="m-label">Total put in</div>
-          <div class="m-value" id="contribEarly">$0</div>
+          <div class="m-label">Totaal ingelegd</div>
+          <div class="m-value" id="contribEarly">€0</div>
         </div>
         <div class="metric">
-          <div class="m-label">Growth earned</div>
-          <div class="m-value growth" id="growthEarly">$0</div>
+          <div class="m-label">Rendement behaald</div>
+          <div class="m-value growth" id="growthEarly">€0</div>
         </div>
       </div>
     </div>
 
     <div class="saver-card late contributing" id="cardLate">
       <div class="saver-head">
-        <div class="saver-name"><span class="dot"></span>Late Starter</div>
-        <span class="lead-badge">Leading</span>
+        <div class="saver-name"><span class="dot"></span>Late Spaarder</div>
+        <span class="lead-badge">Aan kop</span>
       </div>
       <div class="saver-sub" id="subLate"></div>
-      <div class="balance-label">Balance</div>
-      <div class="balance" id="balLate">$0</div>
-      <div class="status-chip" id="chipLate"><span class="pulse"></span><span id="chipLateTxt">Waiting</span></div>
+      <div class="balance-label">Saldo</div>
+      <div class="balance" id="balLate">€0</div>
+      <div class="status-chip" id="chipLate"><span class="pulse"></span><span id="chipLateTxt">Wachten</span></div>
       <div class="metric-row">
         <div class="metric">
-          <div class="m-label">Total put in</div>
-          <div class="m-value" id="contribLate">$0</div>
+          <div class="m-label">Totaal ingelegd</div>
+          <div class="m-value" id="contribLate">€0</div>
         </div>
         <div class="metric">
-          <div class="m-label">Growth earned</div>
-          <div class="m-value growth" id="growthLate">$0</div>
+          <div class="m-label">Rendement behaald</div>
+          <div class="m-value growth" id="growthLate">€0</div>
         </div>
       </div>
     </div>
@@ -470,8 +492,8 @@
   <!-- Graph -->
   <div class="graph-container glass">
     <div class="graph-title">
-      <span>Balance vs. Age</span>
-      <span class="age-display">Age <span id="ageNow">25</span> <span class="small" id="ageMaxLbl">/ 65</span></span>
+      <span>Saldo vs. Leeftijd</span>
+      <span class="age-display">Leeftijd <span id="ageNow">25</span> <span class="small" id="ageMaxLbl">/ 65</span></span>
     </div>
     <svg class="graph" id="graph" viewBox="0 0 640 380" preserveAspectRatio="xMidYMid meet">
       <defs>
@@ -492,8 +514,8 @@
       <path id="fillEarly" class="fill-early" d=""/>
       <path id="curveLate"  class="curve-late"  d=""/>
       <path id="curveEarly" class="curve-early" d=""/>
-      <text id="stopAnnot" class="annot" x="0" y="0" style="opacity:0">Early Bird stops saving</text>
-      <text id="crossAnnot" class="annot" x="0" y="0" text-anchor="middle" style="opacity:0">overtakes!</text>
+      <text id="stopAnnot" class="annot" x="0" y="0" style="opacity:0">Vroege Spaarder stopt met sparen</text>
+      <text id="crossAnnot" class="annot" x="0" y="0" text-anchor="middle" style="opacity:0">haalt in!</text>
       <circle id="markEarly" class="marker-early" cx="0" cy="0" r="5"/>
       <circle id="markLate"  class="marker-late"  cx="0" cy="0" r="5"/>
       <g id="xLabels"></g>
@@ -507,49 +529,49 @@
 <div class="controls glass">
   <div class="sliders-grid">
     <div class="slider-group">
-      <label>Monthly deposit <span class="val" id="depVal">$500</span></label>
+      <label>Maandelijkse inleg <span class="val" id="depVal">€500</span></label>
       <input type="range" id="depSlider" min="50" max="2000" step="50" value="500">
     </div>
     <div class="slider-group">
-      <label>Annual return <span class="val" id="rateVal">7%</span></label>
+      <label>Jaarlijks rendement <span class="val" id="rateVal">7%</span></label>
       <input type="range" id="rateSlider" min="1" max="12" step="0.5" value="7">
     </div>
     <div class="slider-group">
-      <label>Early Bird starts at age <span class="val" id="earlyStartVal">25</span></label>
+      <label>Vroege Spaarder begint op leeftijd <span class="val" id="earlyStartVal">25</span></label>
       <input type="range" id="earlyStartSlider" min="18" max="45" step="1" value="25">
     </div>
     <div class="slider-group">
-      <label>Late Starter starts at age <span class="val" id="lateStartVal">35</span></label>
+      <label>Late Spaarder begint op leeftijd <span class="val" id="lateStartVal">35</span></label>
       <input type="range" id="lateStartSlider" min="25" max="55" step="1" value="35">
     </div>
     <div class="slider-group">
-      <label>Early Bird saves for <span class="val" id="earlyYearsVal">10 yrs</span></label>
+      <label>Vroege Spaarder spaart <span class="val" id="earlyYearsVal">10 jaar</span></label>
       <input type="range" id="earlyYearsSlider" min="5" max="40" step="1" value="10">
     </div>
     <div class="slider-group">
-      <label>Retirement age <span class="val" id="endAgeVal">65</span></label>
+      <label>Pensioenleeftijd <span class="val" id="endAgeVal">65</span></label>
       <input type="range" id="endAgeSlider" min="55" max="75" step="1" value="65">
     </div>
   </div>
 
   <div class="scenario-row">
     <div class="scenario-text">
-      <b>The killer scenario:</b> Early Bird saves for a few years, then <b>STOPS contributing</b> but keeps compounding. Late Starter keeps saving until retirement. Watch who wins.
+      <b>Het beslissende scenario:</b> Vroege Spaarder spaart een paar jaar en <b>STOPT dan met inleggen</b>, maar blijft renderen. Late Spaarder blijft sparen tot het pensioen. Kijk wie er wint.
     </div>
     <div class="switch on" id="stopSwitch">
-      <span class="switch-label">Early Bird stops early</span>
+      <span class="switch-label">Vroege Spaarder stopt vroeg</span>
       <div class="track"><div class="knob"></div></div>
     </div>
   </div>
 
   <div class="btn-row">
-    <button id="playBtn" class="secondary">▶ Auto-play the years</button>
-    <button id="resetBtn" class="secondary">Reset to retirement</button>
+    <button id="playBtn" class="secondary">▶ Speel de jaren automatisch af</button>
+    <button id="resetBtn" class="secondary">Terug naar pensioen</button>
   </div>
 </div>
 
 <div class="footnote">
-  Compounded monthly. Returns are illustrative, not a forecast — real markets fluctuate. The point: the <b>curve</b>, not the deposit, does the heavy lifting, so <b>time in the market</b> matters more than the amount.
+  Maandelijks samengesteld. Rendementen zijn illustratief, geen voorspelling — echte markten fluctueren. De kern: de <b>curve</b>, niet de inleg, doet het zware werk, dus <b>tijd in de markt</b> telt zwaarder dan het bedrag.
 </div>
 
 <script>
@@ -633,16 +655,16 @@
   // ---- Currency formatting (human friendly) ----
   function fmtMoney(n) {
     n = Math.round(n);
-    if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B';
-    if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M';
-    if (n >= 1e3) return '$' + n.toLocaleString('en-US');
-    return '$' + n.toLocaleString('en-US');
+    if (n >= 1e9) return '€' + (n / 1e9).toLocaleString('nl-NL', {maximumFractionDigits: 2}) + ' mld';
+    if (n >= 1e6) return '€' + (n / 1e6).toLocaleString('nl-NL', {maximumFractionDigits: 2}) + ' mln';
+    if (n >= 1e3) return '€' + n.toLocaleString('nl-NL');
+    return '€' + n.toLocaleString('nl-NL');
   }
   function fmtMoneyShort(n) {
     n = Math.round(n);
-    if (n >= 1e6) return '$' + (n / 1e6).toFixed(1) + 'M';
-    if (n >= 1e3) return '$' + Math.round(n / 1e3) + 'k';
-    return '$' + n;
+    if (n >= 1e6) return '€' + (n / 1e6).toLocaleString('nl-NL', {maximumFractionDigits: 1}) + ' mln';
+    if (n >= 1e3) return '€' + Math.round(n / 1e3) + 'k';
+    return '€' + n;
   }
 
   // ---- Core simulation ----
@@ -736,7 +758,7 @@
       t.setAttribute('x', x);
       t.setAttribute('y', VH - 8);
       t.setAttribute('text-anchor', i === 0 ? 'start' : (i === xTicks ? 'end' : 'middle'));
-      t.textContent = i === 0 ? 'Age ' + Math.round(age) : Math.round(age);
+      t.textContent = i === 0 ? 'Leeftijd ' + Math.round(age) : Math.round(age);
       xLabels.appendChild(t);
     }
   }
@@ -838,7 +860,7 @@
       crossLine.style.opacity = 1;
       crossAnnot.setAttribute('x', Math.max(40, Math.min(cx, VW - 60)));
       crossAnnot.setAttribute('y', PAD_T + 28);
-      crossAnnot.textContent = cross !== null ? 'overtakes!' : 'Late has now paid in more';
+      crossAnnot.textContent = cross !== null ? 'haalt in!' : 'Late heeft nu meer ingelegd';
       crossAnnot.style.opacity = 1;
     } else {
       crossLine.style.opacity = 0;
@@ -862,21 +884,21 @@
     growthLate.textContent = fmtMoney(Math.max(0, lNow - lContrib));
 
     // subtitles
-    subEarly.innerHTML = 'Saves <strong>' + fmtMoneyShort(monthly) + '/mo</strong> from age <strong>' + earlyStart + '</strong>' +
-      (earlyStops ? ', stops at <strong>' + Math.round(eStop) + '</strong>, then just compounds.' : ' all the way to ' + endAge + '.');
-    subLate.innerHTML = 'Saves <strong>' + fmtMoneyShort(monthly) + '/mo</strong> from age <strong>' + lateStart + '</strong> until retirement at <strong>' + endAge + '</strong>.';
+    subEarly.innerHTML = 'Spaart <strong>' + fmtMoneyShort(monthly) + '/mnd</strong> vanaf leeftijd <strong>' + earlyStart + '</strong>' +
+      (earlyStops ? ', stopt op <strong>' + Math.round(eStop) + '</strong> en laat het daarna alleen renderen.' : ' helemaal tot ' + endAge + '.');
+    subLate.innerHTML = 'Spaart <strong>' + fmtMoneyShort(monthly) + '/mnd</strong> vanaf leeftijd <strong>' + lateStart + '</strong> tot het pensioen op <strong>' + endAge + '</strong>.';
 
     // contributing status chips
     const eContributing = currentAge >= earlyStart && currentAge < eStop;
     const lContributing = currentAge >= lateStart && currentAge < endAge;
     cardEarly.classList.toggle('contributing', eContributing);
     cardLate.classList.toggle('contributing', lContributing);
-    if (currentAge < earlyStart) chipEarlyTxt.textContent = 'Not started';
-    else if (eContributing) chipEarlyTxt.textContent = 'Contributing';
-    else chipEarlyTxt.textContent = 'Compounding only';
-    if (currentAge < lateStart) chipLateTxt.textContent = 'Waiting to start';
-    else if (lContributing) chipLateTxt.textContent = 'Contributing';
-    else chipLateTxt.textContent = 'Compounding only';
+    if (currentAge < earlyStart) chipEarlyTxt.textContent = 'Nog niet begonnen';
+    else if (eContributing) chipEarlyTxt.textContent = 'Aan het inleggen';
+    else chipEarlyTxt.textContent = 'Alleen renderen';
+    if (currentAge < lateStart) chipLateTxt.textContent = 'Wacht om te beginnen';
+    else if (lContributing) chipLateTxt.textContent = 'Aan het inleggen';
+    else chipLateTxt.textContent = 'Alleen renderen';
 
     // leading badge
     const eLead = eNow >= lNow;
@@ -894,15 +916,15 @@
     const eTotalIn = contributedAt(endAge, earlyStart, eStop);
 
     if (currentAge < lateStart) {
-      html = '<b class="early">Early Bird</b> has a head start. <b class="late">Late Starter</b> hasn\'t even begun — every year of delay is a year of compounding lost forever.';
+      html = '<b class="early">Vroege Spaarder</b> heeft een voorsprong. <b class="late">Late Spaarder</b> is nog niet eens begonnen — elk jaar uitstel is een jaar samengestelde groei dat voorgoed verloren gaat.';
     } else if (earlyStops && Math.round(currentAge) === Math.round(eStop) && eStop < endAge) {
-      html = '<b class="early">Early Bird stops contributing now</b> after putting in just ' + fmtMoney(eContrib) + '. From here the balance grows on compounding alone — no new money added.';
+      html = '<b class="early">Vroege Spaarder stopt nu met inleggen</b> na slechts ' + fmtMoney(eContrib) + ' te hebben ingelegd. Vanaf hier groeit het saldo puur door samengestelde groei — er komt geen nieuw geld bij.';
     } else if (cross !== null && Math.abs(currentAge - cross) < 0.6 && currentAge >= cross) {
       cls = 'crossover';
-      html = '<b>Crossover!</b> Around age ' + Math.round(cross) + ', <b class="early">Early Bird</b> overtakes <b class="late">Late Starter</b> — even though Late Starter has been pumping in fresh cash this whole time.';
+      html = '<b>Omslagpunt!</b> Rond leeftijd ' + Math.round(cross) + ' haalt <b class="early">Vroege Spaarder</b> <b class="late">Late Spaarder</b> in — ook al heeft Late Spaarder al die tijd vers geld blijven inleggen.';
     } else if (moneyCross !== null && Math.abs(currentAge - moneyCross) < 0.6 && currentAge >= moneyCross && eNow > lNow) {
       cls = 'crossover';
-      html = 'Right here, <b class="late">Late Starter</b> has now paid in more total cash (' + fmtMoney(lContrib) + ') than <b class="early">Early Bird</b> ever did (' + fmtMoney(eTotalIn) + ') — and is <b>still behind</b>. The head start is uncatchable.';
+      html = 'Precies hier heeft <b class="late">Late Spaarder</b> nu in totaal meer geld ingelegd (' + fmtMoney(lContrib) + ') dan <b class="early">Vroege Spaarder</b> ooit deed (' + fmtMoney(eTotalIn) + ') — en loopt nog steeds <b>achter</b>. De voorsprong is niet meer in te halen.';
     } else if (atEnd) {
       const eWins = eNow >= lNow;
       const gap = Math.abs(eNow - lNow);
@@ -910,19 +932,19 @@
       cls = eWins ? 'win' : '';
       if (eWins && moreMoney) {
         const ratio = (lContrib / Math.max(eContrib, 1));
-        html = 'At retirement, <b class="early">Early Bird</b> ends with <b>' + fmtMoney(eNow) + '</b> after contributing only <b>' + fmtMoney(eContrib) + '</b>. ' +
-          '<b class="late">Late Starter</b> put in <b>' + fmtMoney(lContrib) + '</b> (' + ratio.toFixed(1) + '× more) yet finishes at <b>' + fmtMoney(lNow) + '</b> — behind by <b>' + fmtMoney(gap) + '</b>. ' +
-          'Less money in, more money out. The curve did the work.';
+        html = 'Bij pensioen eindigt <b class="early">Vroege Spaarder</b> met <b>' + fmtMoney(eNow) + '</b> na slechts <b>' + fmtMoney(eContrib) + '</b> te hebben ingelegd. ' +
+          '<b class="late">Late Spaarder</b> legde <b>' + fmtMoney(lContrib) + '</b> in (' + ratio.toLocaleString('nl-NL', {maximumFractionDigits: 1}) + '× meer) maar eindigt op <b>' + fmtMoney(lNow) + '</b> — <b>' + fmtMoney(gap) + '</b> achter. ' +
+          'Minder geld erin, meer geld eruit. De curve deed het werk.';
       } else if (eWins) {
-        html = 'At retirement, <b class="early">Early Bird</b> wins with <b>' + fmtMoney(eNow) + '</b> vs <b>' + fmtMoney(lNow) + '</b> — a <b>' + fmtMoney(gap) + '</b> lead built mostly by time.';
+        html = 'Bij pensioen wint <b class="early">Vroege Spaarder</b> met <b>' + fmtMoney(eNow) + '</b> tegen <b>' + fmtMoney(lNow) + '</b> — een voorsprong van <b>' + fmtMoney(gap) + '</b>, grotendeels opgebouwd door tijd.';
       } else {
-        html = 'Here <b class="late">Late Starter</b> finishes ahead (' + fmtMoney(lNow) + ' vs ' + fmtMoney(eNow) + '). Try letting Early Bird keep compounding longer, or saving fewer years late — and watch the head start win.';
+        html = 'Hier eindigt <b class="late">Late Spaarder</b> voorop (' + fmtMoney(lNow) + ' tegen ' + fmtMoney(eNow) + '). Laat Vroege Spaarder langer renderen, of laat de late spaarder minder jaren sparen — en zie de voorsprong winnen.';
       }
     } else if (eNow >= lNow) {
-      html = '<b class="early">Early Bird</b> is ahead with ' + fmtMoney(eNow) + '. The gap is widening because compounding grows the whole balance, not just the new deposits.';
+      html = '<b class="early">Vroege Spaarder</b> ligt voorop met ' + fmtMoney(eNow) + '. De kloof wordt groter omdat samengestelde groei het hele saldo laat groeien, niet alleen de nieuwe inleg.';
     } else {
       const behind = lNow - eNow;
-      html = '<b class="late">Late Starter</b> is temporarily ahead by ' + fmtMoney(behind) + ' by sheer brute-force saving — but watch the compounding curve catch up.';
+      html = '<b class="late">Late Spaarder</b> ligt tijdelijk ' + fmtMoney(behind) + ' voor door pure brute spaarkracht — maar zie de samengestelde curve dichterbij komen.';
     }
 
     if (html) {
@@ -935,11 +957,11 @@
 
   // ---- Slider wiring ----
   function syncLabels() {
-    depVal.textContent = '$' + monthly.toLocaleString('en-US');
+    depVal.textContent = '€' + monthly.toLocaleString('nl-NL');
     rateVal.textContent = annualRate + '%';
     earlyStartVal.textContent = earlyStart;
     lateStartVal.textContent = lateStart;
-    earlyYearsVal.textContent = earlyYears + ' yr' + (earlyYears === 1 ? '' : 's');
+    earlyYearsVal.textContent = earlyYears + ' jaar';
     endAgeVal.textContent = endAge;
   }
 
@@ -1004,7 +1026,7 @@
   function startPlay() {
     playing = true;
     pausedAtBreakpoint = false;
-    playBtn.textContent = '❚❚ Pause';
+    playBtn.textContent = '❚❚ Pauze';
     playBtn.classList.add('playing');
     playBtn.classList.remove('secondary', 'continue');
     computeBreakpoints();
@@ -1030,7 +1052,7 @@
     playTimer = null;
     playing = false;
     pausedAtBreakpoint = true;
-    playBtn.textContent = '▶ Continue';
+    playBtn.textContent = '▶ Doorgaan';
     playBtn.classList.remove('playing', 'secondary');
     playBtn.classList.add('continue');
   }
@@ -1040,7 +1062,7 @@
     pausedAtBreakpoint = false;
     clearInterval(playTimer);
     playTimer = null;
-    playBtn.textContent = '▶ Auto-play the years';
+    playBtn.textContent = '▶ Speel de jaren automatisch af';
     playBtn.classList.remove('playing', 'continue');
     playBtn.classList.add('secondary');
   }

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Bacteria Riddle: Percentages</title>
+  <title>Het bacterieraadsel: percentages</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -314,6 +314,25 @@
     }
     .insight.visible { opacity: 1; transform: translateY(0); }
 
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(34, 197, 94, 0.4);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--bacteria-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20% { transform: translateX(-4px); }
@@ -335,16 +354,22 @@
 </head>
 <body>
 
-<h1>The Exponential Growth Trap</h1>
-<p class="subtitle">Why we always react too late</p>
+<h1>De val van exponentiële groei</h1>
+<p class="subtitle">Waarom we altijd te laat reageren</p>
+
+<p class="intro">
+  Eén enkele bacterie zit in een pot en <strong>verdubbelt elke minuut</strong>. Na 60 minuten is de pot helemaal vol.
+  Maar let op: nog maar één minuut eerder, op minuut 59, was de pot pas <strong>halfvol</strong> &mdash; dus tegen de tijd dat het probleem eindelijk echt lijkt, ben je bijna door je tijd heen.
+  <span class="cue">Schuif de klok vooruit en zie het gebeuren.</span>
+</p>
 
 <div style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;">
   <div class="percent-box" id="percentBox">
-    <span class="stats">TOTAL CAPACITY FILLED</span>
+    <span class="stats">TOTALE CAPACITEIT GEVULD</span>
     <span id="percentLabel" class="percent-value">0%</span>
   </div>
   <div class="percent-box bacteria-count-box" id="bacteriaBox">
-    <span class="stats">BACTERIA COUNT</span>
+    <span class="stats">AANTAL BACTERIËN</span>
     <span id="bacteriaLabel" class="bacteria-count">1</span>
   </div>
 </div>
@@ -375,7 +400,7 @@
   </div>
 
   <div class="graph-container glass">
-    <div class="graph-title">Growth Curve</div>
+    <div class="graph-title">Groeicurve</div>
     <svg id="graph" width="300" height="220" viewBox="0 0 300 220">
       <defs>
         <linearGradient id="graphGradient" x1="0" y1="0" x2="0" y2="1">
@@ -407,10 +432,10 @@
     <input type="range" id="timeSlider" min="0" max="60" value="0">
     <div class="milestone-markers" id="milestones"></div>
   </div>
-  <div id="message" class="message" style="margin-top: 16px;">Slide to start the clock.</div>
+  <div id="message" class="message" style="margin-top: 16px;">Schuif om de klok te starten.</div>
   <div class="btn-row">
-    <button id="playBtn" class="secondary">Auto-play</button>
-    <button id="addJarsBtn">We found 3 more jars!</button>
+    <button id="playBtn" class="secondary">Automatisch afspelen</button>
+    <button id="addJarsBtn">We hebben nog 3 potten gevonden!</button>
   </div>
 </div>
 
@@ -555,7 +580,7 @@
   function startPlay() {
     playing = true;
     pausedAtBreakpoint = false;
-    playBtn.textContent = 'Pause';
+    playBtn.textContent = 'Pauzeren';
     playBtn.classList.add('playing');
     playBtn.classList.remove('secondary');
     playInterval = setInterval(() => {
@@ -576,7 +601,7 @@
     playInterval = null;
     playing = false;
     pausedAtBreakpoint = true;
-    playBtn.textContent = 'Continue';
+    playBtn.textContent = 'Doorgaan';
     playBtn.classList.remove('playing');
     playBtn.classList.add('continue');
   }
@@ -586,7 +611,7 @@
     pausedAtBreakpoint = false;
     clearInterval(playInterval);
     playInterval = null;
-    playBtn.textContent = 'Auto-play';
+    playBtn.textContent = 'Automatisch afspelen';
     playBtn.classList.remove('playing', 'continue');
     playBtn.classList.add('secondary');
   }
@@ -597,15 +622,15 @@
   };
 
   const insights = {
-    10: "At 10 min, bacteria fill ~0.0001% of the jar. Invisible to the naked eye.",
-    30: "Halfway through time, only 0.0001% full. Time ≠ progress in exponential systems.",
-    50: "At 50 min, the jar is only ~0.1% full. 83% of time gone, almost nothing visible.",
-    55: "5 minutes left and >96% of capacity remains. This is why exponentials fool us.",
-    58: "25% full with only 2 minutes left. It took 58 minutes to get here — just 2 more to fill completely.",
-    59: "50% full. One minute to go. Could you have predicted this at minute 50?",
-    60: "Game over. The last 3 minutes filled 87.5% of all capacity.",
-    61: "You tripled capacity — but the bacteria doubled. Two jars gone in one minute. Adding resources can't outrun exponential growth.",
-    62: "All four jars full. Tripling capacity only bought 2 extra minutes. That's the exponential trap: linear solutions can't fix exponential problems.",
+    10: "Op 10 min vullen de bacteriën ~0,0001% van de pot. Onzichtbaar voor het blote oog.",
+    30: "Halverwege de tijd is de pot pas 0,0001% vol. Tijd ≠ voortgang in exponentiële systemen.",
+    50: "Op 50 min is de pot pas ~0,1% vol. 83% van de tijd is voorbij, en er is bijna niets te zien.",
+    55: "Nog 5 minuten te gaan en >96% van de capaciteit is nog vrij. Hierom misleiden exponentiële groei ons.",
+    58: "25% vol met nog maar 2 minuten te gaan. Het duurde 58 minuten om hier te komen — nog maar 2 om helemaal vol te raken.",
+    59: "50% vol. Nog één minuut te gaan. Had je dit op minuut 50 kunnen voorspellen?",
+    60: "Game over. De laatste 3 minuten vulden 87,5% van de totale capaciteit.",
+    61: "Je hebt de capaciteit verdrievoudigd — maar de bacteriën zijn verdubbeld. Twee potten in één minuut gevuld. Méér middelen toevoegen kan exponentiële groei niet bijbenen.",
+    62: "Alle vier de potten zijn vol. Het verdrievoudigen van de capaciteit leverde slechts 2 extra minuten op. Dat is de val van exponentiële groei: lineaire oplossingen kunnen exponentiële problemen niet oplossen.",
   };
 
   function updateGraphLabels() {
@@ -621,11 +646,11 @@
   }
 
   function formatBacteriaCount(n) {
-    if (n >= 1e15) return (n / 1e15).toFixed(1) + ' quadrillion';
-    if (n >= 1e12) return (n / 1e12).toFixed(1) + ' trillion';
-    if (n >= 1e9) return (n / 1e9).toFixed(1) + ' billion';
-    if (n >= 1e6) return (n / 1e6).toFixed(1) + ' million';
-    if (n >= 1e3) return n.toLocaleString();
+    if (n >= 1e15) return (n / 1e15).toFixed(1).replace('.', ',') + ' biljard';
+    if (n >= 1e12) return (n / 1e12).toFixed(1).replace('.', ',') + ' biljoen';
+    if (n >= 1e9) return (n / 1e9).toFixed(1).replace('.', ',') + ' miljard';
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace('.', ',') + ' miljoen';
+    if (n >= 1e3) return n.toLocaleString('nl-NL');
     return n.toString();
   }
 
@@ -707,23 +732,23 @@
     // Message Logic
     message.className = 'message';
     if (t === 55) {
-      message.innerText = "Minute 55: You still have over 96% of your space left!";
+      message.innerText = "Minuut 55: Je hebt nog steeds meer dan 96% van je ruimte over!";
     } else if (t === 59) {
-      message.innerText = "Minute 59: Only ONE minute left, and you're at 50%!";
+      message.innerText = "Minuut 59: Nog maar ÉÉN minuut te gaan, en je zit al op 50%!";
       message.className = 'message danger';
     } else if (t === 60) {
-      message.innerText = "Minute 60: Resource exhausted.";
+      message.innerText = "Minuut 60: Capaciteit uitgeput.";
       message.className = 'message danger';
     } else if (t === 61 && maxJars > 1) {
-      message.innerText = "Minute 61: Two jars full. Extra space vanishing fast.";
+      message.innerText = "Minuut 61: Twee potten vol. De extra ruimte verdwijnt razendsnel.";
       message.className = 'message danger';
     } else if (t === 62 && maxJars > 1) {
-      message.innerText = "Minute 62: All four jars full. Tripling capacity only bought 2 minutes.";
+      message.innerText = "Minuut 62: Alle vier de potten vol. Het verdrievoudigen van de capaciteit leverde slechts 2 minuten op.";
       message.className = 'message danger';
     } else if (t < 50) {
-      message.innerText = "Everything looks fine. The volume is so tiny it's almost impossible to measure.";
+      message.innerText = "Alles ziet er prima uit. Het volume is zo klein dat het bijna niet te meten is.";
     } else {
-      message.innerText = "The growth is accelerating...";
+      message.innerText = "De groei versnelt...";
     }
   }
 

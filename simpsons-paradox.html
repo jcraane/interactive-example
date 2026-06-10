@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simpson's Paradox: The Trend That Flips</title>
+  <title>De paradox van Simpson: de trend die omklapt</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -272,6 +272,23 @@
     }
     .hint b { color: #94a3b8; }
 
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 28px;
+      padding: 18px 22px;
+      font-size: 0.96rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      border-radius: 14px;
+      background: rgba(250, 204, 21, 0.06);
+      border: 1px solid rgba(250, 204, 21, 0.18);
+    }
+    .intro b { color: white; }
+    .intro .a-txt { color: var(--groupA-color); font-weight: 700; }
+    .intro .b-txt { color: var(--groupB-color); font-weight: 700; }
+    .intro .c-txt { color: var(--combined-color); font-weight: 700; }
+
     @keyframes pulse-glow {
       0%, 100% { box-shadow: 0 0 30px rgba(250,204,21,0.10); }
       50% { box-shadow: 0 0 48px rgba(250,204,21,0.22); }
@@ -280,13 +297,21 @@
 </head>
 <body>
 
-<h1>Simpson's Paradox</h1>
-<p class="subtitle">When every group goes up &mdash; yet the whole goes down</p>
+<h1>De paradox van Simpson</h1>
+<p class="subtitle">Als elke groep stijgt &mdash; maar het geheel toch daalt</p>
+
+<p class="intro">
+  Twee klassen studeren voor een examen, en in <span class="a-txt">elke klas</span> betekenen meer uren
+  betrouwbaar een hoger cijfer &mdash; een trend die binnen <b>elke</b> subgroep standhoudt.
+  Voeg de klassen samen tot &eacute;&eacute;n hoop, en plotseling kan de <span class="c-txt">algehele lijn</span>
+  de andere kant op wijzen: omhoog binnen elke groep, maar <b>omlaag</b> over alle groepen samen.
+  Sleep de clusters en zie de trendlijn omklappen.
+</p>
 
 <div class="layout">
   <!-- LEFT: scatter plot -->
   <div class="plot-card glass">
-    <div class="plot-title">Hours studied  vs.  exam score &mdash; two classes</div>
+    <div class="plot-title">Studie-uren  vs.  examencijfer &mdash; twee klassen</div>
     <svg class="scatter" id="plot" width="560" height="460" viewBox="0 0 560 460">
       <defs>
         <linearGradient id="fadeA" x1="0" y1="0" x2="1" y2="0">
@@ -303,36 +328,36 @@
       </g>
       <g id="pointLayer"></g>
       <g id="handleLayer"></g>
-      <text x="280" y="452" text-anchor="middle" class="axis-label">Hours studied &rarr;</text>
-      <text x="14" y="230" text-anchor="middle" class="axis-label" transform="rotate(-90 14 230)">Exam score &rarr;</text>
+      <text x="280" y="452" text-anchor="middle" class="axis-label">Studie-uren &rarr;</text>
+      <text x="14" y="230" text-anchor="middle" class="axis-label" transform="rotate(-90 14 230)">Examencijfer &rarr;</text>
     </svg>
     <div class="legend">
-      <div class="legend-item"><span class="swatch dot sw-a"></span> Class A points</div>
-      <div class="legend-item"><span class="swatch dot sw-b"></span> Class B points</div>
-      <div class="legend-item"><span class="swatch sw-a"></span> Class A trend</div>
-      <div class="legend-item"><span class="swatch sw-b"></span> Class B trend</div>
-      <div class="legend-item"><span class="swatch sw-c"></span> Combined trend</div>
+      <div class="legend-item"><span class="swatch dot sw-a"></span> Punten klas A</div>
+      <div class="legend-item"><span class="swatch dot sw-b"></span> Punten klas B</div>
+      <div class="legend-item"><span class="swatch sw-a"></span> Trend klas A</div>
+      <div class="legend-item"><span class="swatch sw-b"></span> Trend klas B</div>
+      <div class="legend-item"><span class="swatch sw-c"></span> Samengevoegde trend</div>
     </div>
   </div>
 
   <!-- RIGHT: readouts + controls -->
   <div class="side">
     <div class="verdict" id="verdict">
-      <span class="verdict-eyebrow">The Verdict</span>
+      <span class="verdict-eyebrow">Het oordeel</span>
       <div class="verdict-headline" id="verdictHeadline">&mdash;</div>
     </div>
 
     <div class="slopes">
       <div class="slope-chip a">
-        <span class="lbl">Class A</span>
+        <span class="lbl">Klas A</span>
         <span class="val" id="slopeA">&mdash;</span>
       </div>
       <div class="slope-chip b">
-        <span class="lbl">Class B</span>
+        <span class="lbl">Klas B</span>
         <span class="val" id="slopeB">&mdash;</span>
       </div>
       <div class="slope-chip c">
-        <span class="lbl">Combined</span>
+        <span class="lbl">Samengevoegd</span>
         <span class="val" id="slopeC">&mdash;</span>
       </div>
     </div>
@@ -340,28 +365,28 @@
     <div class="insight" id="insight"></div>
 
     <div class="controls glass" style="padding:18px;">
-      <div class="ctrl-title">Watch the line flip</div>
+      <div class="ctrl-title">Zie de lijn omklappen</div>
       <div class="toggle-row">
         <label class="switch">
           <input type="checkbox" id="viewToggle">
           <span class="slider-sw"></span>
         </label>
-        <span class="state-name split" id="stateName">Split view</span>
-        <span class="toggle-desc" id="toggleDesc">Each class on its own</span>
+        <span class="state-name split" id="stateName">Gesplitste weergave</span>
+        <span class="toggle-desc" id="toggleDesc">Elke klas apart</span>
       </div>
       <div class="hint">
-        Flip the switch to merge the two classes into one cloud and watch
-        the <b>yellow line swing the other way</b>.
+        Zet de schakelaar om om de twee klassen samen te voegen tot &eacute;&eacute;n wolk en zie
+        de <b>gele lijn de andere kant op zwenken</b>.
       </div>
 
-      <div class="ctrl-title" style="margin-top:18px;">Break it yourself</div>
+      <div class="ctrl-title" style="margin-top:18px;">Doe het zelf</div>
       <div class="btn-row">
-        <button class="secondary" id="resetBtn">Reset paradox</button>
-        <button class="secondary" id="alignBtn">Align classes</button>
+        <button class="secondary" id="resetBtn">Paradox resetten</button>
+        <button class="secondary" id="alignBtn">Klassen uitlijnen</button>
       </div>
       <div class="hint">
-        <b>Drag</b> either glowing ring to move a whole class. Pull the classes onto
-        the same diagonal and the paradox dissolves &mdash; separate them and it snaps back.
+        <b>Sleep</b> aan een van de oplichtende ringen om een hele klas te verplaatsen. Trek de klassen op
+        dezelfde diagonaal en de paradox verdwijnt &mdash; haal ze uit elkaar en hij klapt terug.
       </div>
     </div>
   </div>
@@ -640,36 +665,36 @@
     const groupsAgree = Math.sign(sA) === Math.sign(sB) && Math.abs(sA) > 0.05 && Math.abs(sB) > 0.05;
     const reversed = groupsAgree && Math.sign(sC) === -Math.sign(sA) && Math.abs(sC) > 0.05;
 
-    const dir = sA > 0 ? 'UP' : 'DOWN';
-    const cdir = sC > 0 ? 'UP' : 'DOWN';
+    const dir = sA > 0 ? 'OMHOOG' : 'OMLAAG';
+    const cdir = sC > 0 ? 'OMHOOG' : 'OMLAAG';
 
     if (reversed) {
       verdict.className = 'verdict paradox';
-      verdictHeadline.textContent = "Simpson's Paradox is ON";
+      verdictHeadline.textContent = "De paradox van Simpson is AAN";
       insight.className = 'insight paradox';
       insight.innerHTML =
-        `Both classes trend <b>${dir}</b> &mdash; in <span class="a-txt">A</span> and ` +
-        `<span class="b-txt">B</span>, more hours means a higher score. Yet stir them ` +
-        `together and the <span class="c-txt">combined line</span> points <b>${cdir}</b>. ` +
-        `The class that studies more simply started lower, and that hidden grouping ` +
-        `flips the headline. <b>That is Simpson's Paradox.</b>`;
+        `Beide klassen gaan <b>${dir}</b> &mdash; in <span class="a-txt">A</span> en ` +
+        `<span class="b-txt">B</span> betekenen meer uren een hoger cijfer. Maar gooi ze ` +
+        `samen en de <span class="c-txt">samengevoegde lijn</span> wijst <b>${cdir}</b>. ` +
+        `De klas die meer studeert begon simpelweg lager, en die verborgen groepering ` +
+        `draait de conclusie om. <b>Dat is de paradox van Simpson.</b>`;
     } else if (groupsAgree && Math.sign(sC) === Math.sign(sA)) {
       verdict.className = 'verdict noparadox';
-      verdictHeadline.textContent = 'No paradox — trends agree';
+      verdictHeadline.textContent = 'Geen paradox — trends komen overeen';
       insight.className = 'insight';
       insight.innerHTML =
-        `Right now every line points the <b>same way</b> (${dir}). The groups and the ` +
-        `combined data tell one consistent story. <b>Drag class B down and to the right</b> ` +
-        `(or hit “Reset paradox”) to make the combined line betray the groups.`;
+        `Op dit moment wijst elke lijn <b>dezelfde kant op</b> (${dir}). De groepen en de ` +
+        `samengevoegde data vertellen &eacute;&eacute;n consistent verhaal. <b>Sleep klas B omlaag en naar rechts</b> ` +
+        `(of klik op “Paradox resetten”) om de samengevoegde lijn de groepen te laten verraden.`;
     } else {
       verdict.className = 'verdict';
-      verdictHeadline.textContent = 'Mixed signals';
+      verdictHeadline.textContent = 'Tegenstrijdige signalen';
       insight.className = 'insight';
       insight.innerHTML =
-        `The two classes no longer trend the same way, so there is no single ` +
-        `“every group agrees” story to reverse. Nudge the classes until both ` +
-        `<span class="a-txt">A</span> and <span class="b-txt">B</span> climb together, ` +
-        `then separate their centers to summon the paradox.`;
+        `De twee klassen gaan niet langer dezelfde kant op, dus er is geen enkel ` +
+        `“elke groep is het eens”-verhaal om om te keren. Verschuif de klassen tot zowel ` +
+        `<span class="a-txt">A</span> als <span class="b-txt">B</span> samen stijgen, ` +
+        `en haal dan hun middelpunten uit elkaar om de paradox op te roepen.`;
     }
   }
 
@@ -677,14 +702,14 @@
   viewToggle.addEventListener('change', () => {
     if (viewToggle.checked) {
       setBlendTarget(1);
-      stateName.textContent = 'Combined view';
+      stateName.textContent = 'Samengevoegde weergave';
       stateName.className = 'state-name combined';
-      toggleDesc.textContent = 'All points as one cloud';
+      toggleDesc.textContent = 'Alle punten als één wolk';
     } else {
       setBlendTarget(0);
-      stateName.textContent = 'Split view';
+      stateName.textContent = 'Gesplitste weergave';
       stateName.className = 'state-name split';
-      toggleDesc.textContent = 'Each class on its own';
+      toggleDesc.textContent = 'Elke klas apart';
     }
   });
 
