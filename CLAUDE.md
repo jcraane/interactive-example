@@ -52,9 +52,15 @@ All examples are in **Dutch** (`lang="nl"`).
 - `benfords-law.html` — Benford's law: first-digit histograms of embedded/generated datasets
   (country populations, powers of 2, Fibonacci, expenses) hug the logarithmic curve, while a
   "fabricated fraud" dataset trips the chi-square fraud gauge.
-- `braess-paradox.html` — Braess's paradox: a live traffic network where opening a zero-cost
-  shortcut makes every car's commute slower, with a central-planner button showing the system
-  optimum vs. the Nash equilibrium.
+- `moire-patterns.html` — Moiré interference: overlay two fine line gratings and rotate one a
+  fraction of a degree to make giant fringe bands sweep across that exist in neither grid.
+- `shepard-tone.html` — the Shepard tone (auditory barber-pole): octave-stacked sine partials
+  under a fixed loudness bell glide upward and wrap, with a live spectrum/waterfall; Web Audio,
+  starts only on a user gesture.
+- `phantom-traffic-jam.html` — phantom traffic jams: cars on a ring road following an IDM model
+  spontaneously break into a backward-traveling stop-and-go shock wave past a critical density.
+- `pid-controller.html` — the PID controller: a cart-on-a-beam plant the user tunes with Kp/Ki/Kd
+  sliders (plus presets) to see overshoot, steady-state error, and critically-damped settling.
 
 Examples are independent — there is no shared library or cross-file dependency.
 

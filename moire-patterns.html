@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Het moiré-effect</title>
+  <style>
+    :root {
+      --bg-color: #0a0e1a;
+      --grid-a: #67e8f9;
+      --grid-b: #f0abfc;
+      --accent-color: #c084fc;
+      --graph-line: #f0abfc;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 50%, rgba(103,232,249,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 82% 18%, rgba(240,171,252,0.08) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #67e8f9, #c084fc, #f0abfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    /* Glass card style */
+    .glass {
+      background: rgba(20, 27, 45, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    .layout {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 20px;
+    }
+
+    .grid-container { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    #stage {
+      border-radius: 10px;
+      background: #05070f;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12), 0 0 30px rgba(0,0,0,0.5);
+      width: 440px;
+      height: 440px;
+      max-width: 82vw;
+      max-height: 82vw;
+      cursor: grab;
+      touch-action: none;
+    }
+    #stage.dragging { cursor: grabbing; }
+    .legend {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+    .swatch.a { background: var(--grid-a); }
+    .swatch.b { background: var(--grid-b); }
+    .drag-hint { font-size: 0.72rem; color: #64748b; margin-top: 8px; }
+
+    .panel { width: 330px; display: flex; flex-direction: column; }
+
+    .metric {
+      background: rgba(192, 132, 252, 0.06);
+      border: 1px solid rgba(192, 132, 252, 0.22);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      text-align: center;
+      transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+    }
+    .metric .label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .metric .value {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+      transition: color 0.4s;
+    }
+    .metric .value small { font-size: 1rem; font-weight: 600; color: #94a3b8; }
+
+    /* Style toggle */
+    .toggle-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+    .toggle-row button {
+      flex: 1;
+      background: rgba(148, 163, 184, 0.12);
+      color: #cbd5e1;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      box-shadow: none;
+      padding: 10px 6px;
+      font-size: 0.85rem;
+    }
+    .toggle-row button.active {
+      background: var(--accent-color);
+      color: #1a0b2e;
+      border-color: var(--accent-color);
+      box-shadow: 0 4px 12px rgba(192,132,252,0.35);
+    }
+    .toggle-row button:hover { transform: none; }
+    .toggle-row button.active:hover { transform: translateY(-1px); }
+    .style-label { font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: #64748b; margin-bottom: 8px; }
+
+    /* Slider */
+    .control-block { margin-top: 16px; }
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .control-block label .num {
+      font-weight: 700;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .hint { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--grid-a) 0%, var(--grid-b) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0a0e1a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(192,132,252,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(192,132,252,0.85); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0a0e1a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(192,132,252,0.6);
+      cursor: pointer;
+    }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    button {
+      background: var(--accent-color); color: #1a0b2e; border: none;
+      padding: 11px 18px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(192,132,252,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(192,132,252,0.45); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button.spinning { background: var(--grid-a); color: #06222b; box-shadow: 0 4px 12px rgba(103,232,249,0.35); }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    /* Insight card */
+    .insight {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(240, 171, 252, 0.07);
+      border-left: 3px solid var(--graph-line);
+      text-align: left;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #f5d0fe; }
+
+    /* Intro card */
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(20, 27, 45, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(103, 232, 249, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--grid-a); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    /* Explanation card */
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(20, 27, 45, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(192, 132, 252, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #67e8f9, #f0abfc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(103, 232, 249, 0.08);
+      border-left: 3px solid var(--grid-a);
+      color: #a5f3fc;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--grid-b); font-weight: 700; }
+    .explainer em { color: var(--accent-color); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>Het moiré-effect</h1>
+<p class="subtitle">Hoe twee saaie rasters samen gaan bewegen</p>
+
+<p class="intro">
+  Hier liggen twee <strong>doodsimpele rasters</strong> van dunne lijntjes op elkaar &mdash; allebei kaarsrecht, allebei
+  stilstaand. Draai het bovenste raster een paar graden en plots golven er enorme, trage banden over het beeld die in
+  <strong>geen van beide rasters</strong> bestaan. Hetzelfde verschijnsel als je een beeldscherm fotografeert of langs een hek rijdt.
+  <span class="cue">Schuif de rotatie met een fractie van een graad &mdash; en zie hoe uit twee stilstaande dingen beweging ontstaat.</span>
+</p>
+
+<div class="layout">
+  <div class="grid-container glass">
+    <canvas id="stage" width="440" height="440"></canvas>
+    <div class="legend">
+      <span><span class="swatch a"></span> Onderste raster</span>
+      <span><span class="swatch b"></span> Bovenste raster (draaibaar)</span>
+    </div>
+    <div class="drag-hint">Tip: sleep in het beeld om het bovenste raster te verschuiven.</div>
+  </div>
+
+  <div class="panel glass">
+    <div class="metric">
+      <span class="label">Breedte van de moiré-banden</span>
+      <span class="value" id="bandValue">&mdash;</span>
+    </div>
+
+    <div class="style-label">Rasterstijl</div>
+    <div class="toggle-row">
+      <button id="styleLines" class="active">Lijnen</button>
+      <button id="styleGrid">Raster</button>
+      <button id="styleCircles">Cirkels</button>
+    </div>
+
+    <div class="control-block">
+      <label for="angleSlider">
+        Rotatie bovenste raster
+        <span class="num" id="angleLabel">3,0&deg;</span>
+      </label>
+      <input type="range" id="angleSlider" min="0" max="2000" value="300">
+      <div class="hint">Het zoete punt ligt bij kleine hoeken: 1&ndash;8&deg; geeft de grootste banden.</div>
+    </div>
+
+    <div class="control-block">
+      <label for="spacingSlider">
+        Lijnafstand onderste raster
+        <span class="num" id="spacingLabel">6,0 px</span>
+      </label>
+      <input type="range" id="spacingSlider" min="30" max="160" value="60">
+      <div class="hint">Een miniem verschil in afstand levert al een eigen, traag moiré-patroon op.</div>
+    </div>
+
+    <div class="btn-row">
+      <button id="spinBtn" class="spinning">Langzaam draaien</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div class="message" id="message">Speelt af: het bovenste raster draait heel langzaam &mdash; let op de banden die meedrijven.</div>
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+
+  const angleSlider = document.getElementById('angleSlider');
+  const angleLabel = document.getElementById('angleLabel');
+  const spacingSlider = document.getElementById('spacingSlider');
+  const spacingLabel = document.getElementById('spacingLabel');
+
+  const bandValue = document.getElementById('bandValue');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+
+  const styleLines = document.getElementById('styleLines');
+  const styleGrid = document.getElementById('styleGrid');
+  const styleCircles = document.getElementById('styleCircles');
+  const spinBtn = document.getElementById('spinBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // Colours for the two layers (slightly translucent so overlap is visible).
+  const COL_A = 'rgba(103, 232, 249, 0.85)'; // onderste raster
+  const COL_B = 'rgba(240, 171, 252, 0.85)'; // bovenste raster
+
+  let style = 'lines';        // 'lines' | 'grid' | 'circles'
+  let angleDeg = 3.0;         // rotation of the top grid (degrees)
+  let spacing = 6.0;          // line spacing of the BOTTOM grid (px)
+  const TOP_SPACING = 6.0;    // top grid keeps a fixed spacing as reference
+  let offsetX = 0, offsetY = 0; // translation of the top grid (drag)
+  let spinning = true;
+
+  // --- Drawing helpers -------------------------------------------------
+
+  // Parallel lines filling the canvas, rotated by `rot` radians about centre,
+  // with the given `step`, drawn in `colour`, optionally translated.
+  function drawLines(rot, step, colour, tx, ty) {
+    ctx.save();
+    ctx.translate(cx + tx, cy + ty);
+    ctx.rotate(rot);
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 1;
+    // Cover the diagonal so lines fill the whole canvas at any rotation.
+    const reach = Math.ceil(Math.sqrt(W * W + H * H) / 2) + step;
+    ctx.beginPath();
+    for (let x = -reach; x <= reach; x += step) {
+      // +0.5 keeps the 1px line crisp.
+      const px = Math.round(x) + 0.5;
+      ctx.moveTo(px, -reach);
+      ctx.lineTo(px, reach);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Square grid = vertical + horizontal lines.
+  function drawGrid(rot, step, colour, tx, ty) {
+    drawLines(rot, step, colour, tx, ty);
+    drawLines(rot + Math.PI / 2, step, colour, tx, ty);
+  }
+
+  // Concentric circles centred at (cx+tx, cy+ty).
+  function drawCircles(step, colour, tx, ty) {
+    ctx.save();
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 1;
+    const reach = Math.ceil(Math.sqrt(W * W + H * H));
+    for (let r = step; r <= reach; r += step) {
+      ctx.beginPath();
+      ctx.arc(cx + tx, cy + ty, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#05070f';
+    ctx.fillRect(0, 0, W, H);
+    // Additive blending makes the overlapping fringes glow where lines cross.
+    ctx.globalCompositeOperation = 'lighter';
+
+    const rot = angleDeg * Math.PI / 180;
+
+    if (style === 'lines') {
+      drawLines(0, spacing, COL_A, 0, 0);
+      drawLines(rot, TOP_SPACING, COL_B, offsetX, offsetY);
+    } else if (style === 'grid') {
+      drawGrid(0, spacing, COL_A, 0, 0);
+      drawGrid(rot, TOP_SPACING, COL_B, offsetX, offsetY);
+    } else { // circles
+      // For circles, the second layer is offset rather than rotated:
+      // the band width follows the drag offset plus a small spacing mismatch.
+      drawCircles(spacing, COL_A, 0, 0);
+      // Use the rotation slider as a horizontal nudge so it still "does something".
+      const nudge = (angleDeg / 20) * 36;
+      drawCircles(TOP_SPACING, COL_B, offsetX + nudge, offsetY);
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // --- Moiré band-width estimate --------------------------------------
+  // For two line gratings of spacing p1, p2 at relative angle theta, the
+  // moiré fringe spacing D = p1*p2 / sqrt(p1^2 + p2^2 - 2*p1*p2*cos(theta)).
+  // When p1==p2==p this reduces to D = p / (2*sin(theta/2)).
+  function moireBand() {
+    const p1 = spacing, p2 = TOP_SPACING;
+    const theta = angleDeg * Math.PI / 180;
+    const denom = Math.sqrt(p1 * p1 + p2 * p2 - 2 * p1 * p2 * Math.cos(theta));
+    if (denom < 1e-6) return Infinity;
+    return (p1 * p2) / denom;
+  }
+
+  function formatBand(d) {
+    if (!isFinite(d) || d > 5000) return '&infin;';
+    if (d >= 1000) return Math.round(d / 100) / 10 + 'k px';
+    return Math.round(d) + ' px';
+  }
+
+  // --- Narrative -------------------------------------------------------
+  function updateNarrative() {
+    const d = moireBand();
+
+    if (style === 'circles') {
+      bandValue.innerHTML = 'rozet';
+      message.innerHTML = 'Twee setjes <strong>concentrische cirkels</strong> &mdash; samen vormen ze een gebogen rozet die met de minste verschuiving wegdraait.';
+      insight.innerHTML =
+        'Ook hier geldt: het krullende patroon zit in <strong>geen van beide</strong> cirkelsets. Het is puur het verschil &mdash; precies wat je ziet bij een <strong>foto van een beeldscherm</strong> of bij golvende kleding op tv.';
+      insight.classList.add('visible');
+      return;
+    }
+
+    bandValue.innerHTML = formatBand(d);
+
+    const small = angleDeg > 0 && angleDeg <= 8;
+    if (angleDeg < 0.05) {
+      message.innerHTML = 'De rasters staan exact gelijk: nog geen moiré. Draai een héél klein beetje&hellip;';
+      insight.classList.remove('visible');
+    } else if (small) {
+      message.innerHTML = 'Brede, trage banden zwiepen over het beeld &mdash; en ze worden breder naarmate de hoek <strong>kleiner</strong> wordt.';
+      insight.innerHTML =
+        'Bij maar <strong>' + angleDeg.toFixed(1).replace('.', ',') + '&deg;</strong> zijn de banden al <strong>' + formatBand(d) +
+        '</strong> breed: tientallen keren groter dan de lijntjes zelf. Een minieme oorzaak, een gigantisch effect &mdash; het is het visuele neefje van een <strong>zweving</strong> in geluid.';
+      insight.classList.add('visible');
+    } else {
+      message.innerHTML = 'Grotere hoek &rarr; smallere, dichtere banden. Het moiré verdwijnt niet, maar krimpt in.';
+      insight.innerHTML =
+        'Het patroon dat je ziet bestaat in <strong>geen van beide rasters</strong> &mdash; het leeft alleen in hun overlap. Hetzelfde verschijnsel als bij <strong>krantenrasters</strong>, <strong>printpatronen</strong> of als je langs een <strong>hek</strong> rijdt.';
+      insight.classList.add('visible');
+    }
+  }
+
+  function update() {
+    render();
+    updateNarrative();
+  }
+
+  // --- Auto-rotate -----------------------------------------------------
+  let rafId = null;
+  let lastT = 0;
+
+  function tick(t) {
+    if (!spinning) return;
+    if (!lastT) lastT = t;
+    const dt = (t - lastT) / 1000;
+    lastT = t;
+    // ~0.6 deg/sec keeps the bands drifting hypnotically slow.
+    angleDeg += dt * 0.6;
+    if (angleDeg > 20) angleDeg = 0; // loop back through the dramatic small angles
+    syncAngleSlider();
+    update();
+    rafId = requestAnimationFrame(tick);
+  }
+
+  function startSpin() {
+    if (spinning) return;
+    spinning = true;
+    spinBtn.textContent = 'Stop met draaien';
+    spinBtn.classList.add('spinning');
+    lastT = 0;
+    rafId = requestAnimationFrame(tick);
+  }
+  function stopSpin() {
+    spinning = false;
+    spinBtn.textContent = 'Langzaam draaien';
+    spinBtn.classList.remove('spinning');
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  function syncAngleSlider() {
+    angleSlider.value = Math.round(angleDeg * 100);
+    angleLabel.innerHTML = angleDeg.toFixed(1).replace('.', ',') + '&deg;';
+  }
+
+  // --- Controls --------------------------------------------------------
+  angleSlider.oninput = function () {
+    angleDeg = parseInt(this.value) / 100;
+    angleLabel.innerHTML = angleDeg.toFixed(1).replace('.', ',') + '&deg;';
+    if (spinning) stopSpin();
+    update();
+  };
+
+  spacingSlider.oninput = function () {
+    spacing = parseInt(this.value) / 10;
+    spacingLabel.innerHTML = spacing.toFixed(1).replace('.', ',') + ' px';
+    update();
+  };
+
+  function setStyle(s) {
+    style = s;
+    styleLines.classList.toggle('active', s === 'lines');
+    styleGrid.classList.toggle('active', s === 'grid');
+    styleCircles.classList.toggle('active', s === 'circles');
+    update();
+  }
+  styleLines.onclick = () => setStyle('lines');
+  styleGrid.onclick = () => setStyle('grid');
+  styleCircles.onclick = () => setStyle('circles');
+
+  spinBtn.onclick = () => { spinning ? stopSpin() : startSpin(); };
+
+  resetBtn.onclick = () => {
+    stopSpin();
+    angleDeg = 3.0;
+    spacing = 6.0;
+    offsetX = 0; offsetY = 0;
+    syncAngleSlider();
+    spacingSlider.value = 60;
+    spacingLabel.innerHTML = '6,0 px';
+    setStyle('lines');
+  };
+
+  // --- Drag to translate the top grid ----------------------------------
+  let dragging = false;
+  let dragStartX = 0, dragStartY = 0, baseOX = 0, baseOY = 0;
+
+  function pointerPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width, scaleY = H / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    canvas.classList.add('dragging');
+    canvas.setPointerCapture(e.pointerId);
+    const p = pointerPos(e);
+    dragStartX = p.x; dragStartY = p.y;
+    baseOX = offsetX; baseOY = offsetY;
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const p = pointerPos(e);
+    offsetX = baseOX + (p.x - dragStartX);
+    offsetY = baseOY + (p.y - dragStartY);
+    update();
+  });
+  function endDrag(e) {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove('dragging');
+    if (e && e.pointerId != null && canvas.hasPointerCapture(e.pointerId)) {
+      canvas.releasePointerCapture(e.pointerId);
+    }
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  // --- Init ------------------------------------------------------------
+  syncAngleSlider();
+  spinBtn.textContent = 'Stop met draaien';
+  update();
+  rafId = requestAnimationFrame(tick);
+</script>
+
+<section class="explainer">
+  <h2>Waarom werkt dit zo?</h2>
+  <p>
+    Elk raster op zich is doodgewoon: alleen maar dunne, evenwijdige lijntjes op vaste afstand. Leg je twee van die rasters
+    over elkaar en draai er één een héél klein beetje, dan kruisen de lijnen elkaar in een ritme. Op sommige plekken vallen
+    de lijntjes precies tussen elkaar (donker), op andere plekken vallen ze samen (licht). Die afwisseling van licht en donker
+    vormt <strong>nieuwe, veel grotere banden</strong> &mdash; het moiré-patroon.
+  </p>
+  <p>
+    Het mooie is dat dat patroon in <em>geen van beide rasters</em> bestaat: het leeft uitsluitend in hun overlap. Het is een
+    <em>interferentie&shy;patroon</em> &mdash; precies hetzelfde idee als een <strong>zweving</strong> in geluid, waarbij twee
+    bijna-gelijke tonen samen een traag aanzwellend en wegstervend "wah-wah" maken. Twee dingen die nét niet gelijk zijn,
+    versterken hun minieme verschil tot iets groots en zichtbaars.
+  </p>
+  <p>
+    Daardoor is moiré zo gevoelig: hoe <strong>kleiner</strong> de hoek, hoe <strong>breder</strong> en trager de banden. Draai
+    je met een fractie van een graad, dan schuiven enorme banden langzaam door het beeld &mdash; een minuscule oorzaak met een
+    gigantisch, bewegend gevolg. Stilstaande lijnen lijken plots te leven.
+  </p>
+  <p>
+    Je ziet het overal: een <strong>foto van een beeldscherm</strong> waar vreemde regenboogbanden overheen golven, het
+    rasterpatroon in goedkoop <strong>krantendruk</strong>, golvende strepen op een <strong>geblokt overhemd op tv</strong>, of
+    het flikkeren als je langs een <strong>hek</strong> of een rij spijlen rijdt. Telkens hetzelfde: twee simpele rasters die
+    samen iets laten zien wat er alleen in de overlap is.
+  </p>
+</section>
+</body>
+</html>

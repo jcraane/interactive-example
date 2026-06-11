@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>De spookfile</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --accent-color: #f97316;
+      --fast-color: #22c55e;
+      --mid-color: #eab308;
+      --slow-color: #ef4444;
+      --graph-line: #f97316;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(249,115,22,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(239,68,68,0.07) 0%, transparent 50%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #64748b;
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: stretch;
+      margin-top: 20px;
+    }
+
+    .stage { text-align: center; display: flex; flex-direction: column; align-items: center; }
+    #ring {
+      border-radius: 10px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12), 0 0 30px rgba(0,0,0,0.4);
+      width: 420px;
+      height: 420px;
+      max-width: 82vw;
+      max-height: 82vw;
+    }
+    #spacetime {
+      margin-top: 16px;
+      border-radius: 8px;
+      background: #0b1120;
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12);
+      width: 420px;
+      height: 130px;
+      max-width: 82vw;
+    }
+    .strip-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 8px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .legend {
+      display: flex;
+      gap: 18px;
+      justify-content: center;
+      margin-top: 14px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+      flex-wrap: wrap;
+    }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+    .swatch.fast { background: var(--fast-color); }
+    .swatch.mid { background: var(--mid-color); }
+    .swatch.slow { background: var(--slow-color); }
+
+    .panel { width: 330px; display: flex; flex-direction: column; }
+
+    .metric {
+      background: rgba(249, 115, 22, 0.06);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+      border-radius: 14px;
+      padding: 14px 18px;
+      margin-bottom: 14px;
+      text-align: center;
+      transition: border-color 0.4s, background 0.4s, box-shadow 0.4s;
+    }
+    .metric .label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .metric .value {
+      font-size: 2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+      transition: color 0.4s;
+    }
+    .metric.stopped { background: rgba(239, 68, 68, 0.06); border-color: rgba(239, 68, 68, 0.25); }
+    .metric.stopped .value { color: var(--slow-color); }
+    .metric.speed.flowing { border-color: rgba(34,197,94,0.35); background: rgba(34,197,94,0.06); }
+    .metric.speed.flowing .value { color: var(--good-color); }
+
+    .metric-row { display: flex; gap: 14px; }
+    .metric-row .metric { flex: 1; margin-bottom: 14px; }
+
+    .control-block { margin-top: 6px; }
+    .control-block label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+    }
+    .control-block label .num {
+      font-weight: 700;
+      color: var(--accent-color);
+      font-variant-numeric: tabular-nums;
+      font-size: 1.05rem;
+    }
+    .hint { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--fast-color) 0%, var(--mid-color) 50%, var(--slow-color) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(249,115,22,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(249,115,22,0.8); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0f172a;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(249,115,22,0.6);
+      cursor: pointer;
+    }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+    button {
+      background: var(--accent-color); color: #0f172a; border: none;
+      padding: 11px 18px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.3s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.3);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.45); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.25); box-shadow: none; }
+    button.playing { background: var(--danger-color); color: white; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+    button.brake {
+      background: var(--slow-color); color: white;
+      box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+      width: 100%;
+    }
+    button.brake:hover { box-shadow: 0 6px 20px rgba(239,68,68,0.5); }
+
+    .message {
+      color: #cbd5e1;
+      min-height: 2.4em;
+      font-weight: 500;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .insight {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(239, 68, 68, 0.07);
+      border-left: 3px solid var(--slow-color);
+      text-align: left;
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #fca5a5; }
+
+    .intro {
+      max-width: 560px;
+      margin: 0 auto 24px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(249, 115, 22, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: #64748b; }
+
+    .explainer {
+      max-width: 620px;
+      margin: 48px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(239, 68, 68, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+      text-align: left;
+    }
+    .explainer p:last-child {
+      margin-bottom: 0;
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.08);
+      border-left: 3px solid var(--slow-color);
+      color: #fecaca;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em { color: var(--fast-color); font-style: normal; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<h1>De spookfile</h1>
+<p class="subtitle">Een file uit het niets</p>
+
+<p class="intro">
+  Op een drukke snelweg sta je plotseling stil &mdash; geen ongeluk, geen pechstrook, geen afslag. En even later rijdt
+  iedereen weer alsof er nooit iets was. Eén bestuurder die ietsje te hard remt, is genoeg: die remstoot plant zich als
+  een <strong>schokgolf naar achteren</strong> voort, terwijl de auto's vooruit blijven rijden.
+  <span class="cue">Zet hem aan, draai de drukte op of tik zelf op de rem &mdash; en kijk hoe de file uit het niets ontstaat.</span>
+</p>
+
+<div class="layout">
+  <div class="stage glass">
+    <canvas id="ring" width="440" height="440"></canvas>
+    <div class="legend">
+      <span><span class="swatch fast"></span> Snel</span>
+      <span><span class="swatch mid"></span> Afremmend</span>
+      <span><span class="swatch slow"></span> Stilstaand</span>
+    </div>
+    <canvas id="spacetime" width="440" height="136"></canvas>
+    <div class="strip-label">Tijd-ruimtediagram &middot; positie &rarr; &middot; tijd loopt naar beneden</div>
+  </div>
+
+  <div class="panel glass">
+    <div class="metric-row">
+      <div class="metric speed" id="speedMetric">
+        <span class="label">Gem. snelheid</span>
+        <span class="value" id="speedValue">0%</span>
+      </div>
+      <div class="metric stopped" id="stoppedMetric">
+        <span class="label">Staat stil</span>
+        <span class="value" id="stoppedValue">0</span>
+      </div>
+    </div>
+
+    <div class="control-block">
+      <label for="carsSlider">
+        Aantal auto's (drukte)
+        <span class="num" id="carsLabel">34</span>
+      </label>
+      <input type="range" id="carsSlider" min="10" max="60" value="34">
+      <div class="hint">Boven een kritieke drukte breekt vloeiend verkeer vanzelf in stop-en-rij-golven.</div>
+    </div>
+
+    <div class="control-block" style="margin-top:14px;">
+      <label for="reactionSlider">
+        Reactietijd
+        <span class="num" id="reactionLabel">1,0&times;</span>
+      </label>
+      <input type="range" id="reactionSlider" min="20" max="180" value="100">
+      <div class="hint">Trager reageren versterkt elke kleine verstoring.</div>
+    </div>
+
+    <div class="control-block" style="margin-top:14px;">
+      <label for="gapSlider">
+        Agressiviteit (korte volgafstand)
+        <span class="num" id="gapLabel">normaal</span>
+      </label>
+      <input type="range" id="gapSlider" min="20" max="180" value="100">
+      <div class="hint">Dicht op je voorganger plakken maakt de stroom instabieler.</div>
+    </div>
+
+    <button id="brakeBtn" class="brake" style="margin-top:18px;">Tik op de rem</button>
+
+    <div class="btn-row">
+      <button id="playBtn">&#9654; Start</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div class="message" id="message">Druk op &laquo;Start&raquo; en laat het verkeer lopen.</div>
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<script>
+  const ring = document.getElementById('ring');
+  const rctx = ring.getContext('2d');
+  const st = document.getElementById('spacetime');
+  const sctx = st.getContext('2d');
+
+  const carsSlider = document.getElementById('carsSlider');
+  const carsLabel = document.getElementById('carsLabel');
+  const reactionSlider = document.getElementById('reactionSlider');
+  const reactionLabel = document.getElementById('reactionLabel');
+  const gapSlider = document.getElementById('gapSlider');
+  const gapLabel = document.getElementById('gapLabel');
+
+  const speedValue = document.getElementById('speedValue');
+  const speedMetric = document.getElementById('speedMetric');
+  const stoppedValue = document.getElementById('stoppedValue');
+  const message = document.getElementById('message');
+  const insight = document.getElementById('insight');
+
+  const brakeBtn = document.getElementById('brakeBtn');
+  const playBtn = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // ----- Geometry of the ring road -----
+  const ringLength = 1000;          // total road length (model units), wraps at this value
+  const cx = ring.width / 2;
+  const cy = ring.height / 2;
+  const radius = Math.min(cx, cy) - 28;
+
+  // ----- IDM-like car-following model -----
+  // Cars have a position (0..ringLength) and a speed. The Intelligent Driver
+  // Model gives a real instability: below a critical density flow stays smooth,
+  // above it tiny disturbances grow into stop-and-go waves.
+  const V0 = 28;                    // desired free-flow speed
+  const A_MAX = 1.4;                // max acceleration
+  const B_COMFORT = 2.0;            // comfortable deceleration
+  const CAR_LEN = 10;               // physical length of a car (min bumper gap)
+  const DELTA = 4;                  // IDM acceleration exponent
+
+  let cars = [];                    // {pos, v, prevAccel}
+  let playing = false;
+  let rafId = null;
+  let brakeCar = -1;                // index of a car currently tapping the brake
+  let brakeTimer = 0;
+  let autoBrokeAnnounced = false;
+  let settleAnnounced = false;
+  let frames = 0;
+
+  // space-time diagram buffer (drawn as a scrolling strip)
+  let stRow = 0;
+
+  function numCars() { return parseInt(carsSlider.value); }
+  // reaction multiplier: higher slider = slower reaction = stronger lag
+  function reactionFactor() { return parseInt(reactionSlider.value) / 100; }
+  // desired time headway in seconds; lower (aggressive) = shorter gap
+  function timeHeadway() {
+    // slider 20..180 -> headway ~0.5 .. 2.2 s (lower = more aggressive)
+    return 0.5 + (parseInt(gapSlider.value) / 100) * 1.0;
+  }
+
+  function init() {
+    const n = numCars();
+    cars = [];
+    const spacing = ringLength / n;
+    for (let i = 0; i < n; i++) {
+      cars.push({
+        pos: i * spacing,
+        v: V0 * 0.8,
+        accel: 0
+      });
+    }
+    brakeCar = -1;
+    brakeTimer = 0;
+    autoBrokeAnnounced = false;
+    settleAnnounced = false;
+    frames = 0;
+    // clear space-time strip
+    sctx.fillStyle = '#0b1120';
+    sctx.fillRect(0, 0, st.width, st.height);
+    stRow = 0;
+  }
+
+  // gap (bumper-to-bumper distance) to the car ahead, and the speed difference
+  function gapAhead(i) {
+    const n = cars.length;
+    const ahead = cars[(i + 1) % n];
+    let s = ahead.pos - cars[i].pos;
+    if (s <= 0) s += ringLength;
+    s -= CAR_LEN;                   // subtract car length to get free gap
+    return s;
+  }
+
+  // IDM acceleration for car i
+  function idmAccel(i) {
+    const me = cars[i];
+    const n = cars.length;
+    const ahead = cars[(i + 1) % n];
+    let s = gapAhead(i);
+    if (s < 0.1) s = 0.1;           // guard against divide-by-zero / overlap
+    const dv = me.v - ahead.v;      // approach rate (positive = closing in)
+    const T = timeHeadway();
+    const sStar = CAR_LEN + Math.max(0,
+      me.v * T + (me.v * dv) / (2 * Math.sqrt(A_MAX * B_COMFORT)));
+    const free = 1 - Math.pow(me.v / V0, DELTA);
+    const interaction = Math.pow(sStar / s, 2);
+    return A_MAX * (free - interaction);
+  }
+
+  function update(dt) {
+    const n = cars.length;
+    const rf = reactionFactor();
+    // smoothing of acceleration models reaction lag: the larger rf, the more a
+    // car lags behind the "ideal" acceleration -> overcorrection & instability.
+    const lag = Math.min(0.95, 0.25 + 0.6 * (rf - 0.2));
+
+    const targetAccels = new Array(n);
+    for (let i = 0; i < n; i++) {
+      let a = idmAccel(i);
+      if (i === brakeCar && brakeTimer > 0) {
+        a = -B_COMFORT * 2.2;       // a hard brake tap, harder than comfortable
+      }
+      targetAccels[i] = a;
+    }
+
+    for (let i = 0; i < n; i++) {
+      const me = cars[i];
+      // reaction lag: blend previous accel toward the new target
+      me.accel = me.accel * lag + targetAccels[i] * (1 - lag);
+      me.v += me.accel * dt;
+      if (me.v < 0) me.v = 0;
+      if (me.v > V0 * 1.05) me.v = V0 * 1.05;
+      me.pos += me.v * dt;
+      if (me.pos >= ringLength) me.pos -= ringLength;
+    }
+
+    if (brakeTimer > 0) {
+      brakeTimer -= dt;
+      if (brakeTimer <= 0) brakeCar = -1;
+    }
+    frames++;
+  }
+
+  function speedColor(v) {
+    const t = Math.max(0, Math.min(1, v / V0));   // 0 stopped .. 1 fast
+    let r, g, b;
+    if (t < 0.5) {
+      // red -> yellow
+      const u = t / 0.5;
+      r = 239 + (234 - 239) * u;
+      g = 68 + (179 - 68) * u;
+      b = 68 + (8 - 68) * u;
+    } else {
+      // yellow -> green
+      const u = (t - 0.5) / 0.5;
+      r = 234 + (34 - 234) * u;
+      g = 179 + (197 - 179) * u;
+      b = 8 + (94 - 8) * u;
+    }
+    return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+  }
+
+  function drawRing() {
+    rctx.clearRect(0, 0, ring.width, ring.height);
+
+    // road as a thick grey annulus
+    rctx.lineWidth = 22;
+    rctx.strokeStyle = '#1e293b';
+    rctx.beginPath();
+    rctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    rctx.stroke();
+
+    // dashed centre line
+    rctx.lineWidth = 1.5;
+    rctx.strokeStyle = 'rgba(148,163,184,0.25)';
+    rctx.setLineDash([6, 10]);
+    rctx.beginPath();
+    rctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    rctx.stroke();
+    rctx.setLineDash([]);
+
+    // direction arrow hint (cars travel counter-clockwise -> increasing pos)
+    rctx.fillStyle = 'rgba(148,163,184,0.45)';
+    rctx.font = '13px system-ui';
+    rctx.textAlign = 'center';
+    rctx.fillText('rijrichting ↻', cx, cy - 6);
+    rctx.fillStyle = 'rgba(100,116,139,0.7)';
+    rctx.font = '11px system-ui';
+    rctx.fillText('file schuift ↺', cx, cy + 12);
+
+    for (let i = 0; i < cars.length; i++) {
+      const me = cars[i];
+      const ang = (me.pos / ringLength) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + radius * Math.cos(ang);
+      const y = cy + radius * Math.sin(ang);
+      rctx.fillStyle = speedColor(me.v);
+      rctx.beginPath();
+      rctx.arc(x, y, 5.5, 0, Math.PI * 2);
+      rctx.fill();
+      if (me.v < V0 * 0.18) {
+        rctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        rctx.lineWidth = 1.2;
+        rctx.stroke();
+      }
+    }
+  }
+
+  function drawSpaceTimeRow() {
+    // scroll the existing image up by 1px, draw new row at the bottom
+    const img = sctx.getImageData(0, 1, st.width, st.height - 1);
+    sctx.putImageData(img, 0, 0);
+    const y = st.height - 1;
+    sctx.fillStyle = '#0b1120';
+    sctx.fillRect(0, y, st.width, 1);
+    for (let i = 0; i < cars.length; i++) {
+      const x = Math.floor((cars[i].pos / ringLength) * st.width);
+      sctx.fillStyle = speedColor(cars[i].v);
+      sctx.fillRect(x, y, 2, 1);
+    }
+  }
+
+  function computeMetrics() {
+    let sum = 0, stopped = 0;
+    for (const c of cars) {
+      sum += c.v;
+      if (c.v < V0 * 0.18) stopped++;
+    }
+    const avg = cars.length ? sum / cars.length : 0;
+    return { avgFrac: avg / V0, stopped };
+  }
+
+  function updateReadouts() {
+    const m = computeMetrics();
+    speedValue.textContent = Math.round(m.avgFrac * 100) + '%';
+    stoppedValue.textContent = m.stopped;
+
+    if (m.avgFrac > 0.75 && m.stopped === 0) {
+      speedMetric.classList.add('flowing');
+    } else {
+      speedMetric.classList.remove('flowing');
+    }
+    updateNarrative(m);
+  }
+
+  function updateNarrative(m) {
+    const dense = numCars() >= 38;
+
+    if (!playing && frames === 0) {
+      message.textContent = 'Druk op «Start» en laat het verkeer lopen.';
+      insight.classList.remove('visible');
+      return;
+    }
+
+    if (m.stopped >= 2) {
+      message.innerHTML = 'Er staat een file &mdash; en hij <strong>schuift naar achteren</strong> terwijl de auto’s vooruit rijden.';
+      if (brakeCar < 0 && dense && !autoBrokeAnnounced) {
+        insight.innerHTML =
+          'Niemand remde, er is geen ongeluk &mdash; en tóch staat het vast. Boven de kritieke drukte ' +
+          '<strong>versterkt het verkeer zijn eigen ruis</strong> tot een file. De spookfile is een emergente schokgolf.';
+        insight.classList.add('visible');
+        autoBrokeAnnounced = true;
+      } else if (brakeCar >= 0 || !dense) {
+        insight.innerHTML =
+          'Eén remstoot is genoeg: reactietijd en overcorrectie maken de verstoring bij elke auto erachter ' +
+          '<strong>iets groter</strong>, tot iemand volledig stilstaat. De rode band kruipt <strong>tegen de rijrichting in</strong>.';
+        insight.classList.add('visible');
+      }
+    } else if (m.avgFrac > 0.8) {
+      if (dense) {
+        message.innerHTML = 'Het stroomt nog, maar bij deze drukte hangt instabiliteit in de lucht… <strong>tik op de rem</strong>.';
+      } else {
+        message.innerHTML = 'Vloeiend verkeer: bij lage drukte dempen kleine verstoringen vanzelf uit.';
+      }
+      insight.classList.remove('visible');
+    } else {
+      message.innerHTML = 'Het verkeer golft: stukken versnellen, stukken remmen af.';
+    }
+  }
+
+  function loop() {
+    // a few physics substeps per frame for stability
+    const dt = 0.18;
+    for (let k = 0; k < 3; k++) update(dt);
+    drawRing();
+    if (frames % 1 === 0) drawSpaceTimeRow();
+    updateReadouts();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function startPlay() {
+    playing = true;
+    playBtn.innerHTML = '&#9208; Pauze';
+    playBtn.classList.add('playing');
+    rafId = requestAnimationFrame(loop);
+  }
+  function stopPlay() {
+    playing = false;
+    playBtn.innerHTML = '&#9654; Start';
+    playBtn.classList.remove('playing');
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  function reset() {
+    stopPlay();
+    init();
+    drawRing();
+    updateReadouts();
+    message.textContent = 'Druk op «Start» en laat het verkeer lopen.';
+    insight.classList.remove('visible');
+  }
+
+  function tapBrake() {
+    if (cars.length === 0) return;
+    // pick a car roughly at the top of the ring so the wave is easy to see
+    brakeCar = Math.floor(Math.random() * cars.length);
+    brakeTimer = 1.6;
+    if (!playing) startPlay();
+  }
+
+  playBtn.onclick = () => { playing ? stopPlay() : startPlay(); };
+  resetBtn.onclick = reset;
+  brakeBtn.onclick = tapBrake;
+
+  carsSlider.oninput = function () {
+    carsLabel.textContent = this.value;
+    reset();
+  };
+  reactionSlider.oninput = function () {
+    reactionLabel.textContent = (parseInt(this.value) / 100).toFixed(1).replace('.', ',') + '×';
+  };
+  gapSlider.oninput = function () {
+    const v = parseInt(this.value);
+    gapLabel.textContent = v < 70 ? 'agressief' : (v > 130 ? 'rustig' : 'normaal');
+  };
+
+  // Init
+  init();
+  drawRing();
+  updateReadouts();
+</script>
+
+<section class="explainer">
+  <h2>Waarom ontstaat een file uit het niets?</h2>
+  <p>
+    Op deze ringbaan zijn er geen opritten, afslagen of ongelukken &mdash; de auto's rijden eindeloos rondjes. Elke
+    bestuurder doet maar één ding: hij kijkt naar de <strong>afstand en het snelheidsverschil</strong> met zijn voorganger
+    en past zijn gas en rem daarop aan. Dat is precies wat een echte automobilist doet, en precies wat het
+    <em>Intelligent Driver Model</em> nabootst.
+  </p>
+  <p>
+    Het venijn zit in de vertraging. Niemand reageert ogenblikkelijk, en wie remt, remt vaak nét iets te hard. Tikt één
+    auto op de rem, dan moet de volgende óók remmen &mdash; en door zijn reactietijd doet hij dat een fractie later en
+    harder. Bij de auto daarachter weer iets harder. Zo <em>versterkt</em> elke remstoot zich, totdat iemand verderop
+    volledig tot stilstand komt, terwijl de weg vóór de eerste remmer allang weer leeg is.
+  </p>
+  <p>
+    Het verraderlijke: de file zelf beweegt <strong>naar achteren</strong>. Voorin rijden auto's weg uit de stilstand,
+    achterin rijden er steeds nieuwe in &mdash; dus de rode band kruipt tegen de rijrichting in, ongeveer 15 km/u. De
+    auto's gaan vooruit, de file gaat achteruit. En boven een <em>kritieke drukte</em> heb je niet eens een remstoot nodig:
+    de kleinste ruis groeit dan vanzelf uit tot een golf. Zet de schuif op veel auto's en wacht gewoon af.
+  </p>
+  <p>
+    Japanse onderzoekers lieten dit in 2008 echt gebeuren: auto's reden met constante snelheid in een kring, en zonder
+    enige aanleiding ontstond spontaan een file. De oplossing klinkt saai maar werkt: gelijkmatig rijden, niet onnodig
+    afremmen, ruim afstand houden en netjes ritsen &mdash; precies wat adaptive cruise control automatisch doet, waardoor
+    een handvol zulke auto's een hele stroom kan stabiliseren.
+  </p>
+</section>
+</body>
+</html>
