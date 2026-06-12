@@ -658,9 +658,10 @@
   }
 
   function loop() {
-    // a few physics substeps per frame for stability
-    const dt = 0.18;
-    for (let k = 0; k < 3; k++) update(dt);
+    // Small physics substeps for stability; the total time advanced per frame is
+    // kept low (0.12 s) so the cars move at a watchable pace rather than a blur.
+    const dt = 0.06;
+    for (let k = 0; k < 2; k++) update(dt);
     drawRing();
     if (frames % 1 === 0) drawSpaceTimeRow();
     updateReadouts();
