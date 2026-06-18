@@ -481,6 +481,78 @@
     .explainer strong { color: #c4b5fd; font-weight: 700; }
     .explainer em { color: var(--utrecht-color); font-style: normal; font-weight: 600; }
 
+    /* Test jezelf (active recall) */
+    .selftest {
+      max-width: 640px;
+      margin: 40px auto 0;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(45, 212, 191, 0.06);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .selftest h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 0 0 6px;
+      color: #5eead4;
+    }
+    .selftest .lead {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.55;
+      margin: 0 auto 20px;
+      max-width: 520px;
+    }
+    .q {
+      margin: 12px 0;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.5);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .q .q-text { color: #f1f5f9; font-weight: 600; line-height: 1.5; }
+    .q .q-text .num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+      background: rgba(45,212,191,0.16); border: 1px solid rgba(45,212,191,0.45);
+      color: #5eead4; font-size: 0.8rem; font-weight: 800; margin-right: 8px;
+    }
+    .q .checkable {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      color: #5eead4;
+      background: rgba(45,212,191,0.1);
+      border: 1px solid rgba(45,212,191,0.25);
+      border-radius: 999px;
+      padding: 2px 10px;
+    }
+    .q details {
+      margin-top: 12px;
+      border-top: 1px dashed rgba(148,163,184,0.2);
+      padding-top: 10px;
+    }
+    .q summary {
+      cursor: pointer;
+      color: #5eead4;
+      font-weight: 700;
+      font-size: 0.88rem;
+      list-style: none;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .q summary::-webkit-details-marker { display: none; }
+    .q summary::before { content: '▸'; transition: transform 0.2s; display: inline-block; }
+    .q details[open] summary::before { transform: rotate(90deg); }
+    .q details[open] summary { margin-bottom: 8px; }
+    .q .answer { color: #cbd5e1; font-size: 0.92rem; line-height: 1.6; }
+    .q .answer strong { color: #5eead4; }
+    .q .answer em { color: var(--utrecht-color); font-style: normal; font-weight: 600; }
+
     .back-link {
       display: inline-block;
       margin-top: 36px;
@@ -782,6 +854,66 @@
     omgekeerde — dan is de kans op een lange partij het grootst. <strong>Hoe spannender de wedstrijd, hoe langer
     hij gemiddeld duurt.</strong>
   </p>
+</section>
+
+<!-- Test jezelf -->
+<section class="selftest">
+  <h2>Test jezelf</h2>
+  <p class="lead">
+    Sluit nog niet af. Probeer deze eerst zélf te beantwoorden — zónder terug te scrollen. Pas dán
+    "Toon antwoord". Sommige kun je daarna direct controleren met de schuif of de nCr-knop hierboven.
+  </p>
+
+  <div class="q">
+    <div class="q-text"><span class="num">1</span>Racing wint nu <strong>70%</strong> van de sets in plaats van 65%. Duurt de wedstrijd gemiddeld langer of korter? Waarom?</div>
+    <span class="checkable">✓ check het zelf: schuif p naar 0,70</span>
+    <details>
+      <summary>Toon antwoord</summary>
+      <div class="answer">
+        <strong>Korter.</strong> Een grotere overmacht maakt de snelle 3–0 waarschijnlijker, dus de verdeling
+        verschuift naar wéínig sets. P(A=3) stijgt en P(A=5) daalt. Hoe groter het verschil tussen de teams,
+        hoe korter de wedstrijd gemiddeld duurt.
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <div class="q-text"><span class="num">2</span>Waarom liggen de kansen op 3, 4 en 5 sets zo dicht bij elkaar, terwijl Racing duidelijk favoriet is?</div>
+    <details>
+      <summary>Toon antwoord</summary>
+      <div class="answer">
+        Een 3–0 vraagt dat <em>één</em> team drie keer op rij wint — er is maar één volgorde per team. Voor 4 en
+        5 sets zijn er juist <strong>meer volgordes</strong> (de factoren 3 en 6), die elk een stuk van de kans
+        opvangen. Daardoor blijven de drie uitkomsten in evenwicht. Favoriet zijn bepaalt vooral <em>wie</em>
+        wint, niet <em>hoe lang</em> het duurt.
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <div class="q-text"><span class="num">3</span>Stel: een wedstrijd gaat over <strong>best-of-7</strong> (eerst bij 4 sets gewonnen). Op hoeveel volgordes kan de winnaar precies met <strong>4–2</strong> winnen?</div>
+    <span class="checkable">✓ check het zelf: nCr-knop op x = 5, y = 3</span>
+    <details>
+      <summary>Toon antwoord</summary>
+      <div class="answer">
+        <strong>10 volgordes.</strong> De winnaar pakt zijn 4e set in de 6e (beslissende) set. In de eerste
+        <strong>5</strong> sets wint hij er dan precies <strong>3</strong> → <strong>5 boven 3 = 10</strong>.
+        Dezelfde redenering als bij stap 3 en 4, alleen met grotere getallen.
+      </div>
+    </details>
+  </div>
+
+  <div class="q">
+    <div class="q-text"><span class="num">4</span>Hoe groot is P(A=5) als beide teams even sterk zijn (p = 0,50)? En is dat méér of minder dan bij p = 0,65?</div>
+    <span class="checkable">✓ check het zelf: preset "Gelijk · 0,50"</span>
+    <details>
+      <summary>Toon antwoord</summary>
+      <div class="answer">
+        <strong>0,375</strong> — en dat is <em>méér</em> dan de 0,31 bij p = 0,65. Bij gelijk opgaande teams is
+        een lange partij juist het waarschijnlijkst: 5 sets wordt dan de meest voorkomende uitkomst.
+      </div>
+    </details>
+  </div>
 </section>
 
 <a class="back-link" href="index.html">← Terug naar alle voorbeelden</a>
