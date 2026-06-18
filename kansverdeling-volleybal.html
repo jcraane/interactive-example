@@ -271,6 +271,24 @@
     table.dist td.label { color: var(--muted); text-align: left; font-weight: 600; }
     table.dist td .big { font-weight: 800; color: #f1f5f9; }
 
+    /* Complement / shortcut box */
+    .alt-method {
+      margin-top: 18px;
+      padding: 14px 16px 4px;
+      border-radius: 10px;
+      background: rgba(45, 212, 191, 0.07);
+      border: 1px solid rgba(45, 212, 191, 0.28);
+    }
+    .alt-method .alt-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: #5eead4;
+      margin-bottom: 2px;
+    }
+    .alt-method .formula { border-color: rgba(45,212,191,0.2); margin-top: 10px; }
+    .alt-method .formula .res { color: #5eead4; }
+
     .check-row {
       margin-top: 12px;
       padding: 12px 16px;
@@ -586,6 +604,20 @@
         = <span id="valR32">0,2019</span> + <span id="valU32">0,1087</span>
         = <span class="res" id="valP5">0,3105</span>
       </div>
+
+      <div class="alt-method">
+        <div class="alt-title">⚡ Sneller: de complementregel</div>
+        <p class="muted" style="margin-top:6px">
+          A kan <strong>alléén</strong> 3, 4 of 5 zijn — samen is dat zeker (kans 1). Je hoeft P(A=5) dus niet
+          eens via de combinaties uit te rekenen: trek de twee andere kansen gewoon van 1 af.
+        </p>
+        <div class="formula">
+          P(A=5) = 1 − P(A=3) − P(A=4)<br>
+          = 1 − <span id="compP3">0,3175</span> − <span id="compP4">0,3720</span>
+          = <span class="res" id="compP5">0,3105</span>
+        </div>
+        <p class="muted">Zelfde uitkomst als hierboven — en precies waarom de controle in stap 6 altijd op 1 uitkomt.</p>
+      </div>
     </div>
 
     <!-- Step 5 -->
@@ -811,6 +843,7 @@
     valR3: document.getElementById('valR3'), valU3: document.getElementById('valU3'), valP3: document.getElementById('valP3'),
     valR31: document.getElementById('valR31'), valU31: document.getElementById('valU31'), valP4: document.getElementById('valP4'),
     valR32: document.getElementById('valR32'), valU32: document.getElementById('valU32'), valP5: document.getElementById('valP5'),
+    compP3: document.getElementById('compP3'), compP4: document.getElementById('compP4'), compP5: document.getElementById('compP5'),
     tblP3: document.getElementById('tblP3'), tblP4: document.getElementById('tblP4'), tblP5: document.getElementById('tblP5'),
     sumP3: document.getElementById('sumP3'), sumP4: document.getElementById('sumP4'), sumP5: document.getElementById('sumP5'),
     valSum: document.getElementById('valSum'),
@@ -840,6 +873,11 @@
     els.valR32.textContent = fmt4(s.r32);
     els.valU32.textContent = fmt4(s.u32);
     els.valP5.textContent = fmt4(s.p5);
+
+    // complement rule: P(A=5) = 1 - P(A=3) - P(A=4)
+    els.compP3.textContent = fmt4(s.p3);
+    els.compP4.textContent = fmt4(s.p4);
+    els.compP5.textContent = fmt4(1 - s.p3 - s.p4);
 
     els.tblP3.textContent = fmt4(s.p3);
     els.tblP4.textContent = fmt4(s.p4);
