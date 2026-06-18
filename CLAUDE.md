@@ -17,13 +17,23 @@ in a browser (`file://`) and it just works.
   embedded so the file works offline and stays portable.
 - No backend, no persistence, no network calls for data.
 
+## Two kinds of example
+
+Most files are **continuous animations** ("Animaties"): slide/drag to discover one idea live.
+The project also has step-by-step **Kennisbank** explainers that walk through a worked
+calculation one reveal at a time (still a single self-contained file, same visual style).
+A file picks its bucket on the landing page via the optional `category` field (see below);
+no `category` means it lands in "Animaties".
+
 ## Files
 
 All examples are in **Dutch** (`lang="nl"`).
 
 - `index.html` — the landing page linking every example, with a one-line Dutch teaser each.
   Cards are generated from an `examples` array in the inline script; add a new example by
-  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`).
+  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`).
+  Cards are grouped into sections by `category` (first-seen order); `categoryMeta` holds each
+  section's label icon + tag. Omit `category` to fall under the default "Animaties" section.
 - `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
   slider, auto-play with teaching breakpoints, live growth curve (SVG), canvas particle animation.
 - `three-door-problem.html` — the Monty Hall problem ("Het driedeurenprobleem").
@@ -61,6 +71,13 @@ All examples are in **Dutch** (`lang="nl"`).
   spontaneously break into a backward-traveling stop-and-go shock wave past a critical density.
 - `pid-controller.html` — the PID controller: a cart-on-a-beam plant the user tunes with Kp/Ki/Kd
   sliders (plus presets) to see overshoot, steady-state error, and critically-damped settling.
+- `kansverdeling-volleybal.html` — **Kennisbank** (`category: 'Kennisbank'`): a step-by-step
+  derivation of the probability distribution of a volleyball best-of-5 (how many sets A the match
+  lasts). A "Volgende stap" navigator reveals the derivation one block at a time; a live p-slider
+  (Racing's per-set win chance) recomputes every number, a bar chart, and the running table so the
+  three probabilities always sum to 1. Includes a set-sequence visualizer (drawing the orderings
+  each combination counts) and an "x boven y" / nCr mini-widget with the cancel-down trick, the
+  factorial formula, and a styled TI-84 Plus keystroke callout.
 
 Examples are independent — there is no shared library or cross-file dependency.
 

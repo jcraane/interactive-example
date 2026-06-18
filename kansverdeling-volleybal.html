@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kansverdeling van een best-of-5</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --accent-color: #a855f7;     /* paars — thema */
+      --racing-color: #a855f7;     /* Racing Rotterdam */
+      --utrecht-color: #fb923c;    /* Utrecht United */
+      --good-color: #22c55e;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(148, 163, 184, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 30%, rgba(168,85,247,0.10) 0%, transparent 52%),
+        radial-gradient(ellipse at 82% 12%, rgba(251,146,60,0.07) 0%, transparent 50%);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 18px 60px;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-size: 2rem;
+      text-align: center;
+      background: linear-gradient(135deg, #a855f7, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 4px 0 10px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .kennisbank-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #c4b5fd;
+      background: rgba(168,85,247,0.12);
+      border: 1px solid rgba(168,85,247,0.35);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 580px;
+      margin: 0 auto 26px;
+      padding: 18px 22px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(30, 41, 59, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-top: 2px solid rgba(168, 85, 247, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: #c4b5fd; font-weight: 700; }
+    .intro .cue { color: var(--muted); }
+
+    .glass {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .layout {
+      display: flex;
+      gap: 26px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1020px;
+    }
+    .col-steps { flex: 1 1 540px; max-width: 600px; }
+    .col-side { flex: 0 0 320px; width: 320px; display: flex; flex-direction: column; gap: 18px; position: sticky; top: 16px; }
+
+    /* Navigator header */
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .step-indicator {
+      font-size: 0.82rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #c4b5fd;
+      font-weight: 700;
+      text-align: center;
+      flex: 1;
+    }
+    .step-indicator .total { color: var(--muted); }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.25s, opacity 0.2s;
+    }
+    button:active:not(:disabled) { transform: translateY(0); }
+    button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .btn-nav {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      color: #fff;
+      padding: 11px 18px;
+      box-shadow: 0 4px 16px rgba(124,58,237,0.4);
+    }
+    .btn-nav:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(124,58,237,0.55); }
+    .btn-prev {
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.25);
+      color: #cbd5e1;
+      padding: 11px 16px;
+      box-shadow: none;
+    }
+    .btn-prev:hover:not(:disabled) { background: rgba(148,163,184,0.22); }
+    .btn-reset-steps {
+      background: rgba(148,163,184,0.1);
+      border: 1px solid rgba(148,163,184,0.2);
+      color: #94a3b8;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+    }
+    .btn-reset-steps:hover { background: rgba(148,163,184,0.2); }
+
+    /* Step blocks */
+    .step-block { display: none; }
+    .step-block.visible {
+      display: block;
+      animation: fadeUp 0.45s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .step-block + .step-block.visible { margin-top: 20px; }
+
+    .step-block h3 {
+      font-size: 1.08rem;
+      margin: 0 0 8px;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: rgba(168,85,247,0.18);
+      border: 1px solid rgba(168,85,247,0.5);
+      color: #c4b5fd;
+      font-size: 0.82rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+    }
+    .step-block p { color: #cbd5e1; line-height: 1.6; font-size: 0.95rem; margin: 8px 0; }
+    .step-block .muted { color: var(--muted); font-size: 0.86rem; }
+    .racing { color: var(--racing-color); font-weight: 700; }
+    .utrecht { color: var(--utrecht-color); font-weight: 700; }
+
+    /* Formula block */
+    .formula {
+      text-align: center;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.98rem;
+      color: #e2e8f0;
+      background: rgba(15,23,42,0.65);
+      padding: 14px 16px;
+      border-radius: 10px;
+      border: 1px solid rgba(148,163,184,0.12);
+      margin: 12px 0;
+      line-height: 1.9;
+    }
+    .formula .res { color: #c4b5fd; font-weight: 800; }
+    .formula .small { color: var(--muted); font-size: 0.82rem; }
+
+    sup { font-size: 0.72em; }
+
+    /* CSS fraction */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      text-align: center;
+      vertical-align: middle;
+      margin: 0 4px;
+    }
+    .frac .num { padding: 0 6px 3px; }
+    .frac .den { padding: 3px 6px 0; border-top: 1.5px solid currentColor; }
+
+    /* Sequence visualizer */
+    .seq-wrap { margin: 12px 0 4px; }
+    .seq-title { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+    .seq-list { display: flex; flex-direction: column; gap: 6px; }
+    .seq-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .chip {
+      width: 26px; height: 26px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .chip.R { background: var(--racing-color); }
+    .chip.U { background: var(--utrecht-color); }
+    .chip.decider { box-shadow: 0 0 0 2px rgba(255,255,255,0.85); }
+    .seq-sep { color: var(--muted); font-size: 0.8rem; margin: 0 4px; }
+    .seq-count {
+      font-size: 0.82rem;
+      color: #c4b5fd;
+      margin-top: 8px;
+      font-weight: 600;
+    }
+
+    /* Distribution table */
+    table.dist {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-variant-numeric: tabular-nums;
+    }
+    table.dist th, table.dist td {
+      border: 1px solid rgba(148,163,184,0.18);
+      padding: 10px 8px;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+    table.dist th { color: #c4b5fd; background: rgba(168,85,247,0.08); font-weight: 700; }
+    table.dist td.label { color: var(--muted); text-align: left; font-weight: 600; }
+    table.dist td .big { font-weight: 800; color: #f1f5f9; }
+
+    .check-row {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: 10px;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.3);
+      color: #86efac;
+      font-size: 0.92rem;
+      text-align: center;
+    }
+    .check-row strong { color: #bbf7d0; }
+
+    /* Right column: slider + bars + insight */
+    .side-card h4 {
+      margin: 0 0 4px;
+      font-size: 0.92rem;
+      color: #e2e8f0;
+    }
+    .control-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+    .control-head .v { font-weight: 800; color: var(--accent-color); font-variant-numeric: tabular-nums; }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #1e293b;
+      border-radius: 4px;
+      outline: none;
+      margin: 12px 0 4px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(168,85,247,0.5);
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(168,85,247,0.75); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px; border: none;
+      background: var(--accent-color); border-radius: 50%;
+      box-shadow: 0 0 10px rgba(168,85,247,0.5); cursor: pointer;
+    }
+    .hint { font-size: 0.72rem; color: var(--muted); }
+
+    .preset-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .preset {
+      flex: 1;
+      background: rgba(168,85,247,0.1);
+      border: 1px solid rgba(168,85,247,0.3);
+      color: #c4b5fd;
+      padding: 7px 6px;
+      font-size: 0.78rem;
+      border-radius: 7px;
+    }
+    .preset:hover { background: rgba(168,85,247,0.22); }
+
+    /* Bar chart */
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      gap: 14px;
+      height: 170px;
+      padding: 0 6px;
+      margin-top: 6px;
+    }
+    .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; height: 100%; justify-content: flex-end; }
+    .bar-val { font-size: 0.82rem; font-weight: 800; color: #f1f5f9; margin-bottom: 5px; font-variant-numeric: tabular-nums; }
+    .bar {
+      width: 100%;
+      border-radius: 7px 7px 0 0;
+      background: linear-gradient(180deg, #a855f7, #7c3aed);
+      transition: height 0.4s ease, opacity 0.3s;
+      min-height: 2px;
+    }
+    .bar-col.lead .bar { background: linear-gradient(180deg, #c084fc, #9333ea); box-shadow: 0 0 16px rgba(168,85,247,0.5); }
+    .bar-label { font-size: 0.78rem; color: var(--muted); margin-top: 7px; }
+    .bar-label b { color: #cbd5e1; }
+
+    /* Insight */
+    .insight {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(168, 85, 247, 0.07);
+      border-left: 3px solid var(--accent-color);
+      line-height: 1.55;
+    }
+
+    /* nCr widget */
+    .ncr-section { width: 100%; max-width: 1020px; margin-top: 40px; }
+    .ncr-section > h2, .explainer h2 {
+      font-size: 1.5rem;
+      text-align: center;
+      margin: 0 0 8px;
+      background: linear-gradient(135deg, #a855f7, #fb923c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .ncr-lead { text-align: center; color: #cbd5e1; max-width: 600px; margin: 0 auto 22px; line-height: 1.6; font-size: 0.96rem; }
+    .ncr-grid { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; align-items: stretch; }
+    .ncr-card { flex: 1 1 320px; max-width: 460px; }
+    .ncr-display {
+      text-align: center;
+      font-size: 1.5rem;
+      margin: 6px 0 18px;
+      color: #f1f5f9;
+    }
+    .ncr-display .nck { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; line-height: 1.1; margin: 0 6px; }
+    .ncr-display .nck .x { font-weight: 800; }
+    .ncr-display .nck .y { font-weight: 800; color: var(--accent-color); }
+    .method {
+      margin: 14px 0;
+      padding: 14px 16px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(148,163,184,0.12);
+    }
+    .method .m-title { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+    .method .calc { text-align: center; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 1rem; color: #e2e8f0; line-height: 2; }
+    .method .calc .res { color: #c4b5fd; font-weight: 800; font-size: 1.15rem; }
+    .ncr-tiein { font-size: 0.84rem; color: #c4b5fd; text-align: center; margin-top: 6px; }
+
+    /* TI-84 callout */
+    .ti84 {
+      background: linear-gradient(160deg, #1c1c22, #2a2a33);
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 16px;
+      padding: 20px 22px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.35);
+    }
+    .ti84 .ti-head {
+      display: flex; align-items: center; gap: 10px;
+      font-weight: 800; color: #e2e8f0; margin-bottom: 4px;
+    }
+    .ti84 .ti-screen {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      background: #9bbf3b;
+      color: #1a2410;
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+      font-size: 0.92rem;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.2);
+    }
+    .ti84 .ti-path { margin-bottom: 14px; }
+    .ti84 .ti-path:last-child { margin-bottom: 0; }
+    .ti84 .ti-path .pname { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #c4b5fd; margin-bottom: 6px; }
+    .ti84 ol { margin: 0; padding-left: 20px; color: #cbd5e1; font-size: 0.88rem; line-height: 1.7; }
+    .ti84 .key {
+      display: inline-block;
+      background: #3a3a44;
+      border: 1px solid #50505c;
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 1px 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      font-family: ui-monospace, Menlo, monospace;
+      margin: 0 1px;
+    }
+
+    /* Explainer */
+    .explainer {
+      max-width: 640px;
+      margin: 46px auto 0;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(168, 85, 247, 0.45);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .explainer p { color: #cbd5e1; font-size: 1rem; line-height: 1.65; margin: 0 0 16px; }
+    .explainer p:last-child { margin-bottom: 0; }
+    .explainer strong { color: #c4b5fd; font-weight: 700; }
+    .explainer em { color: var(--utrecht-color); font-style: normal; font-weight: 600; }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 36px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.88rem;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #c4b5fd; }
+
+    @media (max-width: 900px) {
+      .col-side { position: static; width: 100%; flex-basis: 100%; max-width: 600px; }
+    }
+  </style>
+</head>
+<body>
+
+<span class="kennisbank-badge">Kennisbank · Kansrekening</span>
+<h1>Kansverdeling van een best-of-5</h1>
+<p class="subtitle">Hoe lang duurt een volleybalwedstrijd?</p>
+
+<p class="intro">
+  Racing Rotterdam en Utrecht United spelen om de beste van vijf sets. Racing is de <strong>favoriet</strong>:
+  zij winnen elke set met kans 0,65. Tóch is de kans dat de wedstrijd 3, 4 of 5 sets duurt bijna
+  <strong>gelijk verdeeld</strong> (≈ 0,32 / 0,37 / 0,31). Waarom sleept een duidelijke favoriet de wedstrijd
+  juist uit? <span class="cue">Reken stap voor stap mee — en schuif aan de winkans om te zien wat er verandert.</span>
+</p>
+
+<div class="layout">
+  <!-- LEFT: derivation walkthrough -->
+  <div class="col-steps glass">
+    <div class="nav-bar">
+      <button class="btn-prev" id="prevBtn" disabled>← Vorige</button>
+      <span class="step-indicator">Stap <span id="stepNow">1</span> <span class="total">/ 7</span></span>
+      <button class="btn-nav" id="nextBtn">Volgende stap →</button>
+    </div>
+
+    <!-- Step 0 -->
+    <div class="step-block" id="step-0">
+      <h3><span class="step-num">0</span> De opzet</h3>
+      <p>
+        Een wedstrijd gaat over <strong>maximaal vijf sets</strong>. Het team dat als eerste
+        <strong>3 sets</strong> wint, is winnaar — daarna stopt het spel meteen.
+      </p>
+      <p>
+        Omdat een team direct stopt bij 3 gewonnen sets, kan de partij alleen
+        <span class="racing">3</span>, <span class="racing">4</span> of <span class="racing">5</span> sets duren.
+        We noemen <strong>A</strong> = het aantal sets dat de wedstrijd duurt, en stellen de kansverdeling van A op.
+      </p>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="step-block" id="step-1">
+      <h3><span class="step-num">1</span> De basiskansen per set</h3>
+      <p>
+        Elke set wordt los gewonnen. <span class="racing">Racing (R)</span> wint een set met kans
+        <strong>p</strong>; <span class="utrecht">Utrecht (U)</span> dus met kans <strong>q = 1 − p</strong>.
+      </p>
+      <div class="formula">
+        p = <span class="res" id="valP">0,65</span> &nbsp;&nbsp;·&nbsp;&nbsp; q = 1 − p = <span class="res" id="valQ">0,35</span>
+      </div>
+      <p class="muted">Schuif rechts aan de winkans om p te veranderen — alle getallen hieronder rekenen automatisch mee.</p>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-block" id="step-2">
+      <h3><span class="step-num">2</span> De wedstrijd duurt 3 sets&nbsp;&nbsp;(A = 3)</h3>
+      <p>
+        Na 3 sets is het al klaar als één team met <strong>3–0</strong> wint. Er is maar één volgorde per team
+        mogelijk: <span class="racing">R-R-R</span> of <span class="utrecht">U-U-U</span>.
+      </p>
+      <div class="seq-wrap">
+        <div class="seq-list" id="seq3"></div>
+      </div>
+      <div class="formula">
+        P(A=3) = p<sup>3</sup> + q<sup>3</sup>
+        = <span id="valR3">0,2746</span> + <span id="valU3">0,0429</span>
+        = <span class="res" id="valP3">0,3175</span>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-block" id="step-3">
+      <h3><span class="step-num">3</span> De wedstrijd duurt 4 sets&nbsp;&nbsp;(A = 4)</h3>
+      <p>
+        Duurt de partij precies 4 sets, dan valt de beslissing in set 4: de winnaar pakt daar zijn
+        <strong>3e set</strong>. In de eerste 3 sets moet de winnaar er dus <strong>2</strong> winnen en de
+        verliezer <strong>1</strong>.
+      </p>
+      <p>
+        Op hoeveel volgordes kan dat? Dat is <strong>3 boven 2 = 3</strong> — kies welke 2 van de eerste 3 sets
+        de winnaar pakt. (Set 4 ligt vast: die wint hij.)
+      </p>
+      <div class="seq-wrap">
+        <div class="seq-title">Racing wint met 3–1 — de <b style="color:#c4b5fd">3</b> volgordes (de omrande set is de beslissende):</div>
+        <div class="seq-list" id="seq4"></div>
+      </div>
+      <div class="formula">
+        P(A=4) = 3·p<sup>3</sup>·q + 3·q<sup>3</sup>·p
+        = <span id="valR31">0,2884</span> + <span id="valU31">0,0836</span>
+        = <span class="res" id="valP4">0,3720</span>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-block" id="step-4">
+      <h3><span class="step-num">4</span> De wedstrijd duurt 5 sets&nbsp;&nbsp;(A = 5)</h3>
+      <p>
+        Bij een vijfsetter valt de beslissing in de allerlaatste set. Na 4 sets staat het dus verplicht
+        <strong>2–2</strong>. In die eerste 4 sets wint de uiteindelijke winnaar er precies <strong>2</strong>.
+      </p>
+      <p>
+        Aantal volgordes: <strong>4 boven 2 = 6</strong>. Daarna pakt de winnaar set 5.
+      </p>
+      <div class="seq-wrap">
+        <div class="seq-title">Racing wint met 3–2 — de <b style="color:#c4b5fd">6</b> volgordes (de omrande set is de beslissende):</div>
+        <div class="seq-list" id="seq5"></div>
+      </div>
+      <div class="formula">
+        P(A=5) = 6·p<sup>3</sup>·q<sup>2</sup> + 6·q<sup>3</sup>·p<sup>2</sup>
+        = <span id="valR32">0,2019</span> + <span id="valU32">0,1087</span>
+        = <span class="res" id="valP5">0,3105</span>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step-block" id="step-5">
+      <h3><span class="step-num">5</span> De kansverdelingstabel</h3>
+      <p>We zetten de drie kansen naast elkaar. Dit is de gevraagde kansverdeling van A:</p>
+      <table class="dist">
+        <tr><th>a</th><th>3</th><th>4</th><th>5</th></tr>
+        <tr>
+          <td class="label">P(A = a)</td>
+          <td><span class="big" id="tblP3">0,3175</span></td>
+          <td><span class="big" id="tblP4">0,3720</span></td>
+          <td><span class="big" id="tblP5">0,3105</span></td>
+        </tr>
+      </table>
+      <p class="muted">Zie het staafdiagram rechts: de drie uitkomsten liggen verrassend dicht bij elkaar.</p>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="step-block" id="step-6">
+      <h3><span class="step-num">6</span> De controle</h3>
+      <p>
+        Een kansverdeling moet samen precies <strong>1</strong> opleveren — er gebeurt immers altijd iets.
+        Tel de drie kansen op:
+      </p>
+      <div class="formula">
+        <span id="sumP3">0,3175</span> + <span id="sumP4">0,3720</span> + <span id="sumP5">0,3105</span>
+        = <span class="res" id="valSum">1,0000</span>
+      </div>
+      <div class="check-row">✓ De som is exact <strong>1</strong>. Klopt — de kansverdeling is compleet.</div>
+      <p style="margin-top:16px">
+        En de clou: ook al wint Racing 65% van de sets, de wedstrijd duurt bijna even vaak 3, 4 als 5 sets.
+        <strong>Schuif de winkans naar 0,90</strong> en kijk hoe de verdeling instort naar korte 3–0-partijen.
+      </p>
+    </div>
+
+    <div class="nav-bar" style="margin-top:24px; margin-bottom:14px;">
+      <button class="btn-prev" id="prevBtnBottom" disabled>← Vorige</button>
+      <span class="step-indicator">Stap <span id="stepNowBottom">1</span> <span class="total">/ 7</span></span>
+      <button class="btn-nav" id="nextBtnBottom">Volgende stap →</button>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn-reset-steps" id="resetStepsBtn">↺ Begin opnieuw bij stap 1</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: live controls -->
+  <div class="col-side">
+    <div class="glass side-card">
+      <h4>Kans dat Racing een set wint</h4>
+      <div class="control-head">
+        <span class="racing">p (Racing)</span>
+        <span class="v" id="pSliderLabel">0,65</span>
+      </div>
+      <input type="range" id="pSlider" min="5" max="95" value="65">
+      <div class="hint">q (Utrecht) = 1 − p = <span id="qSliderLabel">0,35</span></div>
+      <div class="preset-row">
+        <button class="preset" data-p="50">Gelijk · 0,50</button>
+        <button class="preset" data-p="65">Opgave · 0,65</button>
+        <button class="preset" data-p="90">Topfavoriet · 0,90</button>
+      </div>
+    </div>
+
+    <div class="glass side-card">
+      <h4>Kansverdeling van A</h4>
+      <div class="bars">
+        <div class="bar-col" id="col3">
+          <span class="bar-val" id="barVal3">31,8%</span>
+          <div class="bar" id="bar3"></div>
+          <span class="bar-label">A = <b>3</b></span>
+        </div>
+        <div class="bar-col" id="col4">
+          <span class="bar-val" id="barVal4">37,2%</span>
+          <div class="bar" id="bar4"></div>
+          <span class="bar-label">A = <b>4</b></span>
+        </div>
+        <div class="bar-col" id="col5">
+          <span class="bar-val" id="barVal5">31,1%</span>
+          <div class="bar" id="bar5"></div>
+          <span class="bar-label">A = <b>5</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<!-- nCr widget -->
+<section class="ncr-section">
+  <h2>Wat is "x boven y"?</h2>
+  <p class="ncr-lead">
+    De factoren 3 en 6 hierboven kwamen uit <strong>combinaties</strong>: op hoeveel manieren kun je y dingen
+    kiezen uit x, als de volgorde niet uitmaakt? Speel met x en y en zie beide rekenmethodes naast elkaar.
+  </p>
+  <div class="ncr-grid">
+    <div class="glass ncr-card">
+      <div class="control-head"><span>x (totaal)</span><span class="v" id="xLabel">4</span></div>
+      <input type="range" id="xSlider" min="1" max="10" value="4">
+      <div class="control-head" style="margin-top:10px"><span>y (kiezen)</span><span class="v" id="yLabel">2</span></div>
+      <input type="range" id="ySlider" min="0" max="4" value="2">
+
+      <div class="ncr-display">
+        <span class="nck"><span class="x" id="dispX">4</span><span class="y" id="dispY">2</span></span>
+        = <span class="res" id="dispRes" style="color:#c4b5fd;font-weight:800">6</span>
+      </div>
+
+      <div class="method">
+        <div class="m-title">Methode 1 — de rekentruc (weghalen)</div>
+        <div class="calc" id="trickCalc"></div>
+      </div>
+      <div class="method">
+        <div class="m-title">Methode 2 — de formule met faculteiten</div>
+        <div class="calc" id="factCalc"></div>
+      </div>
+      <div class="ncr-tiein" id="ncrTiein"></div>
+    </div>
+
+    <div class="ti84 ncr-card">
+      <div class="ti-head">🖩 Op de TI-84 Plus</div>
+      <div class="hint" style="color:#94a3b8">De rekenmachine noemt "x boven y" → <b style="color:#c4b5fd">nCr</b> (n = x, r = y).</div>
+      <div class="ti-screen" id="tiScreen">4 nCr 2 = 6</div>
+
+      <div class="ti-path">
+        <div class="pname">Snelmenu (nieuwere TI-84 Plus)</div>
+        <ol>
+          <li>Druk <span class="key">ALPHA</span> + <span class="key">WINDOW</span> (F2).</li>
+          <li>Kies optie <span class="key">8: nCr</span>.</li>
+          <li>Typ x in het linkervakje, y in het rechtervakje.</li>
+          <li>Druk <span class="key">ENTER</span>.</li>
+        </ol>
+      </div>
+      <div class="ti-path">
+        <div class="pname">Regulier menu (MATH)</div>
+        <ol>
+          <li>Typ eerst het totaal x (bijv. <span class="key">4</span>).</li>
+          <li>Druk <span class="key">MATH</span> en ga naar tabblad <span class="key">PRB</span>.</li>
+          <li>Kies <span class="key">3: nCr</span> en druk <span class="key">ENTER</span>.</li>
+          <li>Typ y erachter (bijv. <span class="key">2</span>) → <span class="key">ENTER</span>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Explainer -->
+<section class="explainer">
+  <h2>Waarom duurt het bijna even vaak 3, 4 of 5 sets?</h2>
+  <p>
+    Intuïtie zegt: een sterke favoriet maakt het snel af. En dat klopt voor de <em>winnaar</em> — Racing wint
+    veel vaker dan Utrecht. Maar de vraag hier is niet <strong>wie</strong> wint, maar <strong>hoe lang</strong>
+    het duurt. En dat is iets heel anders.
+  </p>
+  <p>
+    Een 3–0 vraagt dat Racing drie keer op rij scoort (0,65<sup>3</sup> ≈ 0,27) óf Utrecht drie keer op rij
+    (0,35<sup>3</sup> ≈ 0,04). Samen maar ~0,32. Voor 4 en 5 sets zijn er juist <strong>meer volgordes</strong>
+    (de factoren 3 en 6) die elk een deel van de kans opvangen. Daardoor blijven de drie uitkomsten dicht bij elkaar.
+  </p>
+  <p>
+    Pas bij een <em>extreme</em> favoriet (schuif p naar 0,90) stort de verdeling in elkaar: dan domineert de
+    snelle 3–0 en wordt een vijfsetter zeldzaam. Bij een gelijk opgaande wedstrijd (p = 0,50) gebeurt het
+    omgekeerde — dan is de kans op een lange partij het grootst. <strong>Hoe spannender de wedstrijd, hoe langer
+    hij gemiddeld duurt.</strong>
+  </p>
+</section>
+
+<a class="back-link" href="index.html">← Terug naar alle voorbeelden</a>
+
+<script>
+  // ---------- helpers ----------
+  function fmt4(x) { return x.toFixed(4).replace('.', ','); }       // 0,3175
+  function fmtPct(x) { return (x * 100).toFixed(1).replace('.', ',') + '%'; }
+  function choose(n, k) {
+    if (k < 0 || k > n) return 0;
+    k = Math.min(k, n - k);
+    let r = 1;
+    for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+    return Math.round(r);
+  }
+  function factorial(n) { let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; }
+
+  // all 'R'/'U' strings of length n with exactly kR R's
+  function sequences(n, kR) {
+    const res = [];
+    (function rec(prefix, r, u) {
+      if (prefix.length === n) { res.push(prefix); return; }
+      if (r > 0) rec(prefix + 'R', r - 1, u);
+      if (u > 0) rec(prefix + 'U', r, u - 1);
+    })('', kR, n - kR);
+    return res;
+  }
+
+  function chip(letter, decider) {
+    return '<span class="chip ' + letter + (decider ? ' decider' : '') + '">' + letter + '</span>';
+  }
+  // Render a list of sequences (first part) each followed by a decider chip.
+  function renderSeqRows(container, seqs, deciderLetter) {
+    container.innerHTML = seqs.map(function (s) {
+      const firstPart = s.split('').map(function (c) { return chip(c, false); }).join('');
+      return '<div class="seq-row">' + firstPart +
+        '<span class="seq-sep">→</span>' + chip(deciderLetter, true) + '</div>';
+    }).join('');
+  }
+
+  // ---------- core probability model ----------
+  function compute(p) {
+    const q = 1 - p;
+    const r3 = Math.pow(p, 3), u3 = Math.pow(q, 3);
+    const r31 = 3 * Math.pow(p, 3) * q, u31 = 3 * Math.pow(q, 3) * p;
+    const r32 = 6 * Math.pow(p, 3) * q * q, u32 = 6 * Math.pow(q, 3) * p * p;
+    const p3 = r3 + u3, p4 = r31 + u31, p5 = r32 + u32;
+    return { p, q, r3, u3, r31, u31, r32, u32, p3, p4, p5, sum: p3 + p4 + p5 };
+  }
+
+  // ---------- elements ----------
+  const pSlider = document.getElementById('pSlider');
+  const pSliderLabel = document.getElementById('pSliderLabel');
+  const qSliderLabel = document.getElementById('qSliderLabel');
+  const insight = document.getElementById('insight');
+
+  const els = {
+    valP: document.getElementById('valP'), valQ: document.getElementById('valQ'),
+    valR3: document.getElementById('valR3'), valU3: document.getElementById('valU3'), valP3: document.getElementById('valP3'),
+    valR31: document.getElementById('valR31'), valU31: document.getElementById('valU31'), valP4: document.getElementById('valP4'),
+    valR32: document.getElementById('valR32'), valU32: document.getElementById('valU32'), valP5: document.getElementById('valP5'),
+    tblP3: document.getElementById('tblP3'), tblP4: document.getElementById('tblP4'), tblP5: document.getElementById('tblP5'),
+    sumP3: document.getElementById('sumP3'), sumP4: document.getElementById('sumP4'), sumP5: document.getElementById('sumP5'),
+    valSum: document.getElementById('valSum'),
+    barVal3: document.getElementById('barVal3'), barVal4: document.getElementById('barVal4'), barVal5: document.getElementById('barVal5'),
+    bar3: document.getElementById('bar3'), bar4: document.getElementById('bar4'), bar5: document.getElementById('bar5'),
+    col3: document.getElementById('col3'), col4: document.getElementById('col4'), col5: document.getElementById('col5')
+  };
+
+  function render() {
+    const p = parseInt(pSlider.value) / 100;
+    const s = compute(p);
+
+    pSliderLabel.textContent = fmt4(p).slice(0, 4);   // 0,65
+    qSliderLabel.textContent = fmt4(s.q).slice(0, 4);
+
+    els.valP.textContent = fmt4(p).slice(0, 4);
+    els.valQ.textContent = fmt4(s.q).slice(0, 4);
+
+    els.valR3.textContent = fmt4(s.r3);
+    els.valU3.textContent = fmt4(s.u3);
+    els.valP3.textContent = fmt4(s.p3);
+
+    els.valR31.textContent = fmt4(s.r31);
+    els.valU31.textContent = fmt4(s.u31);
+    els.valP4.textContent = fmt4(s.p4);
+
+    els.valR32.textContent = fmt4(s.r32);
+    els.valU32.textContent = fmt4(s.u32);
+    els.valP5.textContent = fmt4(s.p5);
+
+    els.tblP3.textContent = fmt4(s.p3);
+    els.tblP4.textContent = fmt4(s.p4);
+    els.tblP5.textContent = fmt4(s.p5);
+
+    els.sumP3.textContent = fmt4(s.p3);
+    els.sumP4.textContent = fmt4(s.p4);
+    els.sumP5.textContent = fmt4(s.p5);
+    els.valSum.textContent = fmt4(s.sum);
+
+    // bars — scale to the largest of the three so the tallest fills the column
+    const mx = Math.max(s.p3, s.p4, s.p5);
+    els.bar3.style.height = (s.p3 / mx * 100) + '%';
+    els.bar4.style.height = (s.p4 / mx * 100) + '%';
+    els.bar5.style.height = (s.p5 / mx * 100) + '%';
+    els.barVal3.textContent = fmtPct(s.p3);
+    els.barVal4.textContent = fmtPct(s.p4);
+    els.barVal5.textContent = fmtPct(s.p5);
+    els.col3.classList.toggle('lead', s.p3 >= mx - 1e-9);
+    els.col4.classList.toggle('lead', s.p4 >= mx - 1e-9);
+    els.col5.classList.toggle('lead', s.p5 >= mx - 1e-9);
+
+    // insight copy
+    let text;
+    const longest = (s.p5 >= s.p3 && s.p5 >= s.p4);
+    if (p >= 0.85 || p <= 0.15) {
+      text = 'Bij zo\'n grote overmacht maakt de favoriet het meestal snel af: de <b style="color:#c4b5fd">3–0</b> ' +
+             'domineert (' + fmtPct(s.p3) + ') en een vijfsetter wordt zeldzaam (' + fmtPct(s.p5) + ').';
+    } else if (Math.abs(p - 0.5) < 0.06) {
+      text = 'Bij een gelijk opgaande wedstrijd is de kans op een <b style="color:#c4b5fd">lange partij het grootst</b>: ' +
+             '5 sets (' + fmtPct(s.p5) + ') is nu de meest waarschijnlijke uitkomst.';
+    } else {
+      text = 'Racing wint ' + fmtPct(p) + ' van de sets, maar de wedstrijdduur blijft verrassend verdeeld: ' +
+             '3 sets ' + fmtPct(s.p3) + ' · 4 sets ' + fmtPct(s.p4) + ' · 5 sets ' + fmtPct(s.p5) + '.';
+    }
+    insight.innerHTML = text;
+  }
+
+  // ---------- sequence visualizers (static, drawn once) ----------
+  // For A=3 we just show the two clean sweeps R-R-R and U-U-U (no decider styling needed).
+  document.getElementById('seq3').innerHTML =
+    '<div class="seq-row">' + chip('R') + chip('R') + chip('R') +
+      '<span class="seq-sep">Racing 3–0</span></div>' +
+    '<div class="seq-row">' + chip('U') + chip('U') + chip('U') +
+      '<span class="seq-sep">Utrecht 3–0</span></div>';
+
+  // A=4: Racing 3–1. First 3 sets contain exactly 2 R and 1 U → 3 boven 2 = 3 orderings, then deciding R.
+  renderSeqRows(document.getElementById('seq4'), sequences(3, 2), 'R');
+  document.getElementById('seq4').insertAdjacentHTML('beforeend',
+    '<div class="seq-count">3 boven 2 = ' + choose(3, 2) + ' volgordes</div>');
+
+  // A=5: Racing 3–2. First 4 sets contain exactly 2 R and 2 U → 4 boven 2 = 6 orderings, then deciding R.
+  renderSeqRows(document.getElementById('seq5'), sequences(4, 2), 'R');
+  document.getElementById('seq5').insertAdjacentHTML('beforeend',
+    '<div class="seq-count">4 boven 2 = ' + choose(4, 2) + ' volgordes</div>');
+
+  // ---------- step navigator ----------
+  const TOTAL = 7;
+  let currentStep = 0;
+  const blocks = [];
+  for (let i = 0; i < TOTAL; i++) blocks.push(document.getElementById('step-' + i));
+  const nextBtns = [document.getElementById('nextBtn'), document.getElementById('nextBtnBottom')];
+  const prevBtns = [document.getElementById('prevBtn'), document.getElementById('prevBtnBottom')];
+  const stepNows = [document.getElementById('stepNow'), document.getElementById('stepNowBottom')];
+  const resetStepsBtn = document.getElementById('resetStepsBtn');
+
+  function renderSteps(scrollTo) {
+    blocks.forEach(function (b, i) { b.classList.toggle('visible', i <= currentStep); });
+    stepNows.forEach(function (el) { el.textContent = currentStep + 1; });
+    prevBtns.forEach(function (b) { b.disabled = currentStep === 0; });
+    nextBtns.forEach(function (b) {
+      b.disabled = currentStep === TOTAL - 1;
+      b.textContent = currentStep === TOTAL - 1 ? 'Klaar ✓' : 'Volgende stap →';
+    });
+    if (scrollTo) blocks[currentStep].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  function goNext() { if (currentStep < TOTAL - 1) { currentStep++; renderSteps(true); } }
+  function goPrev() { if (currentStep > 0) { currentStep--; renderSteps(false); } }
+  nextBtns.forEach(function (b) { b.onclick = goNext; });
+  prevBtns.forEach(function (b) { b.onclick = goPrev; });
+  resetStepsBtn.onclick = function () { currentStep = 0; renderSteps(false); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+  // ---------- p slider + presets ----------
+  pSlider.oninput = render;
+  document.querySelectorAll('.preset').forEach(function (btn) {
+    btn.onclick = function () { pSlider.value = btn.dataset.p; render(); };
+  });
+
+  // ---------- nCr widget ----------
+  const xSlider = document.getElementById('xSlider');
+  const ySlider = document.getElementById('ySlider');
+  const xLabel = document.getElementById('xLabel');
+  const yLabel = document.getElementById('yLabel');
+
+  function descending(from, count) {
+    const parts = [];
+    for (let i = 0; i < count; i++) parts.push(from - i);
+    return parts.length ? parts.join(' · ') : '1';
+  }
+
+  function renderNcr() {
+    let x = parseInt(xSlider.value);
+    ySlider.max = x;                       // y can never exceed x
+    let y = Math.min(parseInt(ySlider.value), x);
+    ySlider.value = y;
+
+    xLabel.textContent = x;
+    yLabel.textContent = y;
+    document.getElementById('dispX').textContent = x;
+    document.getElementById('dispY').textContent = y;
+    const result = choose(x, y);
+    document.getElementById('dispRes').textContent = result;
+
+    // Methode 1 — cancel-down trick: y factors on top (x down) over y factors on bottom (y down)
+    const num = descending(x, y);
+    const den = descending(y, y);
+    const numProd = y === 0 ? 1 : num.split(' · ').reduce(function (a, b) { return a * parseInt(b); }, 1);
+    const denProd = y === 0 ? 1 : factorial(y);
+    document.getElementById('trickCalc').innerHTML =
+      '<span class="frac"><span class="num">' + num + '</span><span class="den">' + den + '</span></span>' +
+      ' = <span class="frac"><span class="num">' + numProd + '</span><span class="den">' + denProd + '</span></span>' +
+      ' = <span class="res">' + result + '</span>';
+
+    // Methode 2 — factorial formula
+    document.getElementById('factCalc').innerHTML =
+      '<span class="frac"><span class="num">' + x + '!</span><span class="den">' + y + '! · (' + x + '−' + y + ')!</span></span>' +
+      ' = <span class="frac"><span class="num">' + factorial(x) + '</span><span class="den">' +
+        factorial(y) + ' · ' + factorial(x - y) + '</span></span>' +
+      ' = <span class="res">' + result + '</span>';
+
+    document.getElementById('tiScreen').textContent = x + ' nCr ' + y + ' = ' + result;
+
+    // tie-in with the volleyball steps
+    let tie = '';
+    if (x === 3 && y === 2) tie = 'Dít is de factor 3 uit stap 3 (A = 4).';
+    else if (x === 4 && y === 2) tie = 'Dít is de factor 6 uit stap 4 (A = 5).';
+    document.getElementById('ncrTiein').textContent = tie;
+  }
+  xSlider.oninput = renderNcr;
+  ySlider.oninput = renderNcr;
+
+  // ---------- init ----------
+  renderSteps(false);
+  render();
+  renderNcr();
+</script>
+</body>
+</html>

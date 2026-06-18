@@ -69,6 +69,34 @@
       margin: 0 auto;
     }
 
+    /* Category section heading */
+    .section-head {
+      max-width: 980px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .section-head:not(:first-of-type) { margin-top: 52px; }
+    .section-head h2 {
+      font-size: 1.15rem;
+      margin: 0;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .section-head .tag {
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .section-head .rule {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(148,163,184,0.28), transparent);
+    }
+
     .card {
       position: relative;
       display: flex;
@@ -166,7 +194,7 @@
   Schuif, sleep en speel — en zie waarom de wereld soms anders werkt dan je verwacht.
 </p>
 
-<main class="grid" id="grid"></main>
+<main id="sections"></main>
 
 <footer>
   <span class="more">Meer voorbeelden volgen…</span>
@@ -294,31 +322,77 @@
       tagline: 'Hetzelfde trucje stuurt je thermostaat, cruise control én een zwevende drone — en de kunst is niet hard sturen, maar op tijd remmen.',
       accent: '#fcd34d',
     },
+    {
+      file: 'kansverdeling-volleybal.html',
+      icon: '🏐',
+      title: 'Kansverdeling van een best-of-5',
+      tagline: 'Racing is favoriet (0,65 per set) — tóch duurt de wedstrijd bijna even vaak 3, 4 of 5 sets. Reken stap voor stap mee.',
+      accent: '#a855f7',
+      category: 'Kennisbank',
+    },
   ];
 
-  const grid = document.getElementById('grid');
+  // Categorie-metadata: label + korte tag per sectie op de landingspagina.
+  const categoryMeta = {
+    'Animaties':  { tag: 'Speel & ontdek', icon: '🎛️' },
+    'Kennisbank': { tag: 'Stap voor stap', icon: '📚' },
+  };
+
+  // Groepeer per categorie (eerste-gezien-volgorde); voorbeelden zonder categorie vallen onder 'Animaties'.
+  const sections = document.getElementById('sections');
+  const order = [];
+  const groups = {};
   examples.forEach(ex => {
-    const card = document.createElement('a');
-    card.className = 'card';
-    card.href = ex.file;
-    card.style.setProperty('--accent', ex.accent);
+    const cat = ex.category || 'Animaties';
+    if (!groups[cat]) { groups[cat] = []; order.push(cat); }
+    groups[cat].push(ex);
+  });
 
-    const icon = document.createElement('div');
-    icon.className = 'icon';
-    icon.textContent = ex.icon;
+  order.forEach(cat => {
+    const meta = categoryMeta[cat] || {};
 
+    const head = document.createElement('div');
+    head.className = 'section-head';
     const h2 = document.createElement('h2');
-    h2.textContent = ex.title;
+    h2.textContent = (meta.icon ? meta.icon + ' ' : '') + cat;
+    head.appendChild(h2);
+    if (meta.tag) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = meta.tag;
+      head.appendChild(tag);
+    }
+    const rule = document.createElement('span');
+    rule.className = 'rule';
+    head.appendChild(rule);
+    sections.appendChild(head);
 
-    const p = document.createElement('p');
-    p.textContent = ex.tagline;
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    groups[cat].forEach(ex => {
+      const card = document.createElement('a');
+      card.className = 'card';
+      card.href = ex.file;
+      card.style.setProperty('--accent', ex.accent);
 
-    const go = document.createElement('span');
-    go.className = 'go';
-    go.textContent = 'Bekijk voorbeeld →';
+      const icon = document.createElement('div');
+      icon.className = 'icon';
+      icon.textContent = ex.icon;
 
-    card.append(icon, h2, p, go);
-    grid.appendChild(card);
+      const cardTitle = document.createElement('h2');
+      cardTitle.textContent = ex.title;
+
+      const p = document.createElement('p');
+      p.textContent = ex.tagline;
+
+      const go = document.createElement('span');
+      go.className = 'go';
+      go.textContent = 'Bekijk voorbeeld →';
+
+      card.append(icon, cardTitle, p, go);
+      grid.appendChild(card);
+    });
+    sections.appendChild(grid);
   });
 </script>
 </body>
