@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Een nieuw soort wetenschap · Eenvoudige regels, oneindige complexiteit</title>
+  <style>
+    :root {
+      --bg-color: #0b1120;
+      --accent-color: #06b6d4;
+      --accent-2: #818cf8;
+      --cell-on: #67e8f9;
+      --cell-off: #0e1726;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #f43f5e;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 20% 0%, rgba(6,182,212,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 15%, rgba(129,140,248,0.09) 0%, transparent 50%);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 64px;
+      margin: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      text-align: center;
+      background: linear-gradient(135deg, #06b6d4, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 8px;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 22px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 580px;
+      margin: 0 auto 28px;
+      padding: 18px 24px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(20, 30, 48, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(6, 182, 212, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: var(--muted); }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 980px;
+    }
+
+    .stage { display: flex; flex-direction: column; align-items: center; flex: 1 1 480px; min-width: 320px; }
+    #world {
+      border-radius: 10px;
+      background: var(--cell-off);
+      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.12), 0 0 30px rgba(0,0,0,0.45);
+      image-rendering: pixelated;
+      width: 100%;
+      max-width: 560px;
+      aspect-ratio: 161 / 120;
+      display: block;
+    }
+    .stage-caption {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .panel { width: 340px; flex: 0 0 auto; display: flex; flex-direction: column; }
+    @media (max-width: 760px) { .panel { width: 100%; } }
+
+    /* Rule (the "DNA") */
+    .rule-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .rule-head .label {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .rule-number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent-color);
+      line-height: 1;
+    }
+    .rule-binary {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.85rem;
+      letter-spacing: 3px;
+      color: var(--accent-2);
+      text-align: right;
+    }
+
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      margin: 14px 0 4px;
+    }
+    .tile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 2px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: rgba(148,163,184,0.05);
+      border: 1px solid rgba(148,163,184,0.12);
+      transition: transform 0.12s, border-color 0.2s, background 0.2s;
+    }
+    .tile:hover { transform: translateY(-2px); border-color: rgba(6,182,212,0.5); background: rgba(6,182,212,0.08); }
+    .tile .neigh { display: flex; gap: 2px; }
+    .tile .cube { width: 9px; height: 9px; border-radius: 2px; }
+    .tile .out {
+      margin-top: 1px;
+      width: 13px; height: 13px;
+      border-radius: 3px;
+      box-shadow: 0 0 0 1px rgba(148,163,184,0.25);
+    }
+    .cube.on, .out.on  { background: var(--cell-on); box-shadow: 0 0 6px rgba(103,232,249,0.6); }
+    .cube.off, .out.off { background: #1e293b; box-shadow: inset 0 0 0 1px rgba(148,163,184,0.18); }
+    .tiles-hint { font-size: 0.72rem; color: var(--muted); margin: 6px 0 0; text-align: center; }
+
+    /* Slider */
+    .control-block { margin-top: 18px; }
+    .control-block > label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      margin-bottom: 2px;
+    }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      background: linear-gradient(90deg, var(--accent-2) 0%, var(--accent-color) 100%);
+      border-radius: 4px;
+      outline: none;
+      margin: 10px 0 2px;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0b1120;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(6,182,212,0.6);
+      cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 20px rgba(6,182,212,0.85); transform: scale(1.08); }
+    input[type=range]::-moz-range-thumb {
+      width: 22px; height: 22px;
+      background: var(--accent-color);
+      border: 3px solid #0b1120;
+      border-radius: 50%;
+      box-shadow: 0 0 10px rgba(6,182,212,0.6);
+      cursor: pointer;
+    }
+
+    .presets { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+    .chip {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: #cbd5e1;
+      background: rgba(148,163,184,0.1);
+      border: 1px solid rgba(148,163,184,0.18);
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.12s;
+    }
+    .chip:hover { transform: translateY(-1px); background: rgba(6,182,212,0.14); border-color: rgba(6,182,212,0.4); }
+    .chip.active { background: var(--accent-color); color: #06212a; border-color: var(--accent-color); }
+
+    .seg-toggle { display: flex; gap: 8px; margin-top: 16px; }
+    .seg-toggle button {
+      flex: 1;
+      font-size: 0.82rem;
+      padding: 9px 6px;
+    }
+
+    .btn-row { display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+    button {
+      background: var(--accent-color); color: #06212a; border: none;
+      padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.88rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.25s, opacity 0.2s;
+      box-shadow: 0 4px 12px rgba(6,182,212,0.28);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(6,182,212,0.42); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.13);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.24); box-shadow: none; }
+    button.secondary.on { background: var(--accent-color); color: #06212a; border-color: var(--accent-color); }
+    button.playing { background: var(--danger-color); color: white; box-shadow: 0 4px 12px rgba(244,63,94,0.3); }
+
+    /* Class card */
+    .classcard {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(6,182,212,0.06);
+      border: 1px solid rgba(6,182,212,0.22);
+      border-left: 3px solid var(--accent-color);
+      transition: border-color 0.4s, background 0.4s;
+    }
+    .classcard .tier {
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .classcard .cname { font-size: 1.05rem; font-weight: 800; color: var(--accent-color); }
+    .classcard .cdesc { font-size: 0.86rem; color: #cbd5e1; margin-top: 5px; line-height: 1.5; }
+    .classcard.c1 { background: rgba(100,116,139,0.08); border-left-color: #94a3b8; border-color: rgba(148,163,184,0.25); }
+    .classcard.c1 .cname { color: #cbd5e1; }
+    .classcard.c2 { background: rgba(34,197,94,0.07); border-left-color: var(--good-color); border-color: rgba(34,197,94,0.25); }
+    .classcard.c2 .cname { color: var(--good-color); }
+    .classcard.c3 { background: rgba(234,179,8,0.07); border-left-color: var(--warning-color); border-color: rgba(234,179,8,0.28); }
+    .classcard.c3 .cname { color: var(--warning-color); }
+    .classcard.c4 { background: rgba(244,63,94,0.08); border-left-color: var(--danger-color); border-color: rgba(244,63,94,0.3); }
+    .classcard.c4 .cname { color: #fb7185; }
+
+    .insight {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      background: rgba(129,140,248,0.08);
+      border-left: 3px solid var(--accent-2);
+      line-height: 1.5;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.4s, transform 0.4s;
+    }
+    .insight.visible { opacity: 1; transform: translateY(0); }
+    .insight strong { color: #c7d2fe; }
+
+    /* Explainer */
+    .explainer {
+      max-width: 640px;
+      margin: 52px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(129, 140, 248, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      text-align: center;
+      background: linear-gradient(135deg, #06b6d4, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+    }
+    .explainer p.kicker {
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(129, 140, 248, 0.08);
+      border-left: 3px solid var(--accent-2);
+      color: #c7d2fe;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em { color: var(--accent-2); font-style: normal; font-weight: 600; }
+
+    .back {
+      margin: 34px auto 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .back:hover { color: var(--accent-color); }
+  </style>
+</head>
+<body>
+
+<h1>Een nieuw soort wetenschap</h1>
+<p class="subtitle">Hoe acht bits een hele wereld maken</p>
+
+<p class="intro">
+  Geef een rij cellen één simpele regel: kijk naar je linkerbuur, jezelf en je rechterbuur, en bepaal of je het volgende
+  moment zwart of wit bent. Acht situaties, acht ja/nee-keuzes &mdash; <strong>één getal tussen 0 en 255</strong> legt de hele regel vast.
+  Begin met één enkele zwarte cel en laat het lopen.
+  <span class="cue">Je zou saaie driehoekjes verwachten. Stel Regel 30 in en kijk wat er in plaats daarvan gebeurt.</span>
+</p>
+
+<div class="layout">
+  <div class="stage">
+    <canvas id="world" width="161" height="120"></canvas>
+    <div class="stage-caption">Tijd loopt naar beneden &mdash; elke rij is de volgende stap, berekend uit de rij erboven.</div>
+  </div>
+
+  <div class="panel glass">
+    <div class="rule-head">
+      <div>
+        <span class="label">Regel</span>
+        <div class="rule-number" id="ruleNumber">30</div>
+      </div>
+      <div class="rule-binary" id="ruleBinary">00011110</div>
+    </div>
+
+    <div class="tiles" id="tiles"></div>
+    <p class="tiles-hint">Elk tegeltje: een buurt van 3 cellen &rarr; wat de middelste cel wordt. Klik om te wisselen.</p>
+
+    <div class="control-block">
+      <label for="ruleSlider">
+        Sleep door alle 256 regels
+        <span class="num" style="font-weight:700;color:var(--accent-color);" id="ruleSliderLabel">30</span>
+      </label>
+      <input type="range" id="ruleSlider" min="0" max="255" value="30">
+      <div class="presets" id="presets"></div>
+    </div>
+
+    <div class="seg-toggle">
+      <button id="seedSingle" class="secondary on">Eén cel</button>
+      <button id="seedRandom" class="secondary">Willekeurige start</button>
+    </div>
+
+    <div class="btn-row">
+      <button id="playBtn">▶ Speel groei af</button>
+      <button id="resetBtn" class="secondary">Opnieuw</button>
+    </div>
+
+    <div class="classcard" id="classCard">
+      <div class="tier">Wolfram-klasse</div>
+      <div class="cname" id="className">—</div>
+      <div class="cdesc" id="classDesc"></div>
+    </div>
+
+    <div class="insight" id="insight"></div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Waarom is dit zo bijzonder?</h2>
+  <p>
+    Dit heet een <strong>cellulaire automaat</strong>. De hele &ldquo;natuurwet&rdquo; van deze wereld past op acht regeltjes:
+    voor elk van de <em>acht</em> mogelijke buurtjes (links&ndash;ik&ndash;rechts, elk zwart of wit) zegt de regel of de cel daarna
+    zwart of wit wordt. Acht ja/nee-antwoorden vormen samen één byte &mdash; een getal van 0 tot 255. Verder is er niets:
+    geen toeval, geen geheugen, geen plan.
+  </p>
+  <p>
+    Tot 2002 dacht iedereen dat een zó simpele regel ook alleen maar simpele patronen kón maken. Stephen Wolfram liet
+    in <em>A New Kind of Science</em> het tegendeel zien. <strong>Regel 30</strong>, gestart vanuit één zwarte cel, spuugt
+    een stroom uit die zó wanordelijk is dat hij geslaagd door toetsen voor willekeur komt &mdash; Mathematica gebruikte de
+    middelste kolom jarenlang als toevalsgenerator. De complexiteit zit niet in de regel en niet in de begintoestand; ze
+    <em>ontstaat</em> tijdens het rekenen.
+  </p>
+  <p>
+    Wolfram zag dat vrijwel elke regel in één van <strong>vier klassen</strong> valt: uitsterven tot leegte (1), bevriezen tot
+    strepen of blokjes (2), eindeloze chaos (3), of &mdash; het zeldzaamst en interessantst &mdash; bewegende structuren die op
+    elkaar botsen aan de rand van chaos (4). <strong>Regel 110</strong> is zo'n klasse&nbsp;4-regel, en bleek krachtig genoeg om
+    <em>elke</em> berekening uit te voeren die een computer kan: een universele machine, gebouwd uit één byte.
+  </p>
+  <p class="kicker">
+    De grote gedachte: complexiteit in de natuur &mdash; schelpen, sneeuwvlokken, turbulentie &mdash; vraagt geen ingewikkelde
+    oorzaak. Een handvol simpele regels, eindeloos herhaald, is genoeg. Niet ingewikkelde wetten, maar simpele
+    <em>programma's</em> zijn misschien de echte taal van de natuur.
+  </p>
+</section>
+
+<a class="back" href="index.html">← Terug naar alle voorbeelden</a>
+
+<script>
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d');
+
+  const ruleNumberEl = document.getElementById('ruleNumber');
+  const ruleBinaryEl = document.getElementById('ruleBinary');
+  const ruleSlider   = document.getElementById('ruleSlider');
+  const ruleSliderLabel = document.getElementById('ruleSliderLabel');
+  const tilesEl  = document.getElementById('tiles');
+  const presetsEl = document.getElementById('presets');
+
+  const seedSingleBtn = document.getElementById('seedSingle');
+  const seedRandomBtn = document.getElementById('seedRandom');
+  const playBtn  = document.getElementById('playBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const classCard = document.getElementById('classCard');
+  const classNameEl = document.getElementById('className');
+  const classDescEl = document.getElementById('classDesc');
+  const insight = document.getElementById('insight');
+
+  const COLS = 161;       // cells per row (odd → exact centre)
+  const ROWS = 120;       // generations shown
+  canvas.width = COLS;
+  canvas.height = ROWS;
+
+  const CELL_ON  = '#67e8f9';
+  const CELL_OFF = '#0e1726';
+
+  let rule = 30;
+  let seedMode = 'single';   // 'single' | 'random'
+  let grid = [];             // grid[row] = Uint8Array(COLS)
+  let randomSeed = null;     // cached random first row so "reset" reproduces it until reshuffled
+
+  // The 8 neighbourhoods, drawn left→right as 111,110,...,000 (convention).
+  const NEIGHBOURHOODS = [7, 6, 5, 4, 3, 2, 1, 0];
+
+  // Curated famous rules + their Wolfram class and a one-line Dutch hook.
+  const PRESETS = [
+    { rule: 30,  label: '30' },
+    { rule: 90,  label: '90' },
+    { rule: 110, label: '110' },
+    { rule: 184, label: '184' },
+    { rule: 150, label: '150' },
+    { rule: 250, label: '250' },
+    { rule: 60,  label: '60' },
+    { rule: 0,   label: '0' },
+  ];
+
+  // Known classifications for notable rules (Wolfram's scheme). Others fall back by heuristic.
+  const RULE_INFO = {
+    0:   { cls: 1, note: 'Alles sterft meteen uit tot een lege, witte wereld.' },
+    255: { cls: 1, note: 'Alles wordt onmiddellijk zwart: één egale vlakte.' },
+    250: { cls: 2, note: 'Een nette, regelmatige driehoek van stippen — voorspelbaar tot in het oneindige.' },
+    90:  { cls: 3, note: 'De Sierpinski-driehoek: een perfecte fractal, oneindig genest in zichzelf.' },
+    60:  { cls: 3, note: 'Pascal-driehoek modulo 2 — dezelfde fractal, eenzijdig gegroeid.' },
+    150: { cls: 3, note: 'Een XOR-fractal: ingewikkeld geweven, maar volledig regelmatig opgebouwd.' },
+    30:  { cls: 3, note: 'Echte chaos uit niets: de middelste kolom doorstaat tests voor willekeur. Wolframs paradepaardje.' },
+    45:  { cls: 3, note: 'Chaotisch en onvoorspelbaar, net als Regel 30.' },
+    22:  { cls: 3, note: 'Geneste chaos — fractaal én wanordelijk tegelijk.' },
+    126: { cls: 3, note: 'Chaos met een fractale rand.' },
+    182: { cls: 3, note: 'Dichte, ruisachtige chaos.' },
+    110: { cls: 4, note: 'De rand van chaos: bewegende structuren botsen op elkaar. Bewezen universeel — een complete computer in één byte.' },
+    54:  { cls: 4, note: 'Bewegende deeltjes tegen een geordende achtergrond — vermoedelijk ook universeel.' },
+    184: { cls: 2, note: 'Het verkeersmodel: zwarte cellen schuiven als auto’s op, files reizen achteruit.' },
+  };
+
+  function ruleOutput(r, neighbourhood) { return (r >> neighbourhood) & 1; }
+
+  function toBinary(r) { return r.toString(2).padStart(8, '0'); }
+
+  // ---- Rule "DNA" tiles ----
+  function buildTiles() {
+    tilesEl.innerHTML = '';
+    NEIGHBOURHOODS.forEach(n => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.title = 'Buurt ' + toBinary(n).slice(-3);
+
+      const neigh = document.createElement('div');
+      neigh.className = 'neigh';
+      // bits of the 3-cell neighbourhood: left (bit2), centre (bit1), right (bit0)
+      [2, 1, 0].forEach(b => {
+        const cube = document.createElement('div');
+        const on = (n >> b) & 1;
+        cube.className = 'cube ' + (on ? 'on' : 'off');
+        neigh.appendChild(cube);
+      });
+
+      const out = document.createElement('div');
+      out.className = 'out';
+      tile.appendChild(neigh);
+      tile.appendChild(out);
+
+      tile.onclick = () => {
+        rule ^= (1 << n);          // flip this output bit
+        syncRuleControls();
+        recompute();
+        drawAll();
+        updateClass();
+        flashInsight();
+      };
+      tile.dataset.n = n;
+      tilesEl.appendChild(tile);
+    });
+    refreshTiles();
+  }
+
+  function refreshTiles() {
+    [...tilesEl.children].forEach(tile => {
+      const n = +tile.dataset.n;
+      tile.querySelector('.out').className = 'out ' + (ruleOutput(rule, n) ? 'on' : 'off');
+    });
+  }
+
+  function buildPresets() {
+    PRESETS.forEach(p => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.textContent = 'Regel ' + p.label;
+      chip.dataset.rule = p.rule;
+      chip.onclick = () => {
+        rule = p.rule;
+        syncRuleControls();
+        recompute();
+        animateGrowth();
+        updateClass();
+        flashInsight();
+      };
+      presetsEl.appendChild(chip);
+    });
+  }
+
+  function refreshPresets() {
+    [...presetsEl.children].forEach(chip => {
+      chip.classList.toggle('active', +chip.dataset.rule === rule);
+    });
+  }
+
+  function syncRuleControls() {
+    rule = ((rule % 256) + 256) % 256;
+    ruleNumberEl.textContent = rule;
+    ruleBinaryEl.textContent = toBinary(rule);
+    ruleSlider.value = rule;
+    ruleSliderLabel.textContent = rule;
+    refreshTiles();
+    refreshPresets();
+  }
+
+  // ---- Simulation ----
+  function firstRow() {
+    const row = new Uint8Array(COLS);
+    if (seedMode === 'single') {
+      row[(COLS - 1) >> 1] = 1;
+    } else {
+      if (!randomSeed) {
+        randomSeed = new Uint8Array(COLS);
+        for (let i = 0; i < COLS; i++) randomSeed[i] = Math.random() < 0.5 ? 1 : 0;
+      }
+      row.set(randomSeed);
+    }
+    return row;
+  }
+
+  function recompute() {
+    grid = [firstRow()];
+    for (let r = 1; r < ROWS; r++) {
+      const prev = grid[r - 1];
+      const next = new Uint8Array(COLS);
+      for (let c = 0; c < COLS; c++) {
+        const left   = prev[(c - 1 + COLS) % COLS];   // wrap-around (toroidal)
+        const self   = prev[c];
+        const right  = prev[(c + 1) % COLS];
+        const neigh  = (left << 2) | (self << 1) | right;
+        next[c] = ruleOutput(rule, neigh);
+      }
+      grid.push(next);
+    }
+  }
+
+  function drawRows(upTo) {
+    // clear
+    ctx.fillStyle = CELL_OFF;
+    ctx.fillRect(0, 0, COLS, ROWS);
+    ctx.fillStyle = CELL_ON;
+    for (let r = 0; r < upTo; r++) {
+      const row = grid[r];
+      for (let c = 0; c < COLS; c++) {
+        if (row[c]) ctx.fillRect(c, r, 1, 1);
+      }
+    }
+  }
+
+  function drawAll() { drawRows(ROWS); }
+
+  // ---- Growth animation ----
+  let anim = null;
+  function stopAnim() {
+    if (anim) { cancelAnimationFrame(anim); anim = null; }
+    playing = false;
+    playBtn.textContent = '▶ Speel groei af';
+    playBtn.classList.remove('playing');
+  }
+  let playing = false;
+  function animateGrowth() {
+    stopAnim();
+    playing = true;
+    playBtn.textContent = '⏸ Pauzeren';
+    playBtn.classList.add('playing');
+    let visible = 1;
+    const stepRows = 2;     // rows revealed per frame
+    const tick = () => {
+      visible = Math.min(ROWS, visible + stepRows);
+      drawRows(visible);
+      if (visible >= ROWS) { stopAnim(); return; }
+      anim = requestAnimationFrame(tick);
+    };
+    anim = requestAnimationFrame(tick);
+  }
+
+  // ---- Wolfram class card ----
+  function classifyHeuristic() {
+    // Estimate a class for arbitrary rules from the computed grid.
+    const last = grid[ROWS - 1];
+    let onLast = 0; for (let c = 0; c < COLS; c++) onLast += last[c];
+    if (onLast === 0 || onLast === COLS) return 1;                 // died / saturated → class 1
+
+    // periodicity: does the last row repeat an earlier row?
+    let periodic = false;
+    for (let back = 1; back <= 8; back++) {
+      if (ROWS - 1 - back < 0) break;
+      const prev = grid[ROWS - 1 - back];
+      let same = true;
+      for (let c = 0; c < COLS; c++) if (prev[c] !== last[c]) { same = false; break; }
+      if (same) { periodic = true; break; }
+    }
+    if (periodic) return 2;
+    return 3;   // default: irregular → class 3 (we mark known class-4 rules explicitly)
+  }
+
+  const CLASS_META = {
+    1: { name: 'Klasse 1 · Uitsterven', cssNote: 'Alles loopt uit op één egale, dode toestand. De informatie van de start verdwijnt volledig.' },
+    2: { name: 'Klasse 2 · Bevriezen', cssNote: 'Het stolt tot stabiele of zich herhalende strepen en blokjes. Voorspelbaar; lokale verstoringen blijven lokaal.' },
+    3: { name: 'Klasse 3 · Chaos', cssNote: 'Aanhoudende, ruisachtige wanorde. Een minieme verandering aan de start verspreidt zich onbeperkt.' },
+    4: { name: 'Klasse 4 · De rand van chaos', cssNote: 'Bewegende structuren die op elkaar botsen — geen orde, geen pure chaos. Hier leeft de echte complexiteit; Regel 110 is zelfs universeel.' },
+  };
+
+  function currentClass() {
+    const info = RULE_INFO[rule];
+    if (info && info.cls) return info.cls;
+    return classifyHeuristic();
+  }
+
+  function updateClass() {
+    const cls = currentClass();
+    const meta = CLASS_META[cls];
+    classCard.className = 'classcard c' + cls;
+    classNameEl.textContent = meta.name;
+    const info = RULE_INFO[rule];
+    classDescEl.textContent = (info && info.note) ? info.note : meta.cssNote;
+  }
+
+  function flashInsight() {
+    const cls = currentClass();
+    let msg = '';
+    if (rule === 30 && seedMode === 'single') {
+      msg = 'Eén zwarte cel, acht regeltjes — en tóch <strong>echte willekeur</strong>. Nergens staat &ldquo;wees willekeurig&rdquo; geschreven; de chaos ontstaat puur uit het herhalen.';
+    } else if (rule === 110) {
+      msg = 'Op het oog rommelig, maar dit is een <strong>volwaardige computer</strong>: Regel 110 kan elke berekening uitvoeren die je laptop kan.';
+    } else if (rule === 90 || rule === 60 || rule === 150) {
+      msg = 'Ingewikkeld om naar te kijken, maar volledig <strong>regelmatig</strong>: een fractal die zich oneindig in zichzelf herhaalt.';
+    } else if (rule === 184) {
+      msg = 'Lees de zwarte cellen als auto’s op een weg: ze schuiven vooruit, maar de <strong>file</strong> kruipt naar achteren.';
+    } else if (cls === 1) {
+      msg = 'Deze regel laat alles <strong>uitdoven</strong> — alle informatie van de start gaat verloren.';
+    } else if (cls === 3 && seedMode === 'single') {
+      msg = 'Uit één enkele cel groeit <strong>blijvende chaos</strong>. Simpele regel, complex gedrag.';
+    } else {
+      insight.classList.remove('visible');
+      return;
+    }
+    insight.innerHTML = msg;
+    insight.classList.add('visible');
+  }
+
+  // ---- Controls wiring ----
+  ruleSlider.oninput = function () {
+    rule = +this.value;
+    syncRuleControls();
+    recompute();
+    drawAll();           // instant while scrubbing
+    updateClass();
+    flashInsight();
+  };
+
+  function setSeed(mode) {
+    seedMode = mode;
+    seedSingleBtn.classList.toggle('on', mode === 'single');
+    seedRandomBtn.classList.toggle('on', mode === 'random');
+    if (mode === 'random') randomSeed = null;   // make a fresh one
+    recompute();
+    animateGrowth();
+    updateClass();
+    flashInsight();
+  }
+  seedSingleBtn.onclick = () => setSeed('single');
+  seedRandomBtn.onclick = () => { if (seedMode === 'random') randomSeed = null; setSeed('random'); };
+
+  playBtn.onclick = () => {
+    if (playing) { stopAnim(); drawAll(); }
+    else animateGrowth();
+  };
+  resetBtn.onclick = () => {
+    if (seedMode === 'random') randomSeed = null;
+    recompute();
+    animateGrowth();
+  };
+
+  // ---- Init ----
+  buildTiles();
+  buildPresets();
+  syncRuleControls();
+  recompute();
+  drawAll();
+  updateClass();
+  flashInsight();
+</script>
+</body>
+</html>
