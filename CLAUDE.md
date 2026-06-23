@@ -21,9 +21,11 @@ in a browser (`file://`) and it just works.
 
 Most files are **continuous animations** ("Animaties"): slide/drag to discover one idea live.
 The project also has step-by-step **Kennisbank** explainers that walk through a worked
-calculation one reveal at a time (still a single self-contained file, same visual style).
+calculation one reveal at a time, and **Techniek** examples that demystify a technical/web
+concept (CORS, HTTP, …) — both still single self-contained files in the same visual style.
 A file picks its bucket on the landing page via the optional `category` field (see below);
-no `category` means it lands in "Animaties".
+no `category` means it lands in "Animaties". The known categories live in `categoryMeta`
+(`Animaties`, `Techniek`, `Kennisbank`); add a new key there to introduce another section.
 
 ## Files
 
@@ -71,6 +73,13 @@ All examples are in **Dutch** (`lang="nl"`).
   spontaneously break into a backward-traveling stop-and-go shock wave past a critical density.
 - `pid-controller.html` — the PID controller: a cart-on-a-beam plant the user tunes with Kp/Ki/Kd
   sliders (plus presets) to see overshoot, steady-state error, and critically-damped settling.
+- `cors-explained.html` — CORS as the browser's gatekeeper ("de poortwachter van je browser"): an
+  animated request-flow simulator. The user composes a cross-origin call (method, JSON vs form body,
+  custom header, cookies/credentials) and the server's response (`Access-Control-Allow-Origin` value,
+  preflight approval), then a packet animates browser→server→back through a CORS gate while a live HTTP
+  console logs the headers. Demonstrates the four teaching cases: simple call allowed, simple call
+  blocked-but-the-server-still-ran (200 in the log, error in the console), preflight rejected (real
+  request never sent), and credentials voiding a `*` wildcard. Scenario presets jump to each case.
 - `kansverdeling-volleybal.html` — **Kennisbank** (`category: 'Kennisbank'`): a step-by-step
   derivation of the probability distribution of a volleyball best-of-5 (how many sets A the match
   lasts). A "Volgende stap" navigator reveals the derivation one block at a time; a live p-slider

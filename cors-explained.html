@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORS: de poortwachter van je browser · Waarom je server antwoordt maar je code niets ziet</title>
+  <style>
+    :root {
+      --bg-color: #0b1120;
+      --accent-color: #0ea5e9;
+      --accent-2: #6366f1;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #f43f5e;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 0%, rgba(14,165,233,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 12%, rgba(99,102,241,0.09) 0%, transparent 50%);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 64px;
+      margin: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      text-align: center;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 8px;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 22px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 600px;
+      margin: 0 auto 28px;
+      padding: 18px 24px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(20, 30, 48, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(14, 165, 233, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro .cue { color: var(--muted); }
+
+    .layout {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+      max-width: 1040px;
+    }
+
+    .stage-col { flex: 1 1 540px; min-width: 320px; display: flex; flex-direction: column; gap: 18px; }
+    .panel { width: 340px; flex: 0 0 auto; display: flex; flex-direction: column; }
+    @media (max-width: 820px) { .panel { width: 100%; } }
+
+    /* ---- Scene: browser → network → server ---- */
+    .scene {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr 1fr;
+      gap: 0;
+      align-items: stretch;
+      padding: 22px 18px 26px;
+    }
+    .node {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 5px;
+      padding: 14px 8px;
+      border-radius: 12px;
+      background: rgba(148,163,184,0.05);
+      border: 1px solid rgba(148,163,184,0.14);
+      z-index: 2;
+    }
+    .node-icon { font-size: 1.9rem; line-height: 1; }
+    .node-title { font-size: 0.84rem; font-weight: 700; color: var(--text); }
+    .node-origin {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.68rem; color: var(--muted); word-break: break-all;
+    }
+    .node.browser { border-color: rgba(14,165,233,0.35); }
+    .node.server  { border-color: rgba(99,102,241,0.35); }
+
+    /* gate badge on the browser */
+    .gate {
+      margin-top: 6px;
+      font-size: 0.66rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.25);
+      transition: all 0.3s;
+    }
+    .gate.allow { color: #052e16; background: var(--good-color); border-color: var(--good-color); box-shadow: 0 0 16px rgba(34,197,94,0.5); }
+    .gate.block { color: #fff; background: var(--danger-color); border-color: var(--danger-color); box-shadow: 0 0 16px rgba(244,63,94,0.55); }
+
+    .action-state {
+      margin-top: 6px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(148,163,184,0.12);
+      border: 1px solid rgba(148,163,184,0.25);
+      transition: all 0.3s;
+    }
+    .action-state.ran  { color: #052e16; background: var(--warning-color); border-color: var(--warning-color); }
+
+    /* the network lane in the middle column */
+    .lane {
+      position: relative;
+      align-self: stretch;
+      margin: 0 -6px;
+    }
+    .lane-rail {
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      height: 2px;
+      transform: translateY(-1px);
+      background: repeating-linear-gradient(90deg, rgba(148,163,184,0.35) 0 8px, transparent 8px 16px);
+    }
+    .lane-label {
+      position: absolute;
+      left: 0; right: 0; top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+      font-size: 0.66rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .packet {
+      position: absolute;
+      top: 50%;
+      left: 4%;
+      transform: translate(-50%, -50%) scale(0.6);
+      min-width: 64px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 0.66rem;
+      font-weight: 800;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      white-space: nowrap;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+      transition: left 0.7s cubic-bezier(.45,.05,.55,.95), opacity 0.25s, transform 0.25s, background 0.2s;
+    }
+    .packet.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .packet.req      { background: var(--accent-color); color: #042331; }
+    .packet.preflight{ background: var(--warning-color); color: #2a2206; }
+    .packet.res-ok   { background: var(--good-color); color: #052e16; }
+    .packet.res-bad  { background: #475569; color: #e2e8f0; }
+
+    /* verdict card */
+    .verdict {
+      border-radius: 12px;
+      padding: 16px 18px;
+      background: rgba(148,163,184,0.06);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-left: 3px solid var(--muted);
+      min-height: 92px;
+      transition: border-color 0.4s, background 0.4s;
+    }
+    .verdict .v-tier { font-size: 0.7rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .verdict .v-head { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+    .verdict .v-body { font-size: 0.88rem; color: #cbd5e1; margin-top: 6px; line-height: 1.55; }
+    .verdict.ok    { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.3); border-left-color: var(--good-color); }
+    .verdict.ok .v-head { color: var(--good-color); }
+    .verdict.bad   { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.3); border-left-color: var(--danger-color); }
+    .verdict.bad .v-head { color: #fb7185; }
+    .verdict.warn  { background: rgba(234,179,8,0.07); border-color: rgba(234,179,8,0.3); border-left-color: var(--warning-color); }
+    .verdict.warn .v-head { color: var(--warning-color); }
+    .verdict b { color: inherit; }
+
+    /* console log */
+    .console {
+      border-radius: 12px;
+      background: #060b16;
+      border: 1px solid rgba(148,163,184,0.14);
+      padding: 14px 16px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.74rem;
+      line-height: 1.65;
+      min-height: 150px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+    .console .line { white-space: pre-wrap; word-break: break-word; opacity: 0; animation: fadein 0.3s forwards; }
+    @keyframes fadein { to { opacity: 1; } }
+    .console .actor { color: var(--muted); }
+    .console .req   { color: #7dd3fc; }
+    .console .pre   { color: #fde047; }
+    .console .res   { color: #a5b4fc; }
+    .console .ok    { color: #86efac; }
+    .console .bad   { color: #fda4af; }
+    .console .dim   { color: #475569; }
+    .console .hdr   { color: #cbd5e1; }
+    .console-empty { color: #475569; }
+
+    /* ---- Controls ---- */
+    .ctl-group { margin-bottom: 16px; }
+    .ctl-group > .ctl-label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+    .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+    .seg button {
+      flex: 1 1 auto;
+      font-size: 0.8rem;
+      padding: 8px 6px;
+      min-width: 56px;
+    }
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 0;
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      border-bottom: 1px solid rgba(148,163,184,0.08);
+    }
+    .switch-row:last-child { border-bottom: none; }
+    .switch-row .sw-sub { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 1px; }
+    .switch-row.disabled { opacity: 0.4; pointer-events: none; }
+
+    .toggle {
+      position: relative;
+      width: 44px; height: 24px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.22);
+      border: 1px solid rgba(148,163,184,0.25);
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      padding: 0;
+      box-shadow: none;
+    }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      transition: transform 0.2s;
+    }
+    .toggle.on { background: var(--accent-color); border-color: var(--accent-color); }
+    .toggle.on::after { transform: translateX(20px); }
+    .toggle:hover { transform: none; box-shadow: none; }
+
+    button {
+      background: var(--accent-color); color: #042331; border: none;
+      padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.86rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.25s, opacity 0.2s, color 0.2s;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.25);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(14,165,233,0.4); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.13);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.24); box-shadow: none; }
+    button.secondary.on { background: var(--accent-color); color: #042331; border-color: var(--accent-color); }
+    button.secondary.warn-on { background: var(--warning-color); color: #2a2206; border-color: var(--warning-color); }
+
+    .presets { display: flex; flex-wrap: wrap; gap: 7px; }
+    .chip {
+      font-size: 0.76rem;
+      font-weight: 600;
+      padding: 7px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: #cbd5e1;
+      background: rgba(148,163,184,0.1);
+      border: 1px solid rgba(148,163,184,0.18);
+      transition: background 0.2s, border-color 0.2s, transform 0.12s;
+    }
+    .chip:hover { transform: translateY(-1px); background: rgba(14,165,233,0.14); border-color: rgba(14,165,233,0.4); }
+
+    .btn-row { display: flex; gap: 9px; margin-top: 18px; }
+    .btn-row button { flex: 1; padding: 11px; }
+    .btn-send { font-size: 0.92rem; }
+
+    /* tiny status chips for the request analysis */
+    .analysis {
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: rgba(99,102,241,0.07);
+      border: 1px solid rgba(99,102,241,0.2);
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    .analysis .a-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 9px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .analysis .a-badge.simple    { background: rgba(34,197,94,0.16); color: #86efac; }
+    .analysis .a-badge.preflight { background: rgba(234,179,8,0.16); color: #fde047; }
+
+    /* explainer */
+    .explainer {
+      max-width: 660px;
+      margin: 52px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(99, 102, 241, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      text-align: center;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer h3 {
+      font-size: 1rem;
+      color: var(--accent-color);
+      margin: 24px 0 8px;
+    }
+    .explainer p {
+      color: #cbd5e1;
+      font-size: 1rem;
+      line-height: 1.65;
+      margin: 0 0 16px;
+    }
+    .explainer p.kicker {
+      padding: 14px 18px;
+      border-radius: 8px;
+      background: rgba(99, 102, 241, 0.08);
+      border-left: 3px solid var(--accent-2);
+      color: #c7d2fe;
+      font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em { color: var(--accent-2); font-style: normal; font-weight: 600; }
+    .explainer code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.86em;
+      background: rgba(148,163,184,0.12);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #e2e8f0;
+    }
+
+    .back {
+      margin: 34px auto 0;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-decoration: none;
+    }
+    .back:hover { color: var(--accent-color); }
+  </style>
+</head>
+<body>
+
+<h1>CORS: de poortwachter van je browser</h1>
+<p class="subtitle">Waarom je server antwoordt maar je code niets ziet</p>
+
+<p class="intro">
+  Je JavaScript vraagt data op bij een server op een <em>ander</em> domein. De server antwoordt netjes met
+  <strong>200&nbsp;OK</strong> &mdash; maar je code krijgt niets te zien, alleen een rode CORS-fout. Toch is het niet de server
+  die blokkeert: het is <strong>je eigen browser</strong>, die het antwoord tegenhoudt voordat jouw code het mag lezen.
+  <span class="cue">Stel een aanroep samen, druk op verstuur, en kijk waar het precies misgaat.</span>
+</p>
+
+<div class="layout">
+  <!-- LEFT: scene + verdict + console -->
+  <div class="stage-col">
+    <div class="scene glass">
+      <div class="node browser" id="browserNode">
+        <div class="node-icon">💻</div>
+        <div class="node-title">Jouw pagina · JavaScript</div>
+        <div class="node-origin">https://app.jouwsite.nl</div>
+        <div class="gate" id="gate">CORS-poort</div>
+      </div>
+
+      <div class="lane" id="lane">
+        <div class="lane-rail"></div>
+        <div class="lane-label" id="laneLabel">het netwerk</div>
+        <div class="packet" id="packet"></div>
+      </div>
+
+      <div class="node server" id="serverNode">
+        <div class="node-icon">🗄️</div>
+        <div class="node-title">api.andere-site.nl</div>
+        <div class="node-origin">de externe server</div>
+        <div class="action-state" id="actionState">Actie: nog niets</div>
+      </div>
+    </div>
+
+    <div class="verdict" id="verdict">
+      <div class="v-tier">Uitkomst</div>
+      <div class="v-head" id="verdictHead">Klaar om te versturen</div>
+      <div class="v-body" id="verdictBody">Stel links de aanroep en het serverantwoord in en druk op <b>Verstuur aanroep</b>.</div>
+    </div>
+
+    <div class="console" id="console">
+      <div class="console-empty">// netwerklog verschijnt hier zodra je verstuurt…</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: controls -->
+  <div class="panel glass">
+    <div class="ctl-group">
+      <span class="ctl-label">1 · De aanroep (jouw frontend)</span>
+      <div class="seg" id="methodSeg">
+        <button data-method="GET" class="secondary on">GET</button>
+        <button data-method="POST" class="secondary">POST</button>
+        <button data-method="PUT" class="secondary">PUT</button>
+        <button data-method="DELETE" class="secondary">DELETE</button>
+      </div>
+    </div>
+
+    <div class="ctl-group">
+      <div class="switch-row" id="jsonRow">
+        <span>JSON versturen
+          <span class="sw-sub">i.p.v. gewone formuliertekst</span>
+        </span>
+        <button class="toggle" id="jsonToggle" aria-label="JSON versturen"></button>
+      </div>
+      <div class="switch-row">
+        <span>Eigen header meesturen
+          <span class="sw-sub">bv. <code style="font-size:0.9em">X-Auth-Token</code></span>
+        </span>
+        <button class="toggle" id="headerToggle" aria-label="Eigen header"></button>
+      </div>
+      <div class="switch-row">
+        <span>Cookies meesturen
+          <span class="sw-sub">credentials: 'include'</span>
+        </span>
+        <button class="toggle" id="credToggle" aria-label="Cookies meesturen"></button>
+      </div>
+    </div>
+
+    <div class="ctl-group">
+      <span class="ctl-label">2 · Het serverantwoord</span>
+      <span class="ctl-label" style="text-transform:none;letter-spacing:0;font-size:0.74rem;color:#cbd5e1;margin-bottom:6px;">Access-Control-Allow-Origin</span>
+      <div class="seg" id="acaoSeg">
+        <button data-acao="none" class="secondary on">(geen)</button>
+        <button data-acao="wildcard" class="secondary">*</button>
+        <button data-acao="match" class="secondary">jouwsite.nl</button>
+        <button data-acao="wrong" class="secondary">andere</button>
+      </div>
+      <div class="switch-row" id="approveRow" style="margin-top:6px;">
+        <span>Preflight goedkeuren
+          <span class="sw-sub">server staat methode + header toe</span>
+        </span>
+        <button class="toggle on" id="approveToggle" aria-label="Preflight goedkeuren"></button>
+      </div>
+    </div>
+
+    <div class="analysis" id="analysis"></div>
+
+    <div class="btn-row">
+      <button id="sendBtn" class="btn-send">▶ Verstuur aanroep</button>
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div class="ctl-group" style="margin-top:20px;margin-bottom:0;">
+      <span class="ctl-label">Scenario's</span>
+      <div class="presets" id="presets"></div>
+    </div>
+  </div>
+</div>
+
+<section class="explainer">
+  <h2>Wat gebeurt er nu echt?</h2>
+  <p>
+    Browsers hanteren standaard de <strong>Same-Origin Policy</strong>: JavaScript op
+    <code>app.jouwsite.nl</code> mag geen antwoord lezen van een <em>andere</em> origin. Een origin is de combinatie van
+    <em>protocol + domein + poort</em> &mdash; dus <code>https://api.jouwsite.nl</code> is al een andere origin dan
+    <code>https://app.jouwsite.nl</code>. Zonder die regel zou een kwaadwillende pagina jouw ingelogde sessie bij de bank
+    kunnen misbruiken.
+  </p>
+  <p>
+    <strong>CORS</strong> (Cross-Origin Resource Sharing) is de manier om die regel veilig te <em>versoepelen</em>. De
+    browser verstuurt de aanroep, maar kijkt daarna naar de antwoordheaders van de server om te beslissen of jouw code de
+    data <em>mag zien</em>. De sleutelheader is <code>Access-Control-Allow-Origin</code>.
+  </p>
+
+  <h3>Simpele aanroep — de server doet het werk tóch</h3>
+  <p>
+    Een <em>simpele</em> aanroep (een gewone <code>GET</code> of <code>POST</code> met formuliertekst, zonder eigen headers)
+    gaat meteen naar de server. De server verwerkt hem &mdash; en dat is de valkuil: ontbreekt de juiste
+    <code>Access-Control-Allow-Origin</code>, dan <strong>blokkeert de browser alleen het antwoord</strong>. Jij ziet een
+    CORS-fout in de console, maar in je backend-log staat gewoon <code>200 OK</code>. De actie is dus al uitgevoerd.
+  </p>
+
+  <h3>Preflight — eerst kloppen, dan pas binnen</h3>
+  <p>
+    Bij een <em>gevaarlijker</em> aanroep (<code>PUT</code>, <code>DELETE</code>, JSON, of een eigen header) stuurt de browser
+    éérst een korte <code>OPTIONS</code>-aanroep: de <strong>preflight</strong>. Die vraagt: <em>&ldquo;mag ik straks een
+    DELETE sturen vanaf jouwsite.nl?&rdquo;</em> Pas als de server met de juiste
+    <code>Access-Control-Allow-Methods</code> en <code>-Allow-Origin</code> antwoordt, gaat de echte aanroep eropuit. Zegt de
+    server nee, dan wordt de echte aanroep <strong>nooit verstuurd</strong> &mdash; en gebeurt er dus ook niets op de server.
+  </p>
+
+  <h3>Twee addertjes</h3>
+  <p>
+    Stuur je <em>cookies</em> mee (credentials), dan mag <code>Access-Control-Allow-Origin: *</code> niet meer &mdash; de server
+    moet jouw exacte origin teruggeven én <code>Access-Control-Allow-Credentials: true</code> sturen. En de
+    <code>Origin</code>-header wordt door de browser zelf gezet: JavaScript kan hem niet vervalsen.
+  </p>
+
+  <p class="kicker">
+    De grote gedachte: CORS is geen slot op je server, maar een <strong>poortwachter in de browser</strong>. <code>curl</code>,
+    Postman of een backend trekken zich er niets van aan &mdash; zij zijn geen browser. CORS beschermt dus niet je server, maar
+    de gebruiker die jouw site bezoekt.
+  </p>
+</section>
+
+<a class="back" href="index.html">← Terug naar alle voorbeelden</a>
+
+<script>
+  // ---- Elements ----
+  const methodSeg  = document.getElementById('methodSeg');
+  const acaoSeg    = document.getElementById('acaoSeg');
+  const jsonToggle = document.getElementById('jsonToggle');
+  const jsonRow    = document.getElementById('jsonRow');
+  const headerToggle = document.getElementById('headerToggle');
+  const credToggle = document.getElementById('credToggle');
+  const approveToggle = document.getElementById('approveToggle');
+  const approveRow = document.getElementById('approveRow');
+  const analysisEl = document.getElementById('analysis');
+  const sendBtn    = document.getElementById('sendBtn');
+  const resetBtn   = document.getElementById('resetBtn');
+  const presetsEl  = document.getElementById('presets');
+
+  const packet     = document.getElementById('packet');
+  const laneLabel  = document.getElementById('laneLabel');
+  const gate       = document.getElementById('gate');
+  const actionState= document.getElementById('actionState');
+  const consoleEl  = document.getElementById('console');
+
+  const verdict     = document.getElementById('verdict');
+  const verdictHead = document.getElementById('verdictHead');
+  const verdictBody = document.getElementById('verdictBody');
+
+  const ORIGIN = 'https://app.jouwsite.nl';
+  const WRONG_ORIGIN = 'https://andere-app.nl';
+
+  // ---- State ----
+  const state = {
+    method: 'GET',
+    json: false,
+    header: false,
+    cred: false,
+    acao: 'none',       // none | wildcard | match | wrong
+    approve: true,      // server approves preflight (methods + headers)
+  };
+  let running = false;
+
+  // ---- Derived logic ----
+  function isSimple() {
+    const simpleMethod = state.method === 'GET' || state.method === 'POST';
+    return simpleMethod && !state.json && !state.header;
+  }
+  function preflightTriggers() {
+    const t = [];
+    if (state.method === 'PUT' || state.method === 'DELETE') t.push('de methode ' + state.method);
+    if (state.json) t.push('een JSON-body');
+    if (state.header) t.push('een eigen header');
+    return t;
+  }
+  // Does the server's Access-Control-Allow-Origin satisfy the browser for THIS request?
+  function originOk() {
+    if (state.cred) return state.acao === 'match';      // wildcard not allowed with credentials
+    return state.acao === 'wildcard' || state.acao === 'match';
+  }
+  function acaoValue() {
+    if (state.acao === 'none') return null;
+    if (state.acao === 'wildcard') return '*';
+    if (state.acao === 'match') return ORIGIN;
+    return WRONG_ORIGIN;
+  }
+
+  // ---- Rendering controls ----
+  function syncSegments() {
+    [...methodSeg.children].forEach(b => b.classList.toggle('on', b.dataset.method === state.method));
+    [...acaoSeg.children].forEach(b => b.classList.toggle('on', b.dataset.acao === state.acao));
+    jsonToggle.classList.toggle('on', state.json);
+    headerToggle.classList.toggle('on', state.header);
+    credToggle.classList.toggle('on', state.cred);
+    approveToggle.classList.toggle('on', state.approve);
+    // preflight approval only matters when a preflight happens
+    approveRow.classList.toggle('disabled', isSimple());
+  }
+
+  function renderAnalysis() {
+    const triggers = preflightTriggers();
+    if (isSimple()) {
+      analysisEl.innerHTML =
+        '<span class="a-badge simple">SIMPELE AANROEP</span><br>' +
+        'Geen preflight. De browser stuurt de aanroep meteen; de server verwerkt hem en de browser ' +
+        'controleert pas het antwoord.';
+    } else {
+      analysisEl.innerHTML =
+        '<span class="a-badge preflight">PREFLIGHT NODIG</span><br>' +
+        'De browser stuurt eerst een <code>OPTIONS</code>-aanroep, want deze aanroep gebruikt ' +
+        triggers.join(' en ') + '.';
+    }
+  }
+
+  function render() { syncSegments(); renderAnalysis(); }
+
+  // ---- Console helpers ----
+  function clearConsole() { consoleEl.innerHTML = ''; }
+  function log(html) {
+    const div = document.createElement('div');
+    div.className = 'line';
+    div.innerHTML = html;
+    consoleEl.appendChild(div);
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  }
+  function blank() { log('<span class="dim"> </span>'); }
+
+  // ---- Packet animation ----
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  function setPacket(text, cls) {
+    packet.className = 'packet ' + cls;
+    packet.textContent = text;
+  }
+  async function showPacketAt(pct) {
+    packet.style.left = pct + '%';
+    packet.classList.add('show');
+    await sleep(40);
+  }
+  async function movePacket(pct) {
+    packet.style.left = pct + '%';
+    await sleep(720);
+  }
+  function hidePacket() { packet.classList.remove('show'); }
+
+  function setGate(mode) {
+    gate.className = 'gate' + (mode ? ' ' + mode : '');
+    gate.textContent = mode === 'allow' ? '✓ doorgelaten'
+                     : mode === 'block' ? '✕ geblokkeerd'
+                     : 'CORS-poort';
+  }
+  function setAction(mode) {
+    actionState.className = 'action-state' + (mode === 'ran' ? ' ran' : '');
+    actionState.textContent = mode === 'ran' ? 'Actie: UITGEVOERD' : 'Actie: niet uitgevoerd';
+  }
+
+  function setVerdict(kind, head, body) {
+    verdict.className = 'verdict ' + kind;
+    verdictHead.textContent = head;
+    verdictBody.innerHTML = body;
+  }
+
+  // ---- The main flow ----
+  async function run() {
+    if (running) return;
+    running = true;
+    sendBtn.disabled = true;
+    resetBtn.disabled = true;
+    sendBtn.textContent = '… bezig';
+
+    clearConsole();
+    setGate(null);
+    setAction(null);
+    setVerdict('', 'Aanroep onderweg…', 'De browser verwerkt de aanroep.');
+    laneLabel.style.opacity = '0';
+
+    const acao = acaoValue();
+    const acaoLine = acao
+      ? '<span class="hdr">Access-Control-Allow-Origin: ' + acao + '</span>'
+      : '<span class="bad">(geen Access-Control-Allow-Origin)</span>';
+
+    // ===== PREFLIGHT (if needed) =====
+    if (!isSimple()) {
+      log('<span class="actor">browser ▸ stuurt eerst een preflight</span>');
+      setPacket('OPTIONS', 'preflight');
+      await showPacketAt(6);
+      log('<span class="pre">OPTIONS /data</span>');
+      log('<span class="hdr">Origin: ' + ORIGIN + '</span>');
+      log('<span class="hdr">Access-Control-Request-Method: ' + state.method + '</span>');
+      if (state.header) log('<span class="hdr">Access-Control-Request-Headers: x-auth-token</span>');
+      await movePacket(94);
+      await sleep(120);
+
+      // server answers preflight
+      const methodsLine = 'GET, POST' + (state.approve ? ', ' + state.method : '');
+      log('<span class="actor">server ▸ antwoordt op de preflight</span>');
+      setPacket('204', acao && state.approve && originOk() ? 'res-ok' : 'res-bad');
+      await sleep(60);
+      log('<span class="res">204 No Content</span>');
+      log(acaoLine);
+      log('<span class="hdr">Access-Control-Allow-Methods: ' + methodsLine + '</span>');
+      if (state.header) {
+        log(state.approve
+          ? '<span class="hdr">Access-Control-Allow-Headers: x-auth-token</span>'
+          : '<span class="bad">(geen Access-Control-Allow-Headers)</span>');
+      }
+      await movePacket(6);
+
+      // browser evaluates preflight
+      const methodOk = state.approve;
+      const headerOk = state.header ? state.approve : true;
+      if (!originOk() || !methodOk || !headerOk) {
+        setGate('block');
+        hidePacket();
+        setAction(null);   // server action NEVER runs
+        blank();
+        log('<span class="bad">✕ Preflight afgekeurd — de echte ' + state.method + ' wordt NOOIT verstuurd.</span>');
+        failVerdict(true);
+        return finish();
+      }
+      blank();
+      log('<span class="ok">✓ Preflight goedgekeurd — de echte aanroep mag eropuit.</span>');
+      blank();
+      hidePacket();
+      await sleep(250);
+    }
+
+    // ===== ACTUAL REQUEST =====
+    log('<span class="actor">browser ▸ stuurt de echte aanroep</span>');
+    setPacket(state.method, 'req');
+    await showPacketAt(6);
+    log('<span class="req">' + state.method + ' /data</span>');
+    log('<span class="hdr">Origin: ' + ORIGIN + '</span>');
+    if (state.json) log('<span class="hdr">Content-Type: application/json</span>');
+    if (state.header) log('<span class="hdr">X-Auth-Token: ••••••</span>');
+    if (state.cred) log('<span class="hdr">Cookie: session=••••••</span>');
+    await movePacket(94);
+
+    // server processes — the work happens here, regardless of CORS
+    await sleep(120);
+    setAction('ran');
+    log('<span class="actor">server ▸ verwerkt de aanroep en antwoordt</span>');
+    setPacket('200', originOk() ? 'res-ok' : 'res-bad');
+    await sleep(60);
+    log('<span class="res">200 OK</span>');
+    log(acaoLine);
+    if (state.cred && state.acao === 'match') log('<span class="hdr">Access-Control-Allow-Credentials: true</span>');
+    await movePacket(6);
+
+    // browser gate on the response
+    if (originOk()) {
+      setGate('allow');
+      hidePacket();
+      blank();
+      log('<span class="ok">✓ De browser geeft het antwoord door aan jouw JavaScript.</span>');
+      okVerdict();
+    } else {
+      setGate('block');
+      hidePacket();
+      blank();
+      log('<span class="bad">✕ CORS-fout: de browser blokkeert het antwoord voor jouw JavaScript.</span>');
+      log('<span class="dim">// Maar let op: de server gaf 200 OK — de actie ís al uitgevoerd.</span>');
+      failVerdict(false);
+    }
+    finish();
+  }
+
+  function okVerdict() {
+    let extra = '';
+    if (isSimple()) extra = 'Dit was een simpele aanroep, dus zonder preflight.';
+    else extra = 'De preflight gaf groen licht, daarna ging de echte aanroep eropuit.';
+    setVerdict('ok', '✓ Gelukt — je code ziet de data',
+      'De <code>Access-Control-Allow-Origin</code> paste bij jouw origin, dus de browser laat het antwoord door. ' + extra);
+  }
+
+  function failVerdict(atPreflight) {
+    if (atPreflight) {
+      setVerdict('warn', '⛔ Geblokkeerd bij de preflight',
+        'De server keurde de preflight af, dus de echte <code>' + state.method + '</code> is <b>nooit verstuurd</b>. ' +
+        'Er is niets op de server gebeurd. Fix: laat de server de juiste ' +
+        '<code>Access-Control-Allow-Origin</code>, <code>-Allow-Methods</code>' +
+        (state.header ? ' en <code>-Allow-Headers</code>' : '') + ' teruggeven.');
+      return;
+    }
+    // simple request blocked on the response
+    let reason;
+    if (state.acao === 'none') reason = 'De server stuurde helemaal geen <code>Access-Control-Allow-Origin</code> terug.';
+    else if (state.acao === 'wrong') reason = 'De <code>Access-Control-Allow-Origin</code> wees naar een andere origin dan de jouwe.';
+    else if (state.cred && state.acao === 'wildcard') reason = 'Met cookies erbij mag <code>*</code> niet — de server moet je <b>exacte</b> origin teruggeven.';
+    else reason = 'De origin kwam niet overeen.';
+    setVerdict('bad', '✕ CORS-fout — maar de actie liep wél',
+      reason + ' De browser blokkeert het antwoord, maar de server gaf <b>200 OK</b>: het werk is al gedaan. ' +
+      'Dít is waarom je console een fout toont terwijl je backend-log succes meldt.');
+  }
+
+  function finish() {
+    laneLabel.style.opacity = '1';
+    running = false;
+    sendBtn.disabled = false;
+    resetBtn.disabled = false;
+    sendBtn.textContent = '▶ Verstuur aanroep';
+  }
+
+  function resetScene() {
+    if (running) return;
+    clearConsole();
+    consoleEl.innerHTML = '<div class="console-empty">// netwerklog verschijnt hier zodra je verstuurt…</div>';
+    setGate(null);
+    setAction(null);
+    hidePacket();
+    laneLabel.style.opacity = '1';
+    setVerdict('', 'Klaar om te versturen',
+      'Stel links de aanroep en het serverantwoord in en druk op <b>Verstuur aanroep</b>.');
+  }
+
+  // ---- Wiring ----
+  methodSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.method = b.dataset.method; render(); resetScene();
+  });
+  acaoSeg.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.acao = b.dataset.acao; render(); resetScene();
+  });
+  jsonToggle.onclick    = () => { state.json = !state.json; render(); resetScene(); };
+  headerToggle.onclick  = () => { state.header = !state.header; render(); resetScene(); };
+  credToggle.onclick    = () => { state.cred = !state.cred; render(); resetScene(); };
+  approveToggle.onclick = () => { state.approve = !state.approve; render(); resetScene(); };
+  sendBtn.onclick  = run;
+  resetBtn.onclick = resetScene;
+
+  // ---- Presets ----
+  const PRESETS = [
+    { label: '🌍 Publieke API', desc: 'werkt meteen',
+      s: { method:'GET', json:false, header:false, cred:false, acao:'wildcard', approve:true } },
+    { label: '🐛 Vergeten header', desc: 'klassieke fout',
+      s: { method:'GET', json:false, header:false, cred:false, acao:'none', approve:true } },
+    { label: '📦 JSON-POST', desc: 'met preflight',
+      s: { method:'POST', json:true, header:false, cred:false, acao:'match', approve:true } },
+    { label: '🚫 Preflight geweigerd', desc: 'DELETE niet toegestaan',
+      s: { method:'DELETE', json:false, header:false, cred:false, acao:'match', approve:false } },
+    { label: '🍪 Cookies + *', desc: 'mag niet',
+      s: { method:'GET', json:false, header:false, cred:true, acao:'wildcard', approve:true } },
+  ];
+  PRESETS.forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.innerHTML = p.label + ' <span style="color:var(--muted)">· ' + p.desc + '</span>';
+    chip.onclick = () => {
+      if (running) return;
+      Object.assign(state, p.s);
+      render(); resetScene();
+    };
+    presetsEl.appendChild(chip);
+  });
+
+  // ---- Init ----
+  render();
+  resetScene();
+</script>
+</body>
+</html>
