@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Het sterschema · Feiten, dimensies & de tijdmachine van je datawarehouse</title>
+  <style>
+    :root {
+      --bg-color: #0b1120;
+      --accent-color: #f59e0b;
+      --accent-2: #8b5cf6;
+      --good-color: #22c55e;
+      --warning-color: #eab308;
+      --danger-color: #f43f5e;
+      --fact-color: #f59e0b;
+      --dim-color: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(ellipse at 18% 0%, rgba(245,158,11,0.10) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 12%, rgba(139,92,246,0.09) 0%, transparent 50%);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 20px 64px;
+      margin: 0;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      text-align: center;
+      background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 8px;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 22px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .glass {
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+
+    /* Intro card */
+    .intro {
+      max-width: 620px;
+      margin: 0 auto 24px;
+      padding: 18px 24px;
+      border-radius: 14px;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      text-align: center;
+      background: rgba(20, 30, 48, 0.55);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-top: 2px solid rgba(245, 158, 11, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    }
+    .intro strong { color: var(--accent-color); font-weight: 700; }
+    .intro em { color: var(--dim-color); font-style: normal; font-weight: 600; }
+    .intro .cue { color: var(--muted); }
+
+    .main { width: 100%; max-width: 980px; }
+
+    /* ---- Stepper ---- */
+    .stepper {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 0 auto 22px;
+      flex-wrap: wrap;
+    }
+    .step-btn {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.08);
+      border: 1px solid rgba(148,163,184,0.16);
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s, border-color 0.2s, transform 0.12s, color 0.2s;
+      box-shadow: none;
+    }
+    .step-btn .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(148,163,184,0.2);
+      color: var(--text);
+      flex: 0 0 auto;
+    }
+    .step-btn:hover { transform: translateY(-1px); background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.3); box-shadow: none; }
+    .step-btn.active { background: var(--accent-color); color: #2a1d04; border-color: var(--accent-color); box-shadow: 0 4px 16px rgba(245,158,11,0.3); }
+    .step-btn.active .num { background: rgba(42,29,4,0.25); color: #2a1d04; }
+    .step-btn.done .num { background: var(--good-color); color: #052e16; }
+    .step-btn.done.active .num { background: rgba(42,29,4,0.25); color: #2a1d04; }
+
+    .stage { display: none; }
+    .stage.active { display: block; animation: stageIn 0.35s ease; }
+    @keyframes stageIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .stage-head { text-align: center; margin-bottom: 18px; }
+    .stage-head h2 { font-size: 1.25rem; margin: 0 0 4px; color: var(--text); }
+    .stage-head p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+    .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+
+    /* ---- Stage 1: source row + sorting ---- */
+    .source-wrap { overflow-x: auto; margin-bottom: 18px; }
+    .source-label { font-size: 0.72rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display:block; }
+    table.src {
+      border-collapse: collapse;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.74rem;
+      width: 100%;
+      min-width: 640px;
+    }
+    table.src th, table.src td {
+      border: 1px solid rgba(148,163,184,0.16);
+      padding: 6px 9px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    table.src th { color: var(--muted); font-weight: 700; background: rgba(148,163,184,0.05); }
+    table.src td { color: #cbd5e1; }
+
+    .pool {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+      min-height: 44px;
+    }
+    .col-card {
+      border-radius: 10px;
+      background: rgba(148,163,184,0.07);
+      border: 1px solid rgba(148,163,184,0.18);
+      padding: 9px 12px 11px;
+      min-width: 132px;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .col-name { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 7px; }
+    .col-btns { display: flex; gap: 6px; }
+    .col-btns button { flex: 1; padding: 5px 4px; font-size: 0.7rem; }
+    .btn-fact { background: rgba(245,158,11,0.16); color: #fcd34d; box-shadow: none; border: 1px solid rgba(245,158,11,0.3); }
+    .btn-fact:hover { background: rgba(245,158,11,0.28); box-shadow: none; }
+    .btn-dim { background: rgba(56,189,248,0.16); color: #7dd3fc; box-shadow: none; border: 1px solid rgba(56,189,248,0.3); }
+    .btn-dim:hover { background: rgba(56,189,248,0.28); box-shadow: none; }
+
+    .buckets { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 680px) { .buckets { grid-template-columns: 1fr; } }
+    .bucket {
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 130px;
+      background: rgba(148,163,184,0.04);
+      border: 1px dashed rgba(148,163,184,0.25);
+    }
+    .bucket.fact  { border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.05); }
+    .bucket.dim   { border-color: rgba(56,189,248,0.4); background: rgba(56,189,248,0.05); }
+    .bucket-title { font-size: 0.78rem; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; margin-bottom: 4px; }
+    .bucket.fact .bucket-title { color: var(--fact-color); }
+    .bucket.dim  .bucket-title { color: var(--dim-color); }
+    .bucket-sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; }
+    .bucket-items { display: flex; flex-wrap: wrap; gap: 7px; }
+    .placed {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      animation: pop 0.25s ease;
+    }
+    @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .placed.ok  { background: rgba(34,197,94,0.14); color: #86efac; border: 1px solid rgba(34,197,94,0.35); }
+    .placed.no  { background: rgba(244,63,94,0.14); color: #fda4af; border: 1px solid rgba(244,63,94,0.35); }
+    .placed .verdict-icon { font-size: 0.85rem; }
+
+    .feedback {
+      margin-top: 16px;
+      padding: 13px 16px;
+      border-radius: 10px;
+      background: rgba(139,92,246,0.07);
+      border: 1px solid rgba(139,92,246,0.22);
+      border-left: 3px solid var(--accent-2);
+      font-size: 0.86rem;
+      color: #c7d2fe;
+      line-height: 1.55;
+      min-height: 24px;
+    }
+    .feedback .grain { color: var(--accent-color); font-weight: 700; }
+    .feedback code { font-family: ui-monospace, "SF Mono", Menlo, monospace; background: rgba(148,163,184,0.14); padding: 1px 5px; border-radius: 4px; }
+
+    /* ---- Stage 2: star diagram ---- */
+    .star-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1.3fr 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 18px 30px;
+      align-items: center;
+      justify-items: center;
+      padding: 6px;
+    }
+    #starSvg { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: visible; }
+    .link-line { stroke: rgba(148,163,184,0.3); stroke-width: 2; transition: stroke 0.2s, stroke-width 0.2s; }
+    .link-line.hot { stroke: var(--accent-color); stroke-width: 3; }
+
+    .schema-card {
+      position: relative;
+      z-index: 2;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148,163,184,0.18);
+      width: 100%;
+      max-width: 230px;
+      overflow: hidden;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .schema-card .card-title {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 7px 11px;
+      letter-spacing: 0.3px;
+    }
+    .schema-card .card-rows { padding: 5px 0; }
+    .card-row {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.72rem;
+      padding: 3px 11px;
+      color: #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .card-row .typ { color: var(--muted); font-size: 0.66rem; }
+    .card-row.key { color: #fcd34d; }
+    .card-row.measure { color: #fdba74; }
+    .card-row.hot { background: rgba(245,158,11,0.18); color: #fde68a; }
+
+    .fact-card { border-color: rgba(245,158,11,0.45); box-shadow: 0 0 24px rgba(245,158,11,0.12); }
+    .fact-card .card-title { background: rgba(245,158,11,0.16); color: var(--fact-color); }
+    .dim-card { cursor: default; }
+    .dim-card .card-title { background: rgba(56,189,248,0.14); color: var(--dim-color); }
+    .dim-card:hover { border-color: rgba(56,189,248,0.55); box-shadow: 0 0 20px rgba(56,189,248,0.18); transform: translateY(-2px); }
+
+    .pos-tl { grid-column: 1; grid-row: 1; }
+    .pos-tr { grid-column: 3; grid-row: 1; }
+    .pos-c  { grid-column: 2; grid-row: 2; }
+    .pos-bl { grid-column: 1; grid-row: 3; }
+    .pos-br { grid-column: 3; grid-row: 3; }
+
+    @media (max-width: 680px) {
+      .star-grid { grid-template-columns: 1fr; grid-template-rows: none; }
+      #starSvg { display: none; }
+      .pos-tl,.pos-tr,.pos-c,.pos-bl,.pos-br { grid-column: 1; grid-row: auto; }
+      .schema-card { max-width: 320px; }
+    }
+
+    /* ---- Stage 3: SCD ---- */
+    .scd-controls { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: center; margin-bottom: 18px; }
+    .scd-types { display: flex; gap: 8px; }
+    .scd-type-btn { padding: 9px 14px; font-size: 0.82rem; }
+    .scd-type-btn.secondary.on { background: var(--accent-color); color: #2a1d04; border-color: var(--accent-color); }
+
+    .scd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 760px) { .scd-grid { grid-template-columns: 1fr; } }
+
+    .panel-box {
+      border-radius: 12px;
+      background: rgba(148,163,184,0.04);
+      border: 1px solid rgba(148,163,184,0.14);
+      padding: 14px 16px;
+    }
+    .panel-box h3 { margin: 0 0 4px; font-size: 0.82rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+    .panel-box .pb-sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 10px; }
+
+    table.data {
+      border-collapse: collapse;
+      width: 100%;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.72rem;
+    }
+    table.data th, table.data td { border: 1px solid rgba(148,163,184,0.14); padding: 5px 8px; text-align: left; white-space: nowrap; }
+    table.data th { color: var(--muted); font-weight: 700; background: rgba(148,163,184,0.05); }
+    table.data td { color: #cbd5e1; }
+    table.data tr.expired td { color: #64748b; text-decoration: line-through; }
+    table.data tr.current td { color: #86efac; }
+    table.data tr.changed td { background: rgba(245,158,11,0.12); }
+    table.data tr.newrow td { background: rgba(34,197,94,0.1); }
+    td.ams { color: #7dd3fc !important; }
+    td.rot { color: #fca5a5 !important; }
+    .flag-yes { color: var(--good-color); font-weight: 700; }
+    .flag-no { color: var(--muted); }
+
+    .result-rows { display: flex; flex-direction: column; gap: 7px; }
+    .res-bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
+    .res-city { width: 92px; flex: 0 0 auto; font-weight: 700; }
+    .res-city.amsterdam { color: #7dd3fc; }
+    .res-city.rotterdam { color: #fca5a5; }
+    .res-city.utrecht { color: #c4b5fd; }
+    .res-track { flex: 1; height: 22px; background: rgba(148,163,184,0.1); border-radius: 6px; overflow: hidden; }
+    .res-fill { height: 100%; border-radius: 6px; transition: width 0.6s cubic-bezier(.45,.05,.55,.95); display:flex; align-items:center; justify-content:flex-end; padding-right:7px; font-size:0.72rem; font-weight:800; color:#0b1120; }
+    .res-fill.amsterdam { background: linear-gradient(90deg,#0ea5e9,#38bdf8); }
+    .res-fill.rotterdam { background: linear-gradient(90deg,#f43f5e,#fb7185); }
+    .res-fill.utrecht   { background: linear-gradient(90deg,#8b5cf6,#a78bfa); }
+
+    .scd-verdict {
+      grid-column: 1 / -1;
+      border-radius: 12px;
+      padding: 15px 18px;
+      background: rgba(148,163,184,0.06);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-left: 3px solid var(--muted);
+      transition: all 0.3s;
+    }
+    .scd-verdict .v-head { font-size: 1rem; font-weight: 800; color: var(--text); }
+    .scd-verdict .v-body { font-size: 0.87rem; color: #cbd5e1; margin-top: 5px; line-height: 1.55; }
+    .scd-verdict.type1 { background: rgba(244,63,94,0.08); border-color: rgba(244,63,94,0.3); border-left-color: var(--danger-color); }
+    .scd-verdict.type1 .v-head { color: #fb7185; }
+    .scd-verdict.type2 { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.3); border-left-color: var(--good-color); }
+    .scd-verdict.type2 .v-head { color: var(--good-color); }
+    .scd-verdict code { font-family: ui-monospace, "SF Mono", Menlo, monospace; background: rgba(148,163,184,0.14); padding: 1px 5px; border-radius: 4px; }
+
+    /* ---- buttons ---- */
+    button {
+      background: var(--accent-color); color: #2a1d04; border: none;
+      padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 700;
+      font-size: 0.86rem;
+      transition: transform 0.15s, box-shadow 0.15s, background 0.25s, opacity 0.2s, color 0.2s;
+      box-shadow: 0 4px 12px rgba(245,158,11,0.25);
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,158,11,0.4); }
+    button:active { transform: translateY(0); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.13);
+      color: #e2e8f0;
+      box-shadow: none;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+    button.secondary:hover { background: rgba(148, 163, 184, 0.24); box-shadow: none; }
+
+    .btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+    .btn-row button { padding: 11px 20px; }
+
+    /* explainer */
+    .explainer {
+      max-width: 680px;
+      margin: 52px auto 8px;
+      padding: 28px 32px;
+      border-radius: 16px;
+      background: rgba(20, 30, 48, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-top: 2px solid rgba(139, 92, 246, 0.5);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .explainer h2 {
+      font-size: 1.5rem;
+      margin: 0 0 18px;
+      text-align: center;
+      background: linear-gradient(135deg, #f59e0b, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .explainer h3 { font-size: 1rem; color: var(--accent-color); margin: 24px 0 8px; }
+    .explainer p { color: #cbd5e1; font-size: 1rem; line-height: 1.65; margin: 0 0 16px; }
+    .explainer p.kicker {
+      padding: 14px 18px; border-radius: 8px;
+      background: rgba(139, 92, 246, 0.08);
+      border-left: 3px solid var(--accent-2);
+      color: #ddd6fe; font-style: italic;
+    }
+    .explainer strong { color: var(--accent-color); font-weight: 700; }
+    .explainer em { color: var(--dim-color); font-style: normal; font-weight: 600; }
+    .explainer code {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 0.86em; background: rgba(148,163,184,0.12);
+      padding: 1px 6px; border-radius: 4px; color: #e2e8f0;
+    }
+
+    .back { margin: 34px auto 0; color: var(--muted); font-size: 0.85rem; text-decoration: none; }
+    .back:hover { color: var(--accent-color); }
+  </style>
+</head>
+<body>
+
+<h1>Het sterschema</h1>
+<p class="subtitle">Feiten, dimensies &amp; de tijdmachine van je datawarehouse</p>
+
+<p class="intro">
+  In een datawarehouse valt alles uiteen in twee soorten tabellen: <strong>feiten</strong> (wat je meet &mdash; omzet, aantal)
+  en <strong>dimensies</strong> (de context &mdash; wie, wat, waar, wanneer). De eeuwige twijfel: <em>wat hoort waar?</em>
+  En als een klant verhuist &mdash; herschrijf je dan de geschiedenis, of bewaar je hem? Sorteer de kolommen, bouw het
+  sterschema, en laat een klant verhuizen om te zien hoe <strong>Slowly Changing Dimensions</strong> je cijfers maken of breken.
+  <span class="cue">Doorloop de drie stappen hieronder.</span>
+</p>
+
+<div class="main">
+  <div class="stepper" id="stepper">
+    <button class="step-btn active" data-stage="0"><span class="num">1</span> Wat hoort waar?</button>
+    <button class="step-btn" data-stage="1"><span class="num">2</span> Het sterschema</button>
+    <button class="step-btn" data-stage="2"><span class="num">3</span> De tijdmachine</button>
+  </div>
+
+  <!-- ===================== STAGE 1 ===================== -->
+  <section class="stage active glass" id="stage0">
+    <div class="stage-head">
+      <h2>Wat hoort waar?</h2>
+      <p>Eén rij ruwe bestel­data. Sleep elke kolom naar <b style="color:var(--fact-color)">Feit</b> of <b style="color:var(--dim-color)">Dimensie</b>.</p>
+    </div>
+
+    <div class="source-wrap">
+      <span class="source-label">Bronregel · één productregel van één bestelling</span>
+      <table class="src" id="srcTable"></table>
+    </div>
+
+    <span class="source-label">Nog te sorteren</span>
+    <div class="pool" id="pool"></div>
+
+    <div class="buckets">
+      <div class="bucket fact" id="bucketFact">
+        <div class="bucket-title">⭐ Feiten</div>
+        <div class="bucket-sub">Wat je meet · optelbare getallen · per gebeurtenis</div>
+        <div class="bucket-items" id="factItems"></div>
+      </div>
+      <div class="bucket dim" id="bucketDim">
+        <div class="bucket-title">🏷️ Dimensies</div>
+        <div class="bucket-sub">De context · wie / wat / waar / wanneer · beschrijvend</div>
+        <div class="bucket-items" id="dimItems"></div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback1">
+      Tip: een <em>feit</em> is bijna altijd een getal dat je kunt optellen of middelen. Een <em>dimensie</em> is hoe
+      je dat getal wilt <b>opsplitsen</b> in een rapport (&ldquo;omzet <b>per</b> stad&rdquo;, &ldquo;aantal <b>per</b> categorie&rdquo;).
+    </div>
+
+    <div class="btn-row">
+      <button id="toStage2Btn" disabled>Bouw het sterschema →</button>
+      <button class="secondary" id="resetSortBtn">Opnieuw sorteren</button>
+    </div>
+  </section>
+
+  <!-- ===================== STAGE 2 ===================== -->
+  <section class="stage glass" id="stage1">
+    <div class="stage-head">
+      <h2>Het sterschema</h2>
+      <p>Eén slanke <b style="color:var(--fact-color)">feiten­tabel</b> in het midden, omringd door
+        <b style="color:var(--dim-color)">dimensies</b>. Beweeg over een dimensie om de koppeling te zien.</p>
+    </div>
+
+    <div class="star-grid" id="starGrid">
+      <svg id="starSvg"></svg>
+
+      <div class="schema-card dim-card pos-tl" data-dim="datum">
+        <div class="card-title">dim_datum</div>
+        <div class="card-rows">
+          <div class="card-row key">datum_key <span class="typ">PK</span></div>
+          <div class="card-row">dag</div>
+          <div class="card-row">maand</div>
+          <div class="card-row">kwartaal · jaar</div>
+        </div>
+      </div>
+
+      <div class="schema-card dim-card pos-tr" data-dim="product">
+        <div class="card-title">dim_product</div>
+        <div class="card-rows">
+          <div class="card-row key">product_key <span class="typ">PK</span></div>
+          <div class="card-row">product</div>
+          <div class="card-row">categorie</div>
+          <div class="card-row">merk</div>
+        </div>
+      </div>
+
+      <div class="schema-card fact-card pos-c" id="factCard">
+        <div class="card-title">⭐ fact_sales</div>
+        <div class="card-rows">
+          <div class="card-row key" data-fk="datum">datum_key <span class="typ">FK</span></div>
+          <div class="card-row key" data-fk="klant">klant_key <span class="typ">FK</span></div>
+          <div class="card-row key" data-fk="product">product_key <span class="typ">FK</span></div>
+          <div class="card-row key" data-fk="winkel">winkel_key <span class="typ">FK</span></div>
+          <div class="card-row">order_id <span class="typ">DD</span></div>
+          <div class="card-row measure">aantal <span class="typ">meet</span></div>
+          <div class="card-row measure">prijs <span class="typ">meet</span></div>
+          <div class="card-row measure">omzet <span class="typ">meet</span></div>
+        </div>
+      </div>
+
+      <div class="schema-card dim-card pos-bl" data-dim="klant">
+        <div class="card-title">dim_klant</div>
+        <div class="card-rows">
+          <div class="card-row key">klant_key <span class="typ">PK</span></div>
+          <div class="card-row">klant</div>
+          <div class="card-row">stad</div>
+          <div class="card-row">segment</div>
+        </div>
+      </div>
+
+      <div class="schema-card dim-card pos-br" data-dim="winkel">
+        <div class="card-title">dim_winkel</div>
+        <div class="card-rows">
+          <div class="card-row key">winkel_key <span class="typ">PK</span></div>
+          <div class="card-row">winkel</div>
+          <div class="card-row">regio</div>
+          <div class="card-row">land</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feedback" id="feedback2">
+      <span class="grain">De korrel (grain):</span> één rij in <code>fact_sales</code> = één productregel van één bestelling.
+      De feitentabel blijft <b>smal en lang</b> (miljoenen rijen): alleen sleutels en meetwaarden. Alle beschrijvende tekst
+      woont in de dimensies &mdash; zo hoef je &ldquo;Elektronica&rdquo; maar één keer op te slaan i.p.v. bij elke verkoop.
+    </div>
+
+    <div class="btn-row">
+      <button class="secondary" id="backTo1Btn">← Terug</button>
+      <button id="toStage3Btn">Laat een klant verhuizen →</button>
+    </div>
+  </section>
+
+  <!-- ===================== STAGE 3 ===================== -->
+  <section class="stage glass" id="stage2">
+    <div class="stage-head">
+      <h2>De tijdmachine · Slowly Changing Dimensions</h2>
+      <p><b style="color:var(--accent-color)">Anna</b> verhuist op <span class="mono">2024-06-01</span> van
+        <span style="color:#7dd3fc">Amsterdam</span> naar <span style="color:#fca5a5">Rotterdam</span>. Wat doet je dimensie?</p>
+    </div>
+
+    <div class="scd-controls">
+      <div class="scd-types" id="scdTypes">
+        <button class="secondary scd-type-btn on" data-scd="1">Type 1 · Overschrijven</button>
+        <button class="secondary scd-type-btn" data-scd="2">Type 2 · Versioneren</button>
+      </div>
+      <button id="moveBtn">🚚 Anna verhuist</button>
+      <button class="secondary" id="resetScdBtn">Reset</button>
+    </div>
+
+    <div class="scd-grid">
+      <div class="panel-box">
+        <h3>dim_klant</h3>
+        <div class="pb-sub" id="dimDesc">De dimensietabel met Anna&apos;s gegevens.</div>
+        <table class="data" id="dimTable"></table>
+      </div>
+
+      <div class="panel-box">
+        <h3>fact_sales · Anna&apos;s bestellingen</h3>
+        <div class="pb-sub">Elke bestelling verwijst naar een <span class="mono">klant_key</span>.</div>
+        <table class="data" id="orderTable"></table>
+      </div>
+
+      <div class="panel-box" style="grid-column:1/-1">
+        <h3>Rapport · omzet per stad</h3>
+        <div class="pb-sub" id="queryDesc">Draai de query na de verhuizing en kijk waar Anna&apos;s €250 terechtkomt.</div>
+        <div class="result-rows" id="resultRows"></div>
+      </div>
+
+      <div class="scd-verdict" id="scdVerdict">
+        <div class="v-head" id="scdHead">Kies een SCD-type en klik op &ldquo;Anna verhuist&rdquo;.</div>
+        <div class="v-body" id="scdBody">Type 1 overschrijft de oude stad; Type 2 bewaart hem als aparte versie. Het verschil zie je pas in het rapport.</div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="secondary" id="backTo2Btn">← Terug</button>
+    </div>
+  </section>
+</div>
+
+<section class="explainer">
+  <h2>Wat gebeurt er nu echt?</h2>
+  <p>
+    Een <strong>sterschema</strong> splitst je data bewust in twee soorten tabellen. In het midden staat de
+    <strong>feitentabel</strong>: één rij per gebeurtenis (een verkoop, een klik, een rit), met vooral
+    <em>vreemde sleutels</em> en <em>meetwaarden</em> &mdash; getallen die je optelt. Eromheen staan de
+    <strong>dimensietabellen</strong>: de beschrijvende context waarmee je die getallen opsplitst en filtert.
+  </p>
+
+  <h3>De vuistregel: meet je het, of splits je ermee?</h3>
+  <p>
+    Een kolom is een <strong>feit</strong> als je hem zinvol kunt optellen of middelen (<code>omzet</code>,
+    <code>aantal</code>). Het is een <strong>dimensie</strong> als je hem gebruikt achter het woordje <em>&ldquo;per&rdquo;</em>:
+    omzet <em>per</em> stad, aantal <em>per</em> categorie. Tekst hoort dus bijna altijd in een dimensie. Een paar
+    randgevallen: <code>prijs</code> is een meetwaarde, maar pas op met optellen (gemiddelde is logischer);
+    <code>order_id</code> is een &ldquo;degenerate dimension&rdquo; &mdash; een dimensie zonder eigen tabel die je gewoon in de
+    feitentabel laat staan.
+  </p>
+
+  <h3>De korrel bepaalt alles</h3>
+  <p>
+    Voordat je iets bouwt, leg je de <strong>grain</strong> vast: wat betekent één rij in de feitentabel precies?
+    &ldquo;Eén productregel van één bestelling&rdquo; is een andere korrel dan &ldquo;één bestelling&rdquo;. De korrel bepaalt
+    welke dimensies kunnen koppelen en of <code>omzet</code> klopt als je optelt.
+  </p>
+
+  <h3>Slowly Changing Dimensions — verleden tijd</h3>
+  <p>
+    Dimensies veranderen langzaam: een klant verhuist, een product verandert van categorie. De grote vraag is wat er
+    met de <em>geschiedenis</em> moet gebeuren.
+  </p>
+  <p>
+    <strong>Type 1</strong> <em>overschrijft</em> de oude waarde. Simpel, maar je herschrijft het verleden: alle oude
+    bestellingen van Anna tellen ineens mee voor Rotterdam, alsof ze daar altijd al woonde.
+    <strong>Type 2</strong> voegt een <em>nieuwe rij</em> toe met een nieuwe surrogaat­sleutel en
+    <code>valid_from</code> / <code>valid_to</code> / <code>is_current</code>. De oude rij blijft bestaan, dus oude
+    bestellingen blijven aan Amsterdam hangen en nieuwe aan Rotterdam. Je betaalt met meer rijen, maar je
+    geschiedenis klopt &mdash; dáárom verwijzen feiten naar een <em>surrogaat­sleutel</em> en niet naar het klant-ID.
+  </p>
+
+  <p class="kicker">
+    De grote gedachte: een sterschema scheidt <strong>de meting</strong> van <strong>de context</strong>, zodat
+    rapporten snel en simpel blijven. En je SCD-keuze is geen detail &mdash; ze bepaalt of &ldquo;omzet per stad&rdquo;
+    over twee jaar nog hetzelfde antwoord geeft.
+  </p>
+</section>
+
+<a class="back" href="index.html">← Terug naar alle voorbeelden</a>
+
+<script>
+  // ===================== Stepper =====================
+  const stepper = document.getElementById('stepper');
+  const stages = [document.getElementById('stage0'), document.getElementById('stage1'), document.getElementById('stage2')];
+  const stepBtns = [...stepper.querySelectorAll('.step-btn')];
+
+  function showStage(i) {
+    stages.forEach((s, k) => s.classList.toggle('active', k === i));
+    stepBtns.forEach((b, k) => b.classList.toggle('active', k === i));
+    if (i === 1) requestAnimationFrame(drawStarLines);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  stepBtns.forEach(b => b.onclick = () => showStage(+b.dataset.stage));
+
+  // ===================== STAGE 1: sorting =====================
+  const COLUMNS = [
+    { name: 'order_id',  val: '7741',          bucket: 'fact',
+      ok: 'Klopt — een &ldquo;degenerate dimension&rdquo;: een dimensie zonder eigen tabel, die gewoon in de feitentabel blijft staan.',
+      no: 'Bijna! <code>order_id</code> is eigenlijk een dimensie, maar zonder eigen tabel — een &ldquo;degenerate dimension&rdquo; die je tóch in de <b>feitentabel</b> laat staan.' },
+    { name: 'datum',     val: '2024-03-12',     bucket: 'dim',
+      ok: 'Ja — tijd is dé klassieke dimensie. Hiermee splits je omzet uit per dag, maand of jaar.',
+      no: 'Een datum tel je niet op — je splitst er juist méé op (&ldquo;omzet per maand&rdquo;). Dat is een <b>dimensie</b>.' },
+    { name: 'klant',     val: 'Anna',           bucket: 'dim',
+      ok: 'Ja — wie de klant is, is context. Beschrijvende tekst hoort in een dimensie.',
+      no: 'Een naam tel je niet op. &ldquo;Wie&rdquo; is context → <b>dimensie</b>.' },
+    { name: 'stad',      val: 'Amsterdam',      bucket: 'dim',
+      ok: 'Ja — &ldquo;waar&rdquo; is context. (Vaak een attribuut binnen dim_klant of dim_winkel.)',
+      no: 'Een plaatsnaam is geen meetwaarde. &ldquo;Waar&rdquo; → <b>dimensie</b>.' },
+    { name: 'product',   val: 'Koptelefoon',    bucket: 'dim',
+      ok: 'Ja — &ldquo;wat&rdquo; is verkocht is context → dimensie.',
+      no: 'Een productnaam tel je niet op. &ldquo;Wat&rdquo; → <b>dimensie</b>.' },
+    { name: 'categorie', val: 'Elektronica',    bucket: 'dim',
+      ok: 'Ja — een attribuut van het product. Eén keer opslaan in dim_product i.p.v. bij elke verkoop.',
+      no: 'Een categorie gebruik je om te groeperen (&ldquo;per categorie&rdquo;), niet om op te tellen → <b>dimensie</b>.' },
+    { name: 'aantal',    val: '2',              bucket: 'fact',
+      ok: 'Ja — een optelbaar getal per verkoop. Dit is een meetwaarde.',
+      no: 'Dit is juist een getal dat je optelt (&ldquo;totaal aantal&rdquo;) → <b>feit</b>.' },
+    { name: 'prijs',     val: '49.95',          bucket: 'fact',
+      ok: 'Ja — een meetwaarde. (Let op: optellen is raar; gemiddelde is logischer — een &ldquo;non-additive&rdquo; feit.)',
+      no: 'Een geldbedrag is een meetwaarde → <b>feit</b> (al tel je prijs liever niet op, maar middel je hem).' },
+    { name: 'omzet',     val: '99.90',          bucket: 'fact',
+      ok: 'Ja — het schoolvoorbeeld van een feit: optelbaar geld, de kern van je rapport.',
+      no: 'Omzet is hét feit bij uitstek: optelbaar geld → <b>feit</b>.' },
+  ];
+
+  const srcTable = document.getElementById('srcTable');
+  const pool = document.getElementById('pool');
+  const factItems = document.getElementById('factItems');
+  const dimItems = document.getElementById('dimItems');
+  const feedback1 = document.getElementById('feedback1');
+  const toStage2Btn = document.getElementById('toStage2Btn');
+
+  let placed = {};
+
+  function buildSrcTable() {
+    const head = '<tr>' + COLUMNS.map(c => '<th>' + c.name + '</th>').join('') + '</tr>';
+    const row = '<tr>' + COLUMNS.map(c => '<td>' + c.val + '</td>').join('') + '</tr>';
+    srcTable.innerHTML = head + row;
+  }
+
+  function renderSort() {
+    pool.innerHTML = '';
+    factItems.innerHTML = '';
+    dimItems.innerHTML = '';
+    COLUMNS.forEach(c => {
+      if (placed[c.name]) {
+        const where = placed[c.name];
+        const correct = where === c.bucket;
+        const chip = document.createElement('span');
+        chip.className = 'placed ' + (correct ? 'ok' : 'no');
+        chip.innerHTML = '<span class="verdict-icon">' + (correct ? '✓' : '✕') + '</span>' + c.name;
+        (where === 'fact' ? factItems : dimItems).appendChild(chip);
+      } else {
+        const card = document.createElement('div');
+        card.className = 'col-card';
+        card.innerHTML =
+          '<div class="col-name">' + c.name + '</div>' +
+          '<div class="col-btns">' +
+            '<button class="btn-fact" data-col="' + c.name + '" data-to="fact">⭐ Feit</button>' +
+            '<button class="btn-dim" data-col="' + c.name + '" data-to="dim">🏷️ Dim</button>' +
+          '</div>';
+        pool.appendChild(card);
+      }
+    });
+    const allPlaced = COLUMNS.every(c => placed[c.name]);
+    toStage2Btn.disabled = !allPlaced;
+    if (allPlaced) {
+      const wrong = COLUMNS.filter(c => placed[c.name] !== c.bucket).length;
+      if (wrong === 0) {
+        feedback1.innerHTML = '<span class="grain">Perfect gesorteerd! 🎉</span> Alle meetwaarden in Feiten, alle context in Dimensies. ' +
+          'Klaar om hier een <b>sterschema</b> van te bouwen.';
+      } else {
+        feedback1.innerHTML = 'Bijna! <b>' + wrong + '</b> kolom' + (wrong > 1 ? 'men staan' : ' staat') +
+          ' nog verkeerd (rood kruisje). Bekijk de uitleg per kolom of sorteer opnieuw — en bouw daarna het schema.';
+      }
+    }
+  }
+
+  pool.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const col = COLUMNS.find(c => c.name === b.dataset.col);
+    placed[col.name] = b.dataset.to;
+    const correct = b.dataset.to === col.bucket;
+    feedback1.innerHTML = '<span class="grain">' + col.name + ':</span> ' + (correct ? col.ok : col.no);
+    renderSort();
+  });
+
+  document.getElementById('resetSortBtn').onclick = () => {
+    placed = {};
+    feedback1.innerHTML = 'Tip: een <em>feit</em> is bijna altijd een getal dat je kunt optellen of middelen. Een <em>dimensie</em> is hoe ' +
+      'je dat getal wilt <b>opsplitsen</b> in een rapport (&ldquo;omzet <b>per</b> stad&rdquo;, &ldquo;aantal <b>per</b> categorie&rdquo;).';
+    renderSort();
+  };
+  toStage2Btn.onclick = () => showStage(1);
+
+  buildSrcTable();
+  renderSort();
+
+  // ===================== STAGE 2: star diagram =====================
+  const starGrid = document.getElementById('starGrid');
+  const starSvg = document.getElementById('starSvg');
+  const factCard = document.getElementById('factCard');
+
+  function drawStarLines() {
+    if (getComputedStyle(starSvg).display === 'none') return;
+    const w = starGrid.clientWidth, h = starGrid.clientHeight;
+    starSvg.setAttribute('width', w);
+    starSvg.setAttribute('height', h);
+    starSvg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    const gr = starGrid.getBoundingClientRect();
+    const fr = factCard.getBoundingClientRect();
+    const fx = fr.left - gr.left + fr.width / 2;
+    const fy = fr.top - gr.top + fr.height / 2;
+    let svg = '';
+    starGrid.querySelectorAll('.dim-card').forEach(d => {
+      const r = d.getBoundingClientRect();
+      const dx = r.left - gr.left + r.width / 2;
+      const dy = r.top - gr.top + r.height / 2;
+      svg += '<line class="link-line" data-dim="' + d.dataset.dim + '" x1="' + fx + '" y1="' + fy + '" x2="' + dx + '" y2="' + dy + '"></line>';
+    });
+    starSvg.innerHTML = svg;
+  }
+
+  starGrid.querySelectorAll('.dim-card').forEach(d => {
+    const dim = d.dataset.dim;
+    d.addEventListener('mouseenter', () => {
+      const line = starSvg.querySelector('.link-line[data-dim="' + dim + '"]');
+      if (line) line.classList.add('hot');
+      const fk = factCard.querySelector('.card-row[data-fk="' + dim + '"]');
+      if (fk) fk.classList.add('hot');
+    });
+    d.addEventListener('mouseleave', () => {
+      starSvg.querySelectorAll('.link-line').forEach(l => l.classList.remove('hot'));
+      factCard.querySelectorAll('.card-row').forEach(r => r.classList.remove('hot'));
+    });
+  });
+
+  window.addEventListener('resize', () => { if (stages[1].classList.contains('active')) drawStarLines(); });
+  document.getElementById('backTo1Btn').onclick = () => showStage(0);
+  document.getElementById('toStage3Btn').onclick = () => showStage(2);
+
+  // ===================== STAGE 3: SCD =====================
+  // Anna's orders. klant_key links to a dim_klant version.
+  // Before move both the dim row and orders use key 1 (Amsterdam).
+  const ORDERS = [
+    { id: 'A1', datum: '2024-03-08', bedrag: 100 },  // before move
+    { id: 'A2', datum: '2024-08-21', bedrag: 150 },  // after move
+  ];
+  const BEN = { city: 'Utrecht', bedrag: 80 };       // contrast customer
+
+  let scdType = 1;
+  let moved = false;
+
+  const dimTable = document.getElementById('dimTable');
+  const orderTable = document.getElementById('orderTable');
+  const resultRows = document.getElementById('resultRows');
+  const dimDesc = document.getElementById('dimDesc');
+  const queryDesc = document.getElementById('queryDesc');
+  const scdVerdict = document.getElementById('scdVerdict');
+  const scdHead = document.getElementById('scdHead');
+  const scdBody = document.getElementById('scdBody');
+  const moveBtn = document.getElementById('moveBtn');
+
+  function renderDim() {
+    let rows;
+    if (!moved) {
+      rows = [{ key: 1, stad: 'Amsterdam', cls: '', from: '2020-01-01', to: '—', cur: true }];
+    } else if (scdType === 1) {
+      // overwrite in place
+      rows = [{ key: 1, stad: 'Rotterdam', cls: 'changed', from: '2020-01-01', to: '—', cur: true, city: 'rot' }];
+    } else {
+      // type 2: expire old, add new
+      rows = [
+        { key: 1, stad: 'Amsterdam', cls: 'expired', from: '2020-01-01', to: '2024-06-01', cur: false, city: 'ams' },
+        { key: 3, stad: 'Rotterdam', cls: 'newrow',  from: '2024-06-01', to: '—', cur: true, city: 'rot' },
+      ];
+    }
+    const showVer = (scdType === 2);
+    let html = '<tr><th>klant_key</th><th>klant</th><th>stad</th>';
+    if (showVer) html += '<th>valid_from</th><th>valid_to</th><th>is_current</th>';
+    html += '</tr>';
+    rows.forEach(r => {
+      html += '<tr class="' + r.cls + '">' +
+        '<td>' + r.key + '</td><td>Anna</td>' +
+        '<td class="' + (r.city || '') + '">' + r.stad + '</td>';
+      if (showVer) {
+        html += '<td>' + r.from + '</td><td>' + r.to + '</td>' +
+          '<td>' + (r.cur ? '<span class="flag-yes">true</span>' : '<span class="flag-no">false</span>') + '</td>';
+      }
+      html += '</tr>';
+    });
+    dimTable.innerHTML = html;
+
+    if (!moved) dimDesc.innerHTML = 'Anna woont in Amsterdam (klant_key 1).';
+    else if (scdType === 1) dimDesc.innerHTML = 'Type 1: dezelfde rij is <b style="color:#fb7185">overschreven</b>. Amsterdam bestaat niet meer.';
+    else dimDesc.innerHTML = 'Type 2: de oude rij is <b>afgesloten</b>, een <b style="color:#86efac">nieuwe rij</b> (key 3) is toegevoegd.';
+  }
+
+  function annaKeyFor(order) {
+    // which klant_key does this order point to?
+    if (!moved) return 1;
+    if (scdType === 1) return 1;                   // only one row exists
+    // type 2: orders after the move point to the new surrogate key
+    return order.datum >= '2024-06-01' ? 3 : 1;
+  }
+
+  function cityForKey(key) {
+    if (!moved) return 'Amsterdam';
+    if (scdType === 1) return 'Rotterdam';
+    return key === 3 ? 'Rotterdam' : 'Amsterdam';
+  }
+
+  function renderOrders() {
+    let html = '<tr><th>order</th><th>datum</th><th>klant_key</th><th>→ stad</th><th>bedrag</th></tr>';
+    ORDERS.forEach(o => {
+      const key = annaKeyFor(o);
+      const city = cityForKey(key);
+      const cityCls = city === 'Amsterdam' ? 'ams' : 'rot';
+      html += '<tr><td>' + o.id + '</td><td>' + o.datum + '</td><td>' + key + '</td>' +
+        '<td class="' + cityCls + '">' + city + '</td><td>€' + o.bedrag + '</td></tr>';
+    });
+    orderTable.innerHTML = html;
+  }
+
+  function renderResult() {
+    const totals = { Amsterdam: 0, Rotterdam: 0, Utrecht: BEN.bedrag };
+    ORDERS.forEach(o => { totals[cityForKey(annaKeyFor(o))] += o.bedrag; });
+    const cities = [
+      { name: 'Amsterdam', key: 'amsterdam' },
+      { name: 'Rotterdam', key: 'rotterdam' },
+      { name: 'Utrecht',   key: 'utrecht' },
+    ];
+    const max = 250;
+    let html = '';
+    cities.forEach(c => {
+      const v = totals[c.name];
+      if (v === 0) return;
+      const pct = Math.max(8, (v / max) * 100);
+      html += '<div class="res-bar-row">' +
+        '<span class="res-city ' + c.key + '">' + c.name + '</span>' +
+        '<div class="res-track"><div class="res-fill ' + c.key + '" style="width:' + pct + '%">€' + v + '</div></div>' +
+        '</div>';
+    });
+    resultRows.innerHTML = html;
+  }
+
+  function renderVerdict() {
+    if (!moved) {
+      scdVerdict.className = 'scd-verdict';
+      scdHead.textContent = 'Kies een SCD-type en klik op “Anna verhuist”.';
+      scdBody.innerHTML = 'Type 1 overschrijft de oude stad; Type 2 bewaart hem als aparte versie. Het verschil zie je pas in het rapport.';
+      queryDesc.innerHTML = 'Anna&apos;s €250 staat nu nog volledig op Amsterdam.';
+      return;
+    }
+    if (scdType === 1) {
+      scdVerdict.className = 'scd-verdict type1';
+      scdHead.textContent = '⚠️ Type 1 — de geschiedenis is herschreven';
+      scdBody.innerHTML = 'Er is maar één rij, dus <b>beide</b> bestellingen koppelen nu aan Rotterdam — óók die van maart, ' +
+        'toen Anna nog in Amsterdam woonde. Amsterdam verliest €100 dat het wél heeft verdiend. Simpel te onderhouden, ' +
+        'maar je oude rapporten veranderen met terugwerkende kracht.';
+      queryDesc.innerHTML = 'Alle €250 valt nu op <span style="color:#fca5a5">Rotterdam</span> — Amsterdam is uit de cijfers verdwenen.';
+    } else {
+      scdVerdict.className = 'scd-verdict type2';
+      scdHead.textContent = '✓ Type 2 — de geschiedenis klopt';
+      scdBody.innerHTML = 'De maart-bestelling wijst nog naar key 1 (Amsterdam), de augustus-bestelling naar de nieuwe key 3 ' +
+        '(Rotterdam). Daarom verwijst de feitentabel naar een <b>surrogaatsleutel</b>: zo blijft elke verkoop hangen aan de ' +
+        'versie van de klant die op dát moment gold. Meer rijen, maar historisch juist.';
+      queryDesc.innerHTML = '€100 blijft op <span style="color:#7dd3fc">Amsterdam</span>, €150 gaat naar <span style="color:#fca5a5">Rotterdam</span>.';
+    }
+  }
+
+  function renderScd() {
+    renderDim();
+    renderOrders();
+    renderResult();
+    renderVerdict();
+    moveBtn.disabled = moved;
+    moveBtn.textContent = moved ? '✓ Anna is verhuisd' : '🚚 Anna verhuist';
+  }
+
+  document.getElementById('scdTypes').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    scdType = +b.dataset.scd;
+    [...e.currentTarget.children].forEach(x => x.classList.toggle('on', x === b));
+    renderScd();
+  });
+  moveBtn.onclick = () => { moved = true; renderScd(); };
+  document.getElementById('resetScdBtn').onclick = () => { moved = false; renderScd(); };
+  document.getElementById('backTo2Btn').onclick = () => showStage(1);
+
+  renderScd();
+</script>
+</body>
+</html>
