@@ -25,7 +25,9 @@ calculation one reveal at a time, and **Techniek** examples that demystify a tec
 concept (CORS, HTTP, …) — both still single self-contained files in the same visual style.
 A file picks its bucket on the landing page via the optional `category` field (see below);
 no `category` means it lands in "Animaties". The known categories live in `categoryMeta`
-(`Animaties`, `Techniek`, `Kennisbank`); add a new key there to introduce another section.
+(`Animaties`, `Techniek`, `Kennisbank`, `Wiskunde`); add a new key there to introduce another section.
+**Wiskunde** examples are school-math lessons (explanation + practice) and live in the
+`wiskunde/` subfolder; their `file` entry in `index.html` includes that path.
 
 ## Files
 
@@ -112,7 +114,7 @@ Examples are independent — there is no shared library or cross-file dependency
 
 ## Adding a new example
 
-1. Create one new `<concept-name>.html` (kebab-case) at the repo root.
+1. Create one new `<concept-name>.html` (kebab-case) at the repo root (Wiskunde topics go in `wiskunde/`).
 2. Inline everything; depend on nothing local. Make it open-and-run.
 3. Pick one concept and make the interaction *demonstrate* it — not just illustrate it.
 4. Open with a short Dutch intro card (see Conventions); set `lang="nl"` and keep all

@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 13: Periodieke Verschijnselen & Sinusoïden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tab-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- Header -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 13</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">Periodieke Verschijnselen & Sinusoïden</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 11</div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-radiaal')" id="btn-tab-radiaal" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Radiaal, GR & y = sin(x)
+            </button>
+            <button onclick="switchTab('tab-formule')" id="btn-tab-formule" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Formule-Lab: a + b·sin(c(x-d))
+            </button>
+            <button onclick="switchTab('tab-tekenen')" id="btn-tab-tekenen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Stappenplan Zelf Tekenen
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (11)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Wat is een periodiek verschijnsel?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                De hoogte van een gondel in een reuzenrad en eb en vloed van het zeewater herhalen zich steeds met een vaste regelmaat. Zo'n verschijnsel noem je een <strong>periodiek verschijnsel</strong>. Elke periodieke grafiek heeft drie belangrijke kenmerken:
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">1. Periode</div>
+                    <div class="font-bold text-slate-900 mt-1">Duur van één herhaling</div>
+                    <p class="text-sm text-slate-600 mt-1">De kortste tijd (of afstand op de horizontale as) tot de beweging zich precies herhaalt.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">2. Evenwichtsstand</div>
+                    <div class="font-bold text-slate-900 mt-1">Het midden van de golf</div>
+                    <p class="text-sm text-slate-600 mt-1">De horizontale lijn waar de grafiek omheen schommelt:</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold">
+                        (hoogste + laagste) / 2
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. Amplitude</div>
+                    <div class="font-bold text-slate-900 mt-1">Maximale uitwijking</div>
+                    <p class="text-sm text-slate-600 mt-1">Het verschil tussen de hoogste stand en de evenwichtsstand:</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        hoogste − evenwichtsstand
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Ferris Wheel & Graph (Fig 13.2 / 13.3) -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve Animatie: Reuzenrad & Golfgrafiek</h3>
+                    <p class="text-sm text-slate-500">Kies een voorbeeld uit het boek en zie hoe de draaiende gondel de grafiek tekent.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setBasisPreset(1)" id="preset-btn-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Figuur 13.2 (Periode 5)
+                    </button>
+                    <button onclick="setBasisPreset(2)" id="preset-btn-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Figuur 13.3 (Periode 8)
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleBasisPlay()" id="btn-basis-play" class="flex-1 py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                            ⏸ Pauzeer animatie
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Tijdstip (t) handmatig verschuiven:</span>
+                            <span id="basis-t-label" class="mono font-bold text-indigo-600">t = 0.0 s</span>
+                        </label>
+                        <input id="basis-t-slider" type="range" min="0" max="15" step="0.05" value="0" class="w-full mt-1" oninput="manualBasisSlider(this.value)" />
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbare hulplijnen in grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-evenwicht" checked onchange="drawBasis()" class="rounded text-rose-600" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Evenwichtsstand</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-amplitude" checked onchange="drawBasis()" class="rounded text-sky-600" />
+                            <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+                            <span class="font-medium">Amplitude</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-periode" checked onchange="drawBasis()" class="rounded text-amber-600" />
+                            <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                            <span class="font-medium">Periode</span>
+                        </label>
+                    </div>
+
+                    <div id="basis-uitleg-box" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: RADIAAL, GR & Y = SIN(X) ==================== -->
+    <section id="tab-radiaal" class="tab-section hidden space-y-6">
+        <!-- Uitleg De Radiaal -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Van Graden naar Radialen & de grafiek van <span class="mono text-indigo-600">y = sin(x)</span></h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In de onderbouw rekende je met hoeken in graden (een cirkel = 360°). Bij periodieke functies gebruiken we een andere hoekeenheid: de <strong>radiaal (rad)</strong>. Op een <strong>eenheidscirkel</strong> (straal = 1) is de hoek in radialen precies gelijk aan de <strong>lengte van de cirkelboog</strong>!
+            </p>
+
+            <div class="grid sm:grid-cols-4 gap-3 mt-4 text-center">
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs text-slate-500">1 radiaal</div>
+                    <div class="font-bold text-slate-800 mono mt-0.5">booglengte = 1</div>
+                    <div class="text-xs text-indigo-600 mt-0.5">≈ 57,3°</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs text-slate-500">Kwart cirkel</div>
+                    <div class="font-bold text-slate-800 mono mt-0.5">½π rad</div>
+                    <div class="text-xs text-indigo-600 mt-0.5">= 90° (Top: y = 1)</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs text-slate-500">Halve cirkel</div>
+                    <div class="font-bold text-slate-800 mono mt-0.5">π rad ≈ 3,14</div>
+                    <div class="text-xs text-indigo-600 mt-0.5">= 180° (Snijpunt: y = 0)</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs text-slate-500">Hele cirkel (Periode)</div>
+                    <div class="font-bold text-slate-800 mono mt-0.5">2π rad ≈ 6,28</div>
+                    <div class="text-xs text-indigo-600 mt-0.5">= 360° (1 periode)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactieve Eenheidscirkel -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve Eenheidscirkel & Standaardgrafiek <span class="mono text-indigo-600">y = sin(x)</span></h3>
+                    <p class="text-sm text-slate-500">Sleep de hoek <span class="mono">x</span> of klik op een bijzondere hoek om te zien hoe de hoogte op de eenheidscirkel <span class="mono">sin(x)</span> vormt.</p>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="setRadAngle(0)" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 text-slate-700 rounded-lg text-xs font-mono font-semibold">0</button>
+                    <button onclick="setRadAngle(1)" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg text-xs font-mono font-semibold">1 rad</button>
+                    <button onclick="setRadAngle(Math.PI/2)" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 text-slate-700 rounded-lg text-xs font-mono font-semibold">½π</button>
+                    <button onclick="setRadAngle(Math.PI)" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 text-slate-700 rounded-lg text-xs font-mono font-semibold">π</button>
+                    <button onclick="setRadAngle(1.5*Math.PI)" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 text-slate-700 rounded-lg text-xs font-mono font-semibold">1½π</button>
+                    <button onclick="setRadAngle(2*Math.PI)" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 text-slate-700 rounded-lg text-xs font-mono font-semibold">2π</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <canvas id="canvas-radiaal" width="820" height="320" class="w-full h-auto"></canvas>
+            </div>
+
+            <div class="mt-4 flex flex-col md:flex-row items-center gap-4">
+                <div class="w-full md:w-2/3">
+                    <label class="text-xs font-semibold text-slate-600 flex justify-between">
+                        <span>Draaiingshoek x (in radialen = booglengte):</span>
+                        <span id="rad-slider-label" class="mono font-bold text-indigo-600">x = 1.00 rad (≈ 57.3°)</span>
+                    </label>
+                    <input id="rad-slider" type="range" min="0" max="12.566" step="0.02" value="1" class="w-full mt-1" oninput="updateRadSlider(this.value)" />
+                </div>
+                <div id="rad-info-pill" class="w-full md:w-1/3 p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-xs mono text-indigo-950">
+                    <!-- JS populated -->
+                </div>
+            </div>
+        </div>
+
+        <!-- NIEUW: REKENMACHINE SIMULATOR (RAD vs DEG) + GR INSTELLINGEN -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-amber-300 relative overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-4 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">🖩</span>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Cruciale Afspraak bij Hoofdstuk 13</span>
+                        <h3 class="text-lg font-bold text-slate-800 mt-0.5">Zet je rekenmachine altijd op RADIALEN (RAD)!</h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <!-- Interactive Calculator Simulator -->
+                <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-bold tracking-wider uppercase text-slate-400">GR Simulator • RAD vs. DEG Test</div>
+                        <div class="flex items-center bg-slate-800 p-1 rounded-lg border border-slate-700">
+                            <button onclick="setCalcMode('RAD')" id="btn-calc-rad" class="px-3 py-1 rounded-md text-xs font-bold mono transition bg-emerald-500 text-slate-950 shadow">
+                                RAD (Radialen)
+                            </button>
+                            <button onclick="setCalcMode('DEG')" id="btn-calc-deg" class="px-3 py-1 rounded-md text-xs font-bold mono transition text-slate-400 hover:text-white">
+                                DEG (Graden)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Simulated LCD Screen -->
+                    <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 font-mono">
+                        <div class="flex justify-between items-center text-[11px] border-b border-slate-400/50 pb-1 mb-2 font-bold">
+                            <span>NORMAL FLOAT AUTO REAL</span>
+                            <span id="gr-status-badge" class="px-1.5 py-0.5 rounded bg-emerald-700 text-white">RADIAN</span>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-3 items-center">
+                            <!-- Left: Calculation display -->
+                            <div class="space-y-2 bg-white/50 p-2.5 rounded-lg border border-slate-400/40">
+                                <div class="text-xs text-slate-600">Berekening:</div>
+                                <div id="gr-expr" class="text-sm font-bold text-slate-900">sin(1/2 * π)</div>
+                                <div id="gr-result" class="text-xl font-extrabold text-right text-indigo-900 border-t border-slate-300 pt-1">= 1</div>
+                                <div id="gr-verdict" class="text-[11px] font-sans font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-1 rounded">
+                                    ✓ Klopt! Bij x = ½π zit de eerste top (y = 1).
+                                </div>
+                            </div>
+
+                            <!-- Right: Mini Graph Screen -->
+                            <div class="bg-white/60 p-2 rounded-lg border border-slate-400/40 flex flex-col items-center">
+                                <div class="text-[10px] text-slate-600 w-full flex justify-between mb-1">
+                                    <span>Y1 = sin(X)</span>
+                                    <span>X: [-7, 7] Y: [-2, 2]</span>
+                                </div>
+                                <canvas id="canvas-gr" width="220" height="110" class="w-full h-auto rounded border border-slate-300 bg-[#e6efe9]"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calculator Test Buttons -->
+                    <div class="mt-4">
+                        <div class="text-xs text-slate-400 mb-2">Klik op een berekening en wissel hierboven tussen <strong>RAD</strong> en <strong>DEG</strong> om het verschil te zien:</div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button onclick="setCalcExpr(0)" id="calc-expr-0" class="calc-expr-btn py-2 px-3 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold border border-indigo-400">
+                                sin(½π)
+                            </button>
+                            <button onclick="setCalcExpr(1)" id="calc-expr-1" class="calc-expr-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold border border-slate-700">
+                                sin(π)
+                            </button>
+                            <button onclick="setCalcExpr(2)" id="calc-expr-2" class="calc-expr-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold border border-slate-700">
+                                sin(1½π)
+                            </button>
+                            <button onclick="setCalcExpr(3)" id="calc-expr-3" class="calc-expr-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold border border-slate-700">
+                                sin(2)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Explanation & GR Settings Cheat Sheet -->
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                        <div class="font-bold text-amber-900">Waarom gaat het mis in DEG (graden)?</div>
+                        <p class="text-xs leading-relaxed">
+                            Als je rekenmachine op <strong>graden (DEG)</strong> staat en je typt <span class="mono font-semibold">sin(½π)</span>, dan berekent je GR <span class="mono">sin(1,57°)</span> in plaats van een kwart cirkel (<span class="mono">90°</span>). Je krijgt dan <span class="mono font-bold text-rose-700">0,0274</span> in plaats van <span class="mono font-bold text-emerald-700">1</span>!
+                        </p>
+                        <p class="text-xs leading-relaxed">
+                            <strong>Herken de fout bij plotten:</strong> Zie je bij het plotten van <span class="mono">y = sin(x)</span> bijna een <em>platte rechte lijn</em> langs de x-as? Dan staat je GR nog op graden!
+                        </p>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Spiekbriefje: Zo zet je jouw GR op Radialen (Opgave 1)</div>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-start justify-between p-2 rounded-lg bg-white border border-slate-200">
+                                <span class="font-bold text-slate-800">Texas Instruments (TI)</span>
+                                <span class="mono text-indigo-700 font-semibold">MODE → RADIAN</span>
+                            </div>
+                            <div class="flex items-start justify-between p-2 rounded-lg bg-white border border-slate-200">
+                                <span class="font-bold text-slate-800">Casio</span>
+                                <span class="mono text-indigo-700 font-semibold">SET UP (SHIFT+MENU) → Angle: Rad</span>
+                            </div>
+                            <div class="flex items-start justify-between p-2 rounded-lg bg-white border border-slate-200">
+                                <span class="font-bold text-slate-800">NumWorks (NW)</span>
+                                <span class="mono text-indigo-700 font-semibold">Instellingen → Hoekeenheid → Radialen</span>
+                            </div>
+                            <div class="flex items-start justify-between p-2 rounded-lg bg-white border border-slate-200">
+                                <span class="font-bold text-slate-800">HP Prime</span>
+                                <span class="mono text-indigo-700 font-semibold">Settings → Angle Measure → Radians</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: FORMULE-LAB ==================== -->
+    <section id="tab-formule" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">De algemene sinusoïde: <span class="mono text-indigo-600">y = a + b · sin(c(x − d))</span></h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        Elke parameter (<span class="mono font-bold">a, b, c, d</span>) vervormt of verschuift de standaardgrafiek <span class="mono">y = sin(x)</span> op een eigen manier.
+                    </p>
+                </div>
+                <!-- Dynamic Formula Display -->
+                <div id="live-formula-banner" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-lg md:text-xl font-bold shadow-inner text-center">
+                    y = 1 + 3 · sin(0.79(x − 2))
+                </div>
+            </div>
+
+            <!-- Presets from Textbook -->
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setLabPreset(0, 1, 1, 0)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 text-slate-700">
+                    Standaard: y = sin(x)
+                </button>
+                <button onclick="setLabPreset(3, 5, 4, 0)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 text-slate-700">
+                    Theorie B: y = 3 + 5·sin(4x)
+                </button>
+                <button onclick="setLabPreset(1, 3, Math.PI/4, 2)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">
+                    Figuur 13.10: y = 1 + 3·sin(¼π(x − 2))
+                </button>
+                <button onclick="setLabPreset(2.5, 1.5, Math.PI, 1)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 text-slate-700">
+                    Figuur 13.11: y = 2½ + 1½·sin(π(x − 1))
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-center">
+                <!-- Canvas -->
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-lab" width="720" height="380" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-slate-400 inline-block"></span> Standaard <span class="mono">y = sin(x)</span></span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Sinusoïde <span class="mono">y = a + b·sin(c(x-d))</span></span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Stijgend door evenwichtsstand <span class="mono">(d, a)</span></span>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="lg:col-span-4 space-y-4">
+                    <!-- Parameter a -->
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="flex justify-between text-xs font-bold text-rose-800">
+                            <span>a = Evenwichtsstand (verticaal)</span>
+                            <span id="val-a" class="mono text-sm">a = 1.0</span>
+                        </div>
+                        <input id="slider-a" type="range" min="-3" max="4" step="0.5" value="1" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-rose-700 mt-0.5">Verschuift de hele grafiek <span class="mono">a</span> omhoog/omlaag.</div>
+                    </div>
+
+                    <!-- Parameter b -->
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <div class="flex justify-between text-xs font-bold text-sky-800">
+                            <span>b = Amplitude (uitrekken)</span>
+                            <span id="val-b" class="mono text-sm">b = 3.0</span>
+                        </div>
+                        <input id="slider-b" type="range" min="0.5" max="5" step="0.5" value="3" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-sky-700 mt-0.5">Hoogste stand = <span id="lab-max" class="mono font-bold">4.0</span>, Laagste = <span id="lab-min" class="mono font-bold">-2.0</span></div>
+                    </div>
+
+                    <!-- Parameter c -->
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>c = Snelheid → bepaalt Periode</span>
+                            <span id="val-c" class="mono text-sm">c = ¼π ≈ 0.79</span>
+                        </div>
+                        <input id="slider-c" type="range" min="0.25" max="4" step="0.05" value="0.7854" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-amber-800 mt-1 flex justify-between items-center bg-white/80 px-2 py-1 rounded border border-amber-200">
+                            <span>Periode = <span class="mono">2π / c</span></span>
+                            <span id="val-periode" class="mono font-bold text-amber-900">Periode = 8.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Parameter d -->
+                    <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                        <div class="flex justify-between text-xs font-bold text-emerald-800">
+                            <span>d = Horizontale verschuiving (rechts)</span>
+                            <span id="val-d" class="mono text-sm">d = 2.0</span>
+                        </div>
+                        <input id="slider-d" type="range" min="0" max="6" step="0.5" value="2" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-emerald-800 mt-0.5">
+                            Gaat <strong>stijgend door de evenwichtsstand</strong> in <span id="val-startpunt" class="mono font-bold">(2.0, 1.0)</span>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Let op: sin(c(x-d)) vs sin(cx-d) uit Opgave 11 -->
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div class="space-y-1">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op bij haakjes! (Opgave 11 & R12)</div>
+                <h4 class="font-bold text-slate-800">Verschil tussen <span class="mono">y₁ = sin(3(x − 0,73))</span> en <span class="mono">y₂ = sin(3x − 0,73)</span> + Schaalverdeling</h4>
+                <p class="text-xs text-slate-700 leading-relaxed">
+                    • Alleen als <span class="mono">c</span> <strong>buiten haakjes</strong> staat zoals bij <span class="mono">sin(3(x − 0,73))</span> kun je het startpunt <span class="mono">d = 0,73</span> direct aflezen.<br>
+                    • Staat er een <span class="mono">π</span> in factor <span class="mono">c</span> (zoals <span class="mono">c = ¼π</span>)? Dan valt <span class="mono">π</span> weg bij <span class="mono">periode = 2π / (¼π) = 8</span> en gebruik je een <strong>gewone getallenschaal (1, 2, 3...)</strong> op de x-as!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: STAPPENPLAN ZELF TEKENEN ==================== -->
+    <section id="tab-tekenen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: Hoe teken je zelf een sinusoïde?</h2>
+                    <p class="text-sm text-slate-600">Kies een opgave uit het boek en klik door de 4 stappen om te zien hoe je de grafiek opbouwt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setStepExample(0)" id="step-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Voorbeeld: A = 20 + 15·sin(π(t − 1½))
+                    </button>
+                    <button onclick="setStepExample(1)" id="step-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Terugblik: N = 10 + 20·sin(¼π(t − 2))
+                    </button>
+                    <button onclick="setStepExample(2)" id="step-ex-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Opgave 13: y = 5 + 2·sin(π(x − ½))
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step Selector Buttons -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+                <button onclick="setDrawStep(1)" id="draw-step-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">4 Kenmerken opschrijven</div>
+                </button>
+                <button onclick="setDrawStep(2)" id="draw-step-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">Evenwichtsstand & snijpunten</div>
+                </button>
+                <button onclick="setDrawStep(3)" id="draw-step-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Hoogste & laagste punten</div>
+                </button>
+                <button onclick="setDrawStep(4)" id="draw-step-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">Vloeiende sinusoïde tekenen</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-steps" width="640" height="340" class="w-full h-auto"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="step-explanation" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="flex justify-between">
+                        <button onclick="prevDrawStep()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
+                            ← Vorige stap
+                        </button>
+                        <button onclick="nextDrawStep()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+                            Volgende stap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Gebruik een komma of punt voor kommagetallen.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Opgave 1a: Figuur 13.4a -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Figuur 13.4a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Aflezen uit een grafiek (met negatieve waarden)</h3>
+                    <canvas id="canvas-ex1" width="380" height="190" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Lees de periode, de evenwichtsstand en de amplitude af uit de grafiek hierboven.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-700">Periode:</label>
+                            <input id="q1-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Evenwicht:</label>
+                            <input id="q1-e" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Amplitude:</label>
+                            <input id="q1-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ1()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q1" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opgave 1b: Figuur 13.4b -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Figuur 13.4b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Aflezen uit een grafiek (grote getallen)</h3>
+                    <canvas id="canvas-ex2" width="380" height="190" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Lees opnieuw de periode, de evenwichtsstand en de amplitude af.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-700">Periode:</label>
+                            <input id="q2-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Evenwicht:</label>
+                            <input id="q2-e" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Amplitude:</label>
+                            <input id="q2-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ2()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q2" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opgave 2: Vooruitrekenen met de periode -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 2 (Figuur 13.5)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Verder rekenen met de periode</h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        Een periodiek verschijnsel heeft <strong>periode 4</strong>, evenwichtsstand 1 en amplitude 2:<br>
+                        • Op <span class="mono">t = 0</span> en <span class="mono">t = 2</span> is <span class="mono">h = 1</span><br>
+                        • Op <span class="mono">t = 1</span> is het hoogste punt <span class="mono">h = 3</span><br>
+                        • Op <span class="mono">t = 3</span> is het laagste punt <span class="mono">h = −1</span>
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 text-xs mt-4">
+                        <div>
+                            <label class="font-semibold text-slate-700">h bij t = 22:</label>
+                            <input id="q3-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">h bij t = 33:</label>
+                            <input id="q3-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">h bij t = 35:</label>
+                            <input id="q3-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ3()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q3" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opgave 3: Cepheïde ster -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 3 (Figuur 13.6: Cepheïde)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Helderheid van een ster</h3>
+                    <canvas id="canvas-ex4" width="380" height="160" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">
+                        De zaagtandgrafiek heeft een top (100%) op <span class="mono">t = 2, 22, 42...</span> uur en een dal (50%) op <span class="mono">t = 18, 38, 58...</span> uur. Op <span class="mono">t = 0</span> is de helderheid 75%.
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-700">Periode (uur):</label>
+                            <input id="q4-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Max → Min (uur):</label>
+                            <input id="q4-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">% op t = 140u:</label>
+                            <input id="q4-h" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ4()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q4" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: Kenmerken uit formule halen (Opgave 5h) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave 5h</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Kenmerken uit formule bepalen</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-base">
+                        y = 5 + 2 · sin(4πx)
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">Bepaal de evenwichtsstand, de amplitude en de periode van deze formule.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold text-slate-700">Evenwicht (a):</label>
+                            <input id="q5-e" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Amplitude (b):</label>
+                            <input id="q5-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Periode:</label>
+                            <input id="q5-p" type="text" placeholder="0,5" class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ5()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q5" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: Parameters a, b, c vinden (Opgave 6a) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 6a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Zelf de formule <span class="mono">y = a + b·sin(cx)</span> opstellen</h3>
+                    <p class="text-xs text-slate-600 mt-2">
+                        Van een sinusoïde is gegeven:<br>
+                        • <strong>Evenwichtsstand</strong> = 100<br>
+                        • <strong>Amplitude</strong> = 8<br>
+                        • <strong>Periode</strong> = 0,2
+                    </p>
+                    <p class="text-xs text-slate-500 mt-2">Tip: Gebruik <span class="mono">c = 2π / periode</span>. Hoeveel π is <span class="mono">c</span>?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs mt-3">
+                        <div>
+                            <label class="font-semibold text-slate-700">Waarde a:</label>
+                            <input id="q6-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Waarde b:</label>
+                            <input id="q6-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">c (als veelvoud π):</label>
+                            <div class="flex items-center mt-1">
+                                <input id="q6-c" type="text" placeholder=".." class="w-full px-2.5 py-1.5 border rounded-l-lg mono" />
+                                <span class="bg-slate-100 border border-l-0 px-2 py-1.5 rounded-r-lg mono font-bold">π</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ6()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q6" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: Figuur 13.8 formule opstellen -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave 8 (Figuur 13.8)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Van grafiek naar formule</h3>
+                    <canvas id="canvas-ex7" width="380" height="170" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">
+                        De grafiek gaat op <span class="mono">x = 0</span> stijgend door <span class="mono">y = 15</span>, heeft een top bij <span class="mono">(2, 25)</span> en een dal bij <span class="mono">(6, 5)</span>. Kies de juiste formule:
+                    </p>
+                    <div class="space-y-1.5 text-xs mono">
+                        <label class="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q7" value="A" /> y = 15 + 25 · sin(8x)
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q7" value="B" /> y = 15 + 10 · sin(¼πx)
+                        </label>
+                        <label class="flex items-center gap-2 p-2 rounded border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q7" value="C" /> y = 10 + 15 · sin(½πx)
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ7()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q7" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: Eenheden omzetten (Opgave 9) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 9 (Uitdagend!)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Eenheden omrekenen in een formule</h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        Gegeven is <span class="mono font-bold">h = 20 + 15 · sin(0,1t)</span> met <span class="mono">h</span> in <strong>decimeter (dm)</strong> en <span class="mono">t</span> in <strong>seconden</strong>.<br>
+                        Zet dit om naar <span class="mono font-bold">H = a + b · sin(cT)</span> met <span class="mono">H</span> in <strong>meters</strong> (delen door 10) en <span class="mono">T</span> in <strong>minuten</strong> (<span class="mono">t = 60T</span>).
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 text-xs mt-4">
+                        <div>
+                            <label class="font-semibold text-slate-700">Nieuwe a (m):</label>
+                            <input id="q8-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Nieuwe b (m):</label>
+                            <input id="q8-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">Nieuwe c:</label>
+                            <input id="q8-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ8()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q8" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: Horizontale verschuiving (Opgave 10 & 11) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 10 & 11</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Horizontale verschuiving & startpunt</h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        Gegeven zijn voor <span class="mono">0 ≤ x ≤ 3</span>:<br>
+                        • <span class="mono font-bold">y₁ = sin(3(x − 0,73))</span><br>
+                        • <span class="mono font-bold">y₂ = sin(3x − 0,73)</span>
+                    </p>
+                    <div class="space-y-3 text-xs mt-3">
+                        <div>
+                            <label class="font-semibold text-slate-700">Wat is de x-coördinaat van het snijpunt met de x-as van y₁?</label>
+                            <input id="q9-x1" type="text" placeholder="0,73" class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold text-slate-700">En van y₂? (Los op: 3x − 0,73 = 0, rond af op 2 dec):</label>
+                            <input id="q9-x2" type="text" placeholder="0,.." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ9()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q9" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: Interactieve Grafiek-Matcher -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Einduitdaging</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw grafiek samenvallen met het doel!</h3>
+                    <canvas id="canvas-ex10" width="380" height="170" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">
+                        Kies <span class="mono">a, b, d</span> zodat jouw blauwe lijn precies op de gestippelde doelgrafiek <span class="mono">y = a + b·sin(π(x − d))</span> met periode 2 valt:
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label class="font-semibold">a (evenwicht):</label>
+                            <input id="q10-a" type="number" step="0.5" value="1" oninput="drawEx10()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold">b (amplitude):</label>
+                            <input id="q10-b" type="number" step="0.5" value="1" oninput="drawEx10()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label class="font-semibold">d (start x):</label>
+                            <input id="q10-d" type="number" step="0.5" value="0" oninput="drawEx10()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ10()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer Match</button>
+                    <span id="fb-q10" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+            <!-- NIEUW: Opdracht 11: Rekenmachine Instinker (Opgave 1 & Afspraak) -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border-2 border-amber-300 md:col-span-2 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-amber-700 uppercase">Opdracht 11 • Rekenmachine-diagnose (Opgave 1)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Wat gaat er mis op het scherm van de Grafische Rekenmachine?</h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        Sanne wil op haar GR de grafiek van <span class="mono font-bold">y = sin(x)</span> plotten met <span class="mono">x</span> tussen <span class="mono">-7</span> en <span class="mono">7</span> en <span class="mono">y</span> tussen <span class="mono">-2</span> en <span class="mono">2</span>. In plaats van een golf ziet ze alleen een bijna platte lijn vlak langs de x-as. En als ze <span class="mono">sin(π)</span> uitrekent krijgt ze <span class="mono">0,0548</span> in plaats van <span class="mono">0</span>. Wat is er aan de hand?
+                    </p>
+                    <div class="grid md:grid-cols-3 gap-2 text-xs mt-3">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="A" />
+                            <span>Haar vensterinstellingen (Window) van X en Y zijn verkeerd gekozen.</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="B" />
+                            <span>Haar rekenmachine staat nog op <strong>graden (DEG)</strong> in plaats van <strong>radialen (RAD)</strong>.</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="C" />
+                            <span>Ze had de cosinus moeten plotten in plaats van de sinus.</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t flex items-center justify-between">
+                    <button onclick="checkQ11()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
+                    <span id="fb-q11" class="text-xs font-semibold"></span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== NAVIGATION ====================
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        document.getElementById(tabId).classList.remove('hidden');
+
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + tabId).classList.add('active');
+
+        if (tabId === 'tab-basis') drawBasis();
+        if (tabId === 'tab-radiaal') {
+            drawRadiaal();
+            updateCalcSimulator();
+        }
+        if (tabId === 'tab-formule') updateLab();
+        if (tabId === 'tab-tekenen') drawStepsCanvas();
+        if (tabId === 'tab-opdrachten') {
+            drawEx1();
+            drawEx2();
+            drawEx4();
+            drawEx7();
+            drawEx10();
+        }
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN ANIMATIE ====================
+    let basisPreset = 1; // 1 = Fig 13.2, 2 = Fig 13.3
+    let basisTime = 0;
+    let basisPlaying = true;
+
+    function setBasisPreset(p) {
+        basisPreset = p;
+        basisTime = 0;
+        const b1 = document.getElementById('preset-btn-1');
+        const b2 = document.getElementById('preset-btn-2');
+        const slider = document.getElementById('basis-t-slider');
+
+        if (p === 1) {
+            b1.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white';
+            b2.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+            slider.max = 15;
+        } else {
+            b2.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white';
+            b1.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+            slider.max = 32;
+        }
+        drawBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        document.getElementById('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        basisPlaying = false;
+        document.getElementById('btn-basis-play').innerText = '▶ Start animatie';
+        basisTime = parseFloat(val);
+        drawBasis();
+    }
+
+    function getBasisValue(t) {
+        if (basisPreset === 1) {
+            // Fig 13.2: min=1 at t=0, max=6 at t=2.5, period=5 => eq=3.5, amp=2.5
+            return 3.5 - 2.5 * Math.cos((2 * Math.PI / 5) * t);
+        } else {
+            // Fig 13.3: max=25 at t=0, min=5 at t=4, period=8 => eq=15, amp=10
+            return 15 + 10 * Math.cos((2 * Math.PI / 8) * t);
+        }
+    }
+
+    function drawBasis() {
+        const canvas = document.getElementById('canvas-basis');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const isP1 = basisPreset === 1;
+        const maxT = isP1 ? 15 : 32;
+        const maxY = isP1 ? 7 : 30;
+        const eq = isP1 ? 3.5 : 15;
+        const amp = isP1 ? 2.5 : 10;
+        const per = isP1 ? 5 : 8;
+        const high = isP1 ? 6 : 25;
+        const low = isP1 ? 1 : 5;
+
+        // Update info box
+        document.getElementById('basis-t-label').innerText = `t = ${basisTime.toFixed(1)} s`;
+        document.getElementById('basis-t-slider').value = basisTime;
+        document.getElementById('basis-uitleg-box').innerHTML = `
+        <div class="font-bold text-indigo-950">${isP1 ? 'Figuur 13.2' : 'Figuur 13.3'} berekening:</div>
+        <div>• <strong>Hoogste stand</strong> = ${high}, <strong>Laagste stand</strong> = ${low}</div>
+        <div>• <span class="text-rose-700 font-semibold">Evenwichtsstand</span> = (${high} + ${low}) / 2 = <strong>${eq}</strong></div>
+        <div>• <span class="text-sky-700 font-semibold">Amplitude</span> = ${high} − ${eq} = <strong>${amp}</strong></div>
+        <div>• <span class="text-amber-700 font-semibold">Periode</span> = <strong>${per}</strong></div>
+      `;
+
+        // Graph region
+        const gx0 = 230, gx1 = 690, gy0 = 30, gy1 = 290;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const mapX = t => gx0 + (t / maxT) * gw;
+        const mapY = y => gy1 - (y / maxY) * gh;
+
+        // Grid
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        const yStep = isP1 ? 1 : 5;
+        for (let y = 0; y <= maxY; y += yStep) {
+            const py = mapY(y);
+            ctx.beginPath();
+            ctx.moveTo(gx0, py);
+            ctx.lineTo(gx1, py);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 8, py + 4);
+        }
+
+        const tStep = isP1 ? 5 : 4;
+        for (let t = 0; t <= maxT; t += tStep) {
+            const px = mapX(t);
+            ctx.beginPath();
+            ctx.moveTo(px, gy0);
+            ctx.lineTo(px, gy1);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.fillText(t, px, gy1 + 18);
+        }
+
+        // Axes
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0);
+        ctx.lineTo(gx0, gy1);
+        ctx.lineTo(gx1, gy1);
+        ctx.stroke();
+
+        // Ferris Wheel on Left
+        const wheelX = 105;
+        const wheelY = mapY(eq);
+        const wheelR = (amp / maxY) * gh;
+
+        // Stand
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(wheelX - 35, gy1);
+        ctx.lineTo(wheelX, wheelY);
+        ctx.lineTo(wheelX + 35, gy1);
+        ctx.stroke();
+
+        // Wheel circle
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(wheelX, wheelY, wheelR, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Current Gondola position
+        const curYVal = getBasisValue(basisTime);
+        const curPy = mapY(curYVal);
+        const phase = isP1
+            ? ((2 * Math.PI / 5) * basisTime - Math.PI / 2)
+            : ((2 * Math.PI / 8) * basisTime + Math.PI / 2);
+        const gondelX = wheelX + wheelR * Math.cos(phase);
+        const gondelY = curPy;
+
+        // Spoke
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(wheelX, wheelY);
+        ctx.lineTo(gondelX, gondelY);
+        ctx.stroke();
+
+        // Evenwichtsstand line
+        if (document.getElementById('chk-evenwicht').checked) {
+            ctx.save();
+            ctx.strokeStyle = '#e11d48';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(wheelX - wheelR - 10, mapY(eq));
+            ctx.lineTo(gx1, mapY(eq));
+            ctx.stroke();
+            ctx.restore();
+
+            ctx.fillStyle = '#e11d48';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(`evenwichtsstand = ${eq}`, gx1 - 6, mapY(eq) - 6);
+        }
+
+        // Sine wave curve
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const t = ((px - gx0) / gw) * maxT;
+            const y = getBasisValue(t);
+            const py = mapY(y);
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Amplitude arrow
+        if (document.getElementById('chk-amplitude').checked) {
+            const peakT = isP1 ? 7.5 : 16;
+            const ax = mapX(peakT);
+            const ayTop = mapY(high);
+            const ayEq = mapY(eq);
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(ax, ayEq);
+            ctx.lineTo(ax, ayTop);
+            ctx.stroke();
+
+            ctx.fillStyle = '#0284c7';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'left';
+            ctx.fillText(`amplitude = ${amp}`, ax + 6, (ayTop + ayEq) / 2 + 4);
+        }
+
+        // Periode arrow
+        if (document.getElementById('chk-periode').checked) {
+            const tStart = isP1 ? 0 : 12;
+            const tEnd = isP1 ? 5 : 20;
+            const px1 = mapX(tStart);
+            const px2 = mapX(tEnd);
+            const py = mapY(low) + 22;
+
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(px1, py);
+            ctx.lineTo(px2, py);
+            ctx.stroke();
+
+            ctx.fillStyle = '#d97706';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(`periode = ${per}`, (px1 + px2) / 2, py + 14);
+        }
+
+        // Projection dashed line from Ferris wheel to current graph point
+        const curPx = mapX(basisTime);
+        ctx.save();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gondelX, gondelY);
+        ctx.lineTo(curPx, curPy);
+        ctx.stroke();
+        ctx.restore();
+
+        // Gondola dot & Graph dot
+        [ [gondelX, gondelY], [curPx, curPy] ].forEach(([x, y]) => {
+            ctx.fillStyle = '#4f46e5';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+    }
+
+    function animateLoop() {
+        if (basisPlaying && !document.getElementById('tab-basis').classList.contains('hidden')) {
+            const maxT = basisPreset === 1 ? 15 : 32;
+            basisTime += 0.03;
+            if (basisTime > maxT) basisTime = 0;
+            drawBasis();
+        }
+        requestAnimationFrame(animateLoop);
+    }
+    requestAnimationFrame(animateLoop);
+
+    // ==================== TAB 2: RADIAAL & SIN(X) ====================
+    let radAngle = 1.0;
+
+    function setRadAngle(val) {
+        radAngle = val;
+        document.getElementById('rad-slider').value = val;
+        drawRadiaal();
+    }
+
+    function updateRadSlider(val) {
+        radAngle = parseFloat(val);
+        drawRadiaal();
+    }
+
+    function drawRadiaal() {
+        const canvas = document.getElementById('canvas-radiaal');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const deg = (radAngle * 180 / Math.PI).toFixed(1);
+        const sinVal = Math.sin(radAngle);
+        document.getElementById('rad-slider-label').innerText = `x = ${radAngle.toFixed(2)} rad (≈ ${deg}°)`;
+        document.getElementById('rad-info-pill').innerHTML = `
+        <div><strong>Booglengte x</strong> = ${radAngle.toFixed(2)} rad</div>
+        <div><strong>Hoogte y = sin(x)</strong> = ${sinVal.toFixed(2)}</div>
+      `;
+
+        // Unit circle center
+        const cx = 135, cy = 160, r = 95;
+
+        // Graph region
+        const gx0 = 290, gx1 = 790;
+        const gw = gx1 - gx0;
+        const maxRad = 4 * Math.PI;
+        const mapX = x => gx0 + (x / maxRad) * gw;
+        const mapY = y => cy - y * r;
+
+        // Grid lines
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        [-1, 0, 1].forEach(y => {
+            const py = mapY(y);
+            ctx.beginPath();
+            ctx.moveTo(gx0, py);
+            ctx.lineTo(gx1, py);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 8, py + 4);
+        });
+
+        const piLabels = ['0', 'π', '2π', '3π', '4π'];
+        for (let k = 0; k <= 4; k++) {
+            const px = mapX(k * Math.PI);
+            ctx.beginPath();
+            ctx.moveTo(px, cy - r - 20);
+            ctx.lineTo(px, cy + r + 20);
+            ctx.stroke();
+            ctx.fillStyle = '#475569';
+            ctx.font = 'bold 11px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(piLabels[k], px, cy + 18);
+        }
+
+        // Circle axes
+        ctx.strokeStyle = '#94a3b8';
+        ctx.beginPath();
+        ctx.moveTo(cx - r - 15, cy);
+        ctx.lineTo(cx + r + 15, cy);
+        ctx.moveTo(cx, cy - r - 15);
+        ctx.lineTo(cx, cy + r + 15);
+        ctx.stroke();
+
+        // Unit Circle
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Highlighted arc on unit circle
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, -radAngle, true);
+        ctx.stroke();
+
+        // Point on circle
+        const pxCircle = cx + r * Math.cos(radAngle);
+        const pyCircle = cy - r * Math.sin(radAngle);
+
+        // Radius arm
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(pxCircle, pyCircle);
+        ctx.stroke();
+
+        // Vertical height sin(x) inside circle
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(pxCircle, cy);
+        ctx.lineTo(pxCircle, pyCircle);
+        ctx.stroke();
+
+        // Graph axes
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, cy - r - 20);
+        ctx.lineTo(gx0, cy + r + 20);
+        ctx.moveTo(gx0, cy);
+        ctx.lineTo(gx1, cy);
+        ctx.stroke();
+
+        // Full sine curve faint
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const x = ((px - gx0) / gw) * maxRad;
+            const py = mapY(Math.sin(x));
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Active sine curve up to radAngle
+        ctx.strokeStyle = '#dc2626';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        const maxPx = mapX(radAngle);
+        for (let px = gx0; px <= maxPx; px++) {
+            const x = ((px - gx0) / gw) * maxRad;
+            const py = mapY(Math.sin(x));
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Connecting line from circle to sine graph
+        ctx.save();
+        ctx.strokeStyle = '#4f46e5';
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath();
+        ctx.moveTo(pxCircle, pyCircle);
+        ctx.lineTo(maxPx, pyCircle);
+        ctx.stroke();
+        ctx.restore();
+
+        // Dots
+        [ [pxCircle, pyCircle], [maxPx, pyCircle] ].forEach(([x, y]) => {
+            ctx.fillStyle = '#4f46e5';
+            ctx.beginPath();
+            ctx.arc(x, y, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // ==================== TAB 2B: GR SIMULATOR (RAD VS DEG) ====================
+    let calcMode = 'RAD';
+    let calcExprIndex = 0;
+
+    const calcExpressions = [
+        {
+            label: 'sin(1/2 * π)',
+            radVal: '1',
+            degVal: '0.0274',
+            radMsg: '✓ Klopt! Bij x = ½π zit de eerste top van y = sin(x).',
+            degMsg: '✗ Fout! Je GR rekent nu sin(1,57°) uit in plaats van 90°.'
+        },
+        {
+            label: 'sin(π)',
+            radVal: '0',
+            degVal: '0.0548',
+            radMsg: '✓ Klopt! Bij x = π snijdt de grafiek de x-as (y = 0).',
+            degMsg: '✗ Fout! Je GR rekent sin(3,14°) uit i.p.v. een halve cirkel.'
+        },
+        {
+            label: 'sin(1.5 * π)',
+            radVal: '-1',
+            degVal: '0.0822',
+            radMsg: '✓ Klopt! Bij x = 1½π zit het eerste dal (y = -1).',
+            degMsg: '✗ Fout! In graden komt hij nooit bij het dal van -1.'
+        },
+        {
+            label: 'sin(2)',
+            radVal: '0.9093',
+            degVal: '0.0349',
+            radMsg: '✓ Klopt! 2 radialen is ≈ 114,6°, dus sin(2) ≈ 0,91.',
+            degMsg: '✗ Fout! Je GR berekent nu de sinus van 2 graden (0,0349).'
+        }
+    ];
+
+    function setCalcMode(mode) {
+        calcMode = mode;
+        const bRad = document.getElementById('btn-calc-rad');
+        const bDeg = document.getElementById('btn-calc-deg');
+        const badge = document.getElementById('gr-status-badge');
+
+        if (mode === 'RAD') {
+            bRad.className = 'px-3 py-1 rounded-md text-xs font-bold mono transition bg-emerald-500 text-slate-950 shadow';
+            bDeg.className = 'px-3 py-1 rounded-md text-xs font-bold mono transition text-slate-400 hover:text-white';
+            badge.className = 'px-1.5 py-0.5 rounded bg-emerald-700 text-white';
+            badge.innerText = 'RADIAN';
+        } else {
+            bDeg.className = 'px-3 py-1 rounded-md text-xs font-bold mono transition bg-rose-500 text-white shadow';
+            bRad.className = 'px-3 py-1 rounded-md text-xs font-bold mono transition text-slate-400 hover:text-white';
+            badge.className = 'px-1.5 py-0.5 rounded bg-rose-700 text-white';
+            badge.innerText = 'DEGREE (FOUT!)';
+        }
+        updateCalcSimulator();
+    }
+
+    function setCalcExpr(idx) {
+        calcExprIndex = idx;
+        document.querySelectorAll('.calc-expr-btn').forEach((btn, i) => {
+            if (i === idx) {
+                btn.className = 'calc-expr-btn py-2 px-3 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold border border-indigo-400';
+            } else {
+                btn.className = 'calc-expr-btn py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-mono text-xs font-bold border border-slate-700';
+            }
+        });
+        updateCalcSimulator();
+    }
+
+    function updateCalcSimulator() {
+        const item = calcExpressions[calcExprIndex];
+        const exprEl = document.getElementById('gr-expr');
+        const resEl = document.getElementById('gr-result');
+        const verdEl = document.getElementById('gr-verdict');
+
+        exprEl.innerText = item.label;
+        if (calcMode === 'RAD') {
+            resEl.innerText = '= ' + item.radVal;
+            resEl.className = 'text-xl font-extrabold text-right text-indigo-900 border-t border-slate-300 pt-1';
+            verdEl.innerText = item.radMsg;
+            verdEl.className = 'text-[11px] font-sans font-semibold text-emerald-800 bg-emerald-100/80 px-2 py-1 rounded';
+        } else {
+            resEl.innerText = '= ' + item.degVal;
+            resEl.className = 'text-xl font-extrabold text-right text-rose-700 border-t border-slate-300 pt-1';
+            verdEl.innerText = item.degMsg;
+            verdEl.className = 'text-[11px] font-sans font-semibold text-rose-800 bg-rose-100/90 px-2 py-1 rounded';
+        }
+
+        // Draw mini GR plot for X in [-7, 7], Y in [-2, 2]
+        const canvas = document.getElementById('canvas-gr');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const w = canvas.width, h = canvas.height;
+        const cx = w / 2, cy = h / 2;
+
+        // Axes
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, cy);
+        ctx.lineTo(w, cy);
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, h);
+        ctx.stroke();
+
+        // Plot curve
+        ctx.strokeStyle = calcMode === 'RAD' ? '#1e293b' : '#be123c';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let px = 0; px <= w; px++) {
+            const x = ((px / w) * 14) - 7; // [-7, 7]
+            const y = calcMode === 'RAD' ? Math.sin(x) : Math.sin(x * Math.PI / 180);
+            const py = cy - (y / 2) * (h / 2 - 8);
+            if (px === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    // ==================== TAB 3: FORMULE-LAB ====================
+    function setLabPreset(a, b, c, d) {
+        document.getElementById('slider-a').value = a;
+        document.getElementById('slider-b').value = b;
+        document.getElementById('slider-c').value = c;
+        document.getElementById('slider-d').value = d;
+        updateLab();
+    }
+
+    function updateLab() {
+        const a = parseFloat(document.getElementById('slider-a').value);
+        const b = parseFloat(document.getElementById('slider-b').value);
+        const c = parseFloat(document.getElementById('slider-c').value);
+        const d = parseFloat(document.getElementById('slider-d').value);
+        const periode = (2 * Math.PI) / c;
+
+        document.getElementById('val-a').innerText = `a = ${a}`;
+        document.getElementById('val-b').innerText = `b = ${b}`;
+        document.getElementById('val-c').innerText = `c = ${c.toFixed(2)}`;
+        document.getElementById('val-d').innerText = `d = ${d}`;
+        document.getElementById('val-periode').innerText = `Periode = ${periode.toFixed(2)}`;
+        document.getElementById('lab-max').innerText = (a + b).toFixed(1);
+        document.getElementById('lab-min').innerText = (a - b).toFixed(1);
+        document.getElementById('val-startpunt').innerText = `(${d}, ${a})`;
+
+        const dPart = d === 0 ? 'x' : `(x − ${d})`;
+        document.getElementById('live-formula-banner').innerText = `y = ${a} + ${b} · sin(${c.toFixed(2)}${dPart})`;
+
+        const canvas = document.getElementById('canvas-lab');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const gx0 = 50, gx1 = 695, gy0 = 25, gy1 = 345;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const maxX = 12;
+        const minY = -6, maxY = 8;
+
+        const mapX = x => gx0 + (x / maxX) * gw;
+        const mapY = y => gy1 - ((y - minY) / (maxY - minY)) * gh;
+
+        // Grid
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        for (let y = minY; y <= maxY; y += 2) {
+            const py = mapY(y);
+            ctx.beginPath();
+            ctx.moveTo(gx0, py);
+            ctx.lineTo(gx1, py);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 8, py + 4);
+        }
+        for (let x = 0; x <= maxX; x++) {
+            const px = mapX(x);
+            ctx.beginPath();
+            ctx.moveTo(px, gy0);
+            ctx.lineTo(px, gy1);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.fillText(x, px, mapY(0) + 16);
+        }
+
+        // Axes
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0);
+        ctx.lineTo(gx0, gy1);
+        ctx.moveTo(gx0, mapY(0));
+        ctx.lineTo(gx1, mapY(0));
+        ctx.stroke();
+
+        // Standard y = sin(x) reference
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const x = ((px - gx0) / gw) * maxX;
+            const py = mapY(Math.sin(x));
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Evenwichtsstand a
+        ctx.save();
+        ctx.strokeStyle = '#e11d48';
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(gx0, mapY(a));
+        ctx.lineTo(gx1, mapY(a));
+        ctx.stroke();
+        ctx.restore();
+
+        // Active sinusoid
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const x = ((px - gx0) / gw) * maxX;
+            const y = a + b * Math.sin(c * (x - d));
+            const py = mapY(y);
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+
+        // Startpunt (d, a)
+        const sx = mapX(d), sy = mapY(a);
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(sx, sy, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#065f46';
+        ctx.font = 'bold 12px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText(`stijgend door (${d}, ${a})`, sx + 8, sy - 8);
+    }
+
+    // ==================== TAB 4: STAPPENPLAN ZELF TEKENEN ====================
+    let stepExIdx = 0;
+    let curDrawStep = 1;
+
+    const stepExamples = [
+        {
+            title: 'A = 20 + 15 · sin(π(t − 1½)) op [0, 5]',
+            a: 20, b: 15, c: Math.PI, per: 2, d: 1.5, maxT: 5, minY: 0, maxY: 40, yStep: 10
+        },
+        {
+            title: 'N = 10 + 20 · sin(¼π(t − 2)) op [0, 16]',
+            a: 10, b: 20, c: Math.PI / 4, per: 8, d: 2, maxT: 16, minY: -15, maxY: 35, yStep: 10
+        },
+        {
+            title: 'y = 5 + 2 · sin(π(x − ½)) op [0, 4]',
+            a: 5, b: 2, c: Math.PI, per: 2, d: 0.5, maxT: 4, minY: 0, maxY: 8, yStep: 2
+        }
+    ];
+
+    function setStepExample(idx) {
+        stepExIdx = idx;
+        curDrawStep = 1;
+        [0, 1, 2].forEach(i => {
+            const btn = document.getElementById('step-ex-' + i);
+            btn.className = i === idx
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        });
+        setDrawStep(1);
+    }
+
+    function setDrawStep(s) {
+        curDrawStep = s;
+        for (let i = 1; i <= 4; i++) {
+            const b = document.getElementById('draw-step-' + i);
+            b.className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        drawStepsCanvas();
+    }
+
+    function prevDrawStep() {
+        if (curDrawStep > 1) setDrawStep(curDrawStep - 1);
+    }
+    function nextDrawStep() {
+        if (curDrawStep < 4) setDrawStep(curDrawStep + 1);
+    }
+
+    function drawStepsCanvas() {
+        const ex = stepExamples[stepExIdx];
+        const canvas = document.getElementById('canvas-steps');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const gx0 = 50, gx1 = 610, gy0 = 25, gy1 = 300;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const mapX = t => gx0 + (t / ex.maxT) * gw;
+        const mapY = y => gy1 - ((y - ex.minY) / (ex.maxY - ex.minY)) * gh;
+
+        // Grid
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        for (let y = ex.minY; y <= ex.maxY; y += ex.yStep) {
+            const py = mapY(y);
+            ctx.beginPath();
+            ctx.moveTo(gx0, py);
+            ctx.lineTo(gx1, py);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 8, py + 4);
+        }
+
+        const tStep = ex.maxT > 8 ? 2 : 1;
+        for (let t = 0; t <= ex.maxT; t += tStep) {
+            const px = mapX(t);
+            ctx.beginPath();
+            ctx.moveTo(px, gy0);
+            ctx.lineTo(px, gy1);
+            ctx.stroke();
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.fillText(t, px, gy1 + 18);
+        }
+
+        // Axes
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0);
+        ctx.lineTo(gx0, gy1);
+        ctx.moveTo(gx0, mapY(0));
+        ctx.lineTo(gx1, mapY(0));
+        ctx.stroke();
+
+        // Step 2+: Evenwichtsstand and equilibrium points
+        if (curDrawStep >= 2) {
+            ctx.save();
+            ctx.strokeStyle = '#e11d48';
+            ctx.setLineDash([6, 4]);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(gx0, mapY(ex.a));
+            ctx.lineTo(gx1, mapY(ex.a));
+            ctx.stroke();
+            ctx.restore();
+
+            // Points on equilibrium every half period
+            const halfP = ex.per / 2;
+            for (let t = ex.d - 4 * halfP; t <= ex.maxT + 0.01; t += halfP) {
+                if (t >= -0.01 && t <= ex.maxT + 0.01) {
+                    ctx.fillStyle = Math.abs(t - ex.d) < 0.01 ? '#10b981' : '#e11d48';
+                    ctx.beginPath();
+                    ctx.arc(mapX(t), mapY(ex.a), 5.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Step 3+: Maxima and Minima points
+        if (curDrawStep >= 3) {
+            const quarterP = ex.per / 4;
+            for (let k = -6; k <= 12; k++) {
+                const tPeak = ex.d + quarterP + k * ex.per;
+                if (tPeak >= 0 && tPeak <= ex.maxT) {
+                    ctx.fillStyle = '#0284c7';
+                    ctx.beginPath();
+                    ctx.arc(mapX(tPeak), mapY(ex.a + ex.b), 5.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                const tVal = ex.d + 3 * quarterP + k * ex.per;
+                if (tVal >= 0 && tVal <= ex.maxT) {
+                    ctx.fillStyle = '#0284c7';
+                    ctx.beginPath();
+                    ctx.arc(mapX(tVal), mapY(ex.a - ex.b), 5.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // Step 4: Smooth curve
+        if (curDrawStep >= 4) {
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let px = gx0; px <= gx1; px++) {
+                const t = ((px - gx0) / gw) * ex.maxT;
+                const y = ex.a + ex.b * Math.sin(ex.c * (t - ex.d));
+                const py = mapY(y);
+                if (px === gx0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            }
+            ctx.stroke();
+        }
+
+        // Explanation panel
+        const expEl = document.getElementById('step-explanation');
+        const explanations = [
+            `<div class="font-bold text-indigo-900 text-base">Stap 1: Schrijf de 4 kenmerken op</div>
+         <div class="mono text-xs bg-white p-3 rounded-xl border border-indigo-200 space-y-1">
+           <div>• <strong>Formule:</strong> ${ex.title}</div>
+           <div>• <strong>Evenwichtsstand (a):</strong> ${ex.a}</div>
+           <div>• <strong>Amplitude (b):</strong> ${ex.b}</div>
+           <div>• <strong>Periode (2π / c):</strong> ${ex.per}</div>
+           <div>• <strong>Startpunt (stijgend door evenwicht):</strong> (${ex.d}, ${ex.a})</div>
+         </div>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 2: Teken de evenwichtsstand & snijpunten</div>
+         <p>Teken de stippellijn op hoogte <strong>${ex.a}</strong> en zet het groene startpunt op <strong>(${ex.d}, ${ex.a})</strong>.</p>
+         <p>Omdat de periode <strong>${ex.per}</strong> is, snijdt de grafiek elke halve periode (afstand <strong>${ex.per / 2}</strong>) de evenwichtsstand.</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 3: Teken de hoogste en laagste punten</div>
+         <p>De toppen liggen altijd precies <strong>midden tussen twee snijpunten</strong> met de evenwichtsstand:</p>
+         <p>• Hoogste punten: <strong>${ex.a} + ${ex.b} = ${ex.a + ex.b}</strong></p>
+         <p>• Laagste punten: <strong>${ex.a} − ${ex.b} = ${ex.a - ex.b}</strong></p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 4: Teken een vloeiende golf (sinusoïde)</div>
+         <p>Verbind alle punten met een mooie vloeiende kromme lijn (geen rechte hoeken bij de toppen!) van <strong>t = 0</strong> tot <strong>t = ${ex.maxT}</strong>.</p>`
+        ];
+        expEl.innerHTML = explanations[curDrawStep - 1];
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    const solvedQuestions = new Set();
+
+    function markSolved(qNum, feedbackEl, msg) {
+        solvedQuestions.add(qNum);
+        document.getElementById('global-score').innerText = `${solvedQuestions.size} / 11`;
+        feedbackEl.className = 'text-xs font-bold text-emerald-600';
+        feedbackEl.innerText = '✓ ' + msg;
+    }
+
+    function markWrong(feedbackEl, msg) {
+        feedbackEl.className = 'text-xs font-bold text-rose-600';
+        feedbackEl.innerText = '✗ ' + msg;
+    }
+
+    function parseNum(str) {
+        return parseFloat((str || '').trim().replace(',', '.'));
+    }
+
+    // Draw mini graphs for exercises
+    function drawMiniSine(canvasId, a, b, per, d, maxT, minY, maxY, yStep, tStep) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const gx0 = 38, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const mapX = t => gx0 + (t / maxT) * gw;
+        const mapY = y => gy1 - ((y - minY) / (maxY - minY)) * gh;
+
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        for (let y = minY; y <= maxY; y += yStep) {
+            const py = mapY(y);
+            ctx.beginPath(); ctx.moveTo(gx0, py); ctx.lineTo(gx1, py); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 5, py + 3);
+        }
+        for (let t = 0; t <= maxT; t += tStep) {
+            const px = mapX(t);
+            ctx.beginPath(); ctx.moveTo(px, gy0); ctx.lineTo(px, gy1); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
+            ctx.fillText(t, px, gy1 + 14);
+        }
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1);
+        ctx.moveTo(gx0, mapY(0)); ctx.lineTo(gx1, mapY(0));
+        ctx.stroke();
+
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        const c = (2 * Math.PI) / per;
+        for (let px = gx0; px <= gx1; px++) {
+            const t = ((px - gx0) / gw) * maxT;
+            const y = a + b * Math.sin(c * (t - d));
+            const py = mapY(y);
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    function drawEx1() {
+        // Fig 13.4a: max=20 at t=1, min=-10 at t=4, period=6 => a=5, b=15, d=-0.5
+        drawMiniSine('canvas-ex1', 5, 15, 6, -0.5, 8, -20, 30, 10, 1);
+    }
+
+    function drawEx2() {
+        // Fig 13.4b: a=300, b=200, per=2, d=0
+        drawMiniSine('canvas-ex2', 300, 200, 2, 0, 4, 0, 600, 200, 1);
+    }
+
+    function drawEx4() {
+        const canvas = document.getElementById('canvas-ex4');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const gx0 = 42, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const mapX = t => gx0 + (t / 80) * gw;
+        const mapY = y => gy1 - ((y - 40) / 70) * gh;
+
+        ctx.strokeStyle = '#cbd5e1';
+        [50, 75, 100].forEach(y => {
+            const py = mapY(y);
+            ctx.beginPath(); ctx.moveTo(gx0, py); ctx.lineTo(gx1, py); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y + '%', gx0 - 4, py + 3);
+        });
+        for (let t = 0; t <= 80; t += 20) {
+            const px = mapX(t);
+            ctx.beginPath(); ctx.moveTo(px, gy0); ctx.lineTo(px, gy1); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
+            ctx.fillText(t, px, gy1 + 14);
+        }
+
+        ctx.strokeStyle = '#e11d48';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(mapX(0), mapY(75));
+        for (let k = 0; k < 4; k++) {
+            ctx.lineTo(mapX(k * 20 + 2), mapY(100));
+            ctx.lineTo(mapX(k * 20 + 18), mapY(50));
+            ctx.lineTo(mapX(k * 20 + 20), mapY(75));
+        }
+        ctx.stroke();
+    }
+
+    function drawEx7() {
+        // Fig 13.8: a=15, b=10, per=8, d=0
+        drawMiniSine('canvas-ex7', 15, 10, 8, 0, 8, 0, 25, 5, 1);
+    }
+
+    function drawEx10() {
+        const canvas = document.getElementById('canvas-ex10');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const gx0 = 35, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gw = gx1 - gx0, gh = gy1 - gy0;
+        const mapX = x => gx0 + (x / 4) * gw;
+        const mapY = y => gy1 - (y / 5) * gh;
+
+        ctx.strokeStyle = '#cbd5e1';
+        for (let y = 0; y <= 5; y++) {
+            const py = mapY(y);
+            ctx.beginPath(); ctx.moveTo(gx0, py); ctx.lineTo(gx1, py); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+            ctx.fillText(y, gx0 - 5, py + 3);
+        }
+        for (let x = 0; x <= 4; x++) {
+            const px = mapX(x);
+            ctx.beginPath(); ctx.moveTo(px, gy0); ctx.lineTo(px, gy1); ctx.stroke();
+            ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
+            ctx.fillText(x, px, gy1 + 14);
+        }
+
+        // Target: Fig 13.11 => y = 2.5 + 1.5 * sin(pi * (x - 1))
+        ctx.save();
+        ctx.strokeStyle = '#94a3b8';
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const x = ((px - gx0) / gw) * 4;
+            const y = 2.5 + 1.5 * Math.sin(Math.PI * (x - 1));
+            const py = mapY(y);
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+        ctx.restore();
+
+        // User curve
+        const ua = parseFloat(document.getElementById('q10-a').value) || 0;
+        const ub = parseFloat(document.getElementById('q10-b').value) || 0;
+        const ud = parseFloat(document.getElementById('q10-d').value) || 0;
+
+        ctx.strokeStyle = '#4f46e5';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let px = gx0; px <= gx1; px++) {
+            const x = ((px - gx0) / gw) * 4;
+            const y = ua + ub * Math.sin(Math.PI * (x - ud));
+            const py = mapY(y);
+            if (px === gx0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+    }
+
+    // Check functions
+    function checkQ1() {
+        const p = parseNum(document.getElementById('q1-p').value);
+        const e = parseNum(document.getElementById('q1-e').value);
+        const a = parseNum(document.getElementById('q1-a').value);
+        const fb = document.getElementById('fb-q1');
+        if (p === 6 && e === 5 && a === 15) {
+            markSolved(1, fb, 'Helemaal goed! (20 + -10)/2 = 5 en 20 - 5 = 15.');
+        } else {
+            markWrong(fb, 'Tip: Hoogste = 20 (bij t=1), laagste = -10 (bij t=4), volgende top bij t=7.');
+        }
+    }
+
+    function checkQ2() {
+        const p = parseNum(document.getElementById('q2-p').value);
+        const e = parseNum(document.getElementById('q2-e').value);
+        const a = parseNum(document.getElementById('q2-a').value);
+        const fb = document.getElementById('fb-q2');
+        if (p === 2 && e === 300 && a === 200) {
+            markSolved(2, fb, 'Top! Evenwicht = 300, amplitude = 200, periode = 2.');
+        } else {
+            markWrong(fb, 'Tip: Hoogste = 500, laagste = 100. Eén golf duurt van t = 0 tot t = 2.');
+        }
+    }
+
+    function checkQ3() {
+        const v1 = parseNum(document.getElementById('q3-1').value);
+        const v2 = parseNum(document.getElementById('q3-2').value);
+        const v3 = parseNum(document.getElementById('q3-3').value);
+        const fb = document.getElementById('fb-q3');
+        if (v1 === 1 && v2 === 3 && v3 === -1) {
+            markSolved(3, fb, 'Uitstekend! 22=5×4+2 (h=1), 33=8×4+1 (h=3), 35=8×4+3 (h=-1).');
+        } else {
+            markWrong(fb, 'Trek telkens veelvouden van periode 4 af (bijv. 22 - 20 = 2).');
+        }
+    }
+
+    function checkQ4() {
+        const p = parseNum(document.getElementById('q4-p').value);
+        const d = parseNum(document.getElementById('q4-d').value);
+        const h = parseNum(document.getElementById('q4-h').value);
+        const fb = document.getElementById('fb-q4');
+        if (p === 20 && d === 16 && h === 75) {
+            markSolved(4, fb, 'Super! Periode = 20u, van t=2 naar t=18 is 16u, en 140 = 7×20 → 75%.');
+        } else {
+            markWrong(fb, 'Tip: Top op t=2, dal op t=18, volgende top op t=22.');
+        }
+    }
+
+    function checkQ5() {
+        const e = parseNum(document.getElementById('q5-e').value);
+        const a = parseNum(document.getElementById('q5-a').value);
+        const p = parseNum(document.getElementById('q5-p').value);
+        const fb = document.getElementById('fb-q5');
+        if (e === 5 && a === 2 && p === 0.5) {
+            markSolved(5, fb, 'Klopt! Periode = 2π / 4π = 0,5.');
+        } else {
+            markWrong(fb, 'Tip: Periode = 2π / 4π = 0,5.');
+        }
+    }
+
+    function checkQ6() {
+        const a = parseNum(document.getElementById('q6-a').value);
+        const b = parseNum(document.getElementById('q6-b').value);
+        const c = parseNum(document.getElementById('q6-c').value);
+        const fb = document.getElementById('fb-q6');
+        if (a === 100 && b === 8 && c === 10) {
+            markSolved(6, fb, 'Helemaal goed! c = 2π / 0,2 = 10π.');
+        } else {
+            markWrong(fb, 'Tip: c = 2π / 0,2 = 10π.');
+        }
+    }
+
+    function checkQ7() {
+        const sel = document.querySelector('input[name="q7"]:checked');
+        const fb = document.getElementById('fb-q7');
+        if (sel && sel.value === 'B') {
+            markSolved(7, fb, 'Correct! a=15, b=10 en c = 2π/8 = ¼π.');
+        } else {
+            markWrong(fb, 'Kijk goed naar evenwichtsstand (15), amplitude (10) en periode (8).');
+        }
+    }
+
+    function checkQ8() {
+        const a = parseNum(document.getElementById('q8-a').value);
+        const b = parseNum(document.getElementById('q8-b').value);
+        const c = parseNum(document.getElementById('q8-c').value);
+        const fb = document.getElementById('fb-q8');
+        if (a === 2 && b === 1.5 && c === 6) {
+            markSolved(8, fb, 'Knap! 20 dm = 2 m, 15 dm = 1,5 m en 0,1 × 60T = 6T.');
+        } else {
+            markWrong(fb, 'Tip: 20 dm = 2 m, 15 dm = 1,5 m, en vervang t door 60T: 0,1 × 60 = 6.');
+        }
+    }
+
+    function checkQ9() {
+        const x1 = parseNum(document.getElementById('q9-x1').value);
+        const x2 = parseNum(document.getElementById('q9-x2').value);
+        const fb = document.getElementById('fb-q9');
+        if (x1 === 0.73 && Math.abs(x2 - 0.24) <= 0.01) {
+            markSolved(9, fb, 'Top! Bij y₁ lees je 0,73 direct af; bij y₂ is x = 0,73 / 3 ≈ 0,24.');
+        } else {
+            markWrong(fb, 'Tip: Bij y₁ is d = 0,73. Bij y₂ deel je 0,73 door 3 (≈ 0,24).');
+        }
+    }
+
+    function checkQ10() {
+        const ua = parseFloat(document.getElementById('q10-a').value);
+        const ub = parseFloat(document.getElementById('q10-b').value);
+        const ud = parseFloat(document.getElementById('q10-d').value);
+        const fb = document.getElementById('fb-q10');
+        if (ua === 2.5 && ub === 1.5 && (ud === 1 || ud === 3)) {
+            markSolved(10, fb, 'Perfecte match! y = 2,5 + 1,5·sin(π(x − 1)).');
+        } else {
+            markWrong(fb, 'Nog niet helemaal gelijk: kijk naar het midden (2,5), de top (4) en het stijgpunt bij x = 1.');
+        }
+    }
+
+    function checkQ11() {
+        const sel = document.querySelector('input[name="q11"]:checked');
+        const fb = document.getElementById('fb-q11');
+        if (sel && sel.value === 'B') {
+            markSolved(11, fb, 'Helemaal raak! In graden (DEG) is sin(x) op [-7, 7] bijna een platte lijn.');
+        } else {
+            markWrong(fb, 'Denk aan de belangrijke afspraak bij dit hoofdstuk over de hoekeenheid van je GR!');
+        }
+    }
+
+    // Initial render
+    drawBasis();
+</script>
+</body>
+</html>
