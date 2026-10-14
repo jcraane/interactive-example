@@ -27,7 +27,10 @@ A file picks its bucket on the landing page via the optional `category` field (s
 no `category` means it lands in "Animaties". The known categories live in `categoryMeta`
 (`Animaties`, `Techniek`, `Kennisbank`, `Wiskunde`); add a new key there to introduce another section.
 **Wiskunde** examples are school-math lessons (explanation + practice) and live in the
-`wiskunde/` subfolder; their `file` entry in `index.html` includes that path.
+`wiskunde/` subfolder; their `file` entry in `index.html` includes that path. They are built
+from a textbook chapter with the `wiskunde-les` project skill (`.claude/skills/wiskunde-les/`),
+which holds the shared template and house style. They use the Tailwind Play CDN — an accepted
+exception to the no-dependency rule for this folder, for now.
 
 ## Files
 

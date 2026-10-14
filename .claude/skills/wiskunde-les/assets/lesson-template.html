@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- ✏️ Titel: "Hoofdstuk N: Titel zoals in het boek" -->
+    <title>Hoofdstuk {{N}}: {{Titel}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent */
+        .tab-btn.active {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk {{N}}</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">{{Titel}}</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <!-- ✏️ Eén knop per tab: id="btn-<tab-id>", genummerd, laatste is altijd Oefenopdrachten (N) -->
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-lab')" id="btn-tab-lab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Formule-Lab
+            </button>
+            <button onclick="switchTab('tab-stappen')" id="btn-tab-stappen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Stappenplan
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Oefenopdrachten (3)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <!-- COMPONENT: intro + kernbegrippen. Eén kaart per kernbegrip, elk in zijn eigen conceptkleur. -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">{{Wat is …?}}</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                {{2–4 zinnen: de alledaagse situatie uit de opening van het hoofdstuk, en wat je straks kunt. Kernwoorden <strong>vet</strong>.}}
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">1. {{Top}}</div>
+                    <div class="font-bold text-slate-900 mt-1">{{Korte omschrijving}}</div>
+                    <p class="text-sm text-slate-600 mt-1">{{Uitleg in één of twee zinnen.}}</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold">
+                        T(p, q)
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">2. {{Symmetrieas}}</div>
+                    <div class="font-bold text-slate-900 mt-1">{{Korte omschrijving}}</div>
+                    <p class="text-sm text-slate-600 mt-1">{{Uitleg.}}</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">
+                        x = p
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. {{Vorm}}</div>
+                    <div class="font-bold text-slate-900 mt-1">{{Korte omschrijving}}</div>
+                    <p class="text-sm text-slate-600 mt-1">{{Uitleg.}}</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        a &gt; 0 → dalparabool
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPONENT: verkenner (explorer). Canvas links, bediening rechts. Presets = figuren uit het boek. -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">{{Interactieve Animatie: …}}</h3>
+                    <p class="text-sm text-slate-500">{{Wat de leerling hier doet en wat er dan zichtbaar wordt.}}</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Figuur {{N.1}}
+                    </button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Figuur {{N.2}}
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                        ⏸ Pauzeer animatie
+                    </button>
+
+                    <div>
+                        <label class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>{{Grootheid}} handmatig verschuiven:</span>
+                            <span id="basis-x-label" class="mono font-bold text-indigo-600">x = 0</span>
+                        </label>
+                        <input id="basis-x-slider" type="range" min="-1" max="5" step="0.05" value="0" class="w-full mt-1" oninput="manualBasisSlider(this.value)" />
+                    </div>
+
+                    <!-- Hulplijnen aan/uit, in de conceptkleuren -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbare hulplijnen in grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-top" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-medium">{{Top}}</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-as" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                            <span class="font-medium">{{Symmetrieas}}</span>
+                        </label>
+                    </div>
+
+                    <!-- Live uitleg met de actuele getallen -->
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: FORMULE-LAB ==================== -->
+    <section id="tab-lab" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">{{De algemene formule}}: <span class="mono text-indigo-600">y = a(x − p)² + q</span></h2>
+                    <p class="text-sm text-slate-600 mt-1">{{Wat elke parameter doet, in één zin.}}</p>
+                </div>
+                <!-- Live formule: altijd de donkere pil -->
+                <div id="lab-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-lg md:text-xl font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setLabPreset(1, 0, 0)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-indigo-100 text-slate-700">
+                    Standaard: y = x²
+                </button>
+                <button onclick="setLabPreset(0.5, 2, 1)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">
+                    Figuur {{N.x}}: y = ½(x − 2)² + 1
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-center">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-lab" width="720" height="380" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-slate-400 inline-block"></span> Standaard <span class="mono">y = x²</span></span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Jouw grafiek</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Top <span class="mono">(p, q)</span></span>
+                    </div>
+                </div>
+
+                <!-- Eén slider-paneel per parameter, in de conceptkleur van die parameter -->
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <div class="flex justify-between text-xs font-bold text-sky-800">
+                            <span>a = {{vorm / opening}}</span>
+                            <span id="val-a" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-a" type="range" min="-3" max="3" step="0.25" value="0.5" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-sky-700 mt-0.5" id="lab-a-uitleg"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>p = {{horizontale verschuiving}}</span>
+                            <span id="val-p" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-p" type="range" min="-3" max="5" step="0.5" value="2" class="w-full mt-1.5" oninput="updateLab()" />
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="flex justify-between text-xs font-bold text-rose-800">
+                            <span>q = {{verticale verschuiving}}</span>
+                            <span id="val-q" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-q" type="range" min="-4" max="4" step="0.5" value="1" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-rose-700 mt-0.5">Top: <span id="lab-top" class="mono font-bold"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPONENT: "Let op"-callout voor afspraken en klassieke fouten -->
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! ({{Opgave / Afspraak uit het boek}})</div>
+            <h4 class="font-bold text-slate-800 mt-1">{{De valkuil in één zin}}</h4>
+            <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                {{Waarom het misgaat en hoe je het herkent.}}
+            </p>
+        </div>
+
+        <!-- COMPONENT: GR-callout (TI-84 Plus CE). Alleen waar het boek de GR gebruikt. -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: {{handeling}}</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400">{{Opgave x}}</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="flex justify-between text-[11px] border-b border-slate-400/50 pb-1 mb-2 font-bold">
+                        <span>NORMAL FLOAT AUTO REAL</span>
+                        <span class="px-1.5 py-0.5 rounded bg-emerald-700 text-white">RADIAN</span>
+                    </div>
+                    <div>{{Wat er op het scherm staat, bv. Y1=0.5(X−2)²+1}}</div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">Y=</span> en typ de formule (de x met <span class="key">X,T,θ,n</span>).</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">TRACE</span> (CALC) en kies <span class="key">4:maximum</span> of <span class="key">3:minimum</span>.</li>
+                    <li>{{Volgende stap}}</li>
+                </ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">{{Waar gaat het vaak mis?}}</div>
+                <p class="text-xs leading-relaxed">{{Typische GR-fout en hoe je hem herkent op het scherm.}}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: STAPPENPLAN ==================== -->
+    <section id="tab-stappen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: {{Hoe … je zelf …?}}</h2>
+                    <p class="text-sm text-slate-600">Kies een opgave uit het boek en klik door de stappen.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setStapVoorbeeld(0)" id="stap-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Voorbeeld: y = ½(x − 2)² + 1
+                    </button>
+                    <button onclick="setStapVoorbeeld(1)" id="stap-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Opgave {{x}}: y = −(x − 1)² + 3
+                    </button>
+                </div>
+            </div>
+
+            <!-- Eén knop per stap uit het werkschema van het boek -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-6">
+                <button onclick="setStap(1)" id="stap-btn-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">{{Top tekenen}}</div>
+                </button>
+                <button onclick="setStap(2)" id="stap-btn-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">{{Symmetrieas}}</div>
+                </button>
+                <button onclick="setStap(3)" id="stap-btn-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">{{Punten &amp; kromme}}</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-stappen" width="640" height="340" class="w-full h-auto"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <div class="flex justify-between">
+                        <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
+                            ← Vorige stap
+                        </button>
+                        <button onclick="setStap(Math.min(AANTAL_STAPPEN, huidigeStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+                            Volgende stap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen; breuken als 1/4 of ¼, en π als pi.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- KAART-TYPE: numeriek (1–3 invulvelden), eventueel met grafiek uit het boek -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave {{x}} (Figuur {{N.x}})</span>
+                    <h3 class="font-bold text-slate-800 mt-1">{{Aflezen uit een grafiek}}</h3>
+                    <canvas id="canvas-q1" width="380" height="190" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">{{De vraag, met de getallen uit het boek.}}</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q1-p" class="font-semibold text-slate-700">Top x (p):</label>
+                            <input id="q1-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-q" class="font-semibold text-slate-700">Top y (q):</label>
+                            <input id="q1-q" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- KAART-TYPE: meerkeuze (radio name = sleutel van de opdracht) -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave {{x}}</span>
+                    <h3 class="font-bold text-slate-800 mt-1">{{Welke formule hoort erbij?}}</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">{{De vraag.}}</p>
+                    <div class="space-y-2 text-xs mono">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="A" /> y = 2(x + 1)² − 3
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="B" /> y = 2(x − 1)² − 3
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="C" /> y = −2(x − 1)² + 3
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- KAART-TYPE: grafiek-matcher (einduitdaging) — schuif tot jouw grafiek over het doel valt -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Einduitdaging</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw grafiek samenvallen met het doel!</h3>
+                    <canvas id="canvas-q3" width="760" height="220" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q3-a" class="font-semibold text-slate-700">a:</label>
+                            <input id="q3-a" type="number" step="0.5" value="1" oninput="drawQ3()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q3-p" class="font-semibold text-slate-700">p:</label>
+                            <input id="q3-p" type="number" step="0.5" value="0" oninput="drawQ3()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q3-q" class="font-semibold text-slate-700">q:</label>
+                            <input id="q3-q" type="number" step="0.5" value="0" oninput="drawQ3()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /** Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3". */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  aslabels, bv. 't (uur)'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        const pad = Object.assign({ l: 44, r: 18, t: 16, b: 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+        ctx.fillStyle = '#334155';
+        ctx.font = '600 12px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'right'; ctx.fillText(opt.xLabel, box.x1, axisY - 6); }
+        if (opt.yLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.yLabel, axisX + 6, box.y0 + 10); }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    // ✏️ Eén entry per tab: wat er getekend moet worden zodra de tab zichtbaar wordt.
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-lab': () => updateLab(),
+        'tab-stappen': () => renderStap(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN ====================
+    // ✏️ Presets = figuren uit het boek. Leid de formule af uit afleesbare punten en noteer dat erbij.
+    const basisPresets = [
+        // Fig {{N.1}}: top (2, 1), punt (4, 3) → a = (3 − 1) / (4 − 2)² = ½
+        { a: 0.5, p: 2, q: 1, xMin: -1, xMax: 5, yMin: -1, yMax: 6 },
+        // Fig {{N.2}}: top (1, 4), punt (3, 0) → a = (0 − 4) / (3 − 1)² = −1
+        { a: -1, p: 1, q: 4, xMin: -2, xMax: 4, yMin: -2, yMax: 5 },
+    ];
+    let basisIdx = 0, basisX = 0, basisPlaying = true, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        const slider = $('basis-x-slider');
+        slider.min = pr.xMin;
+        slider.max = pr.xMax;
+        basisX = pr.xMin;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+        basisX = parseFloat(val);
+        renderBasis();
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const f = x => pr.a * (x - pr.p) ** 2 + pr.q;
+        const showTop = $('chk-top').checked, showAs = $('chk-as').checked;
+        drawGraph('canvas-basis', {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.yMin, yMax: pr.yMax, xStep: 1, yStep: 1,
+            xLabel: 'x', yLabel: 'y',
+            vLines: showAs ? [{ x: pr.p, color: C.amber, label: `x = ${fmt(pr.p)}` }] : [],
+            curves: [{ f, color: C.indigo, width: 3 }],
+            points: [
+                ...(showTop ? [{ x: pr.p, y: pr.q, color: C.emerald, label: `T(${fmt(pr.p)}, ${fmt(pr.q)})` }] : []),
+                { x: basisX, y: f(basisX), color: C.indigo, r: 7 },
+            ],
+        });
+        $('basis-x-slider').value = basisX;
+        $('basis-x-label').innerText = `x = ${fmt(basisX)}`;
+        $('basis-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900">Punt op de grafiek</div>
+            <div class="mono">x = ${fmt(basisX)} → y = ${fmt(f(basisX))}</div>
+            <div>Afstand tot de symmetrieas: <span class="mono font-bold">${fmt(Math.abs(basisX - pr.p))}</span></div>`;
+    }
+
+    // Animatie draait alleen terwijl tab 1 zichtbaar is.
+    function animateLoop(ts) {
+        if (lastTs !== null && basisPlaying && !$('tab-basis').classList.contains('hidden')) {
+            const pr = basisPresets[basisIdx];
+            basisX += (ts - lastTs) / 1000;
+            if (basisX > pr.xMax) basisX = pr.xMin;
+            renderBasis();
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: FORMULE-LAB ====================
+    function setLabPreset(a, p, q) {
+        $('slider-a').value = a;
+        $('slider-p').value = p;
+        $('slider-q').value = q;
+        updateLab();
+    }
+
+    function updateLab() {
+        const a = parseFloat($('slider-a').value);
+        const p = parseFloat($('slider-p').value);
+        const q = parseFloat($('slider-q').value);
+        $('val-a').innerText = `a = ${fmt(a)}`;
+        $('val-p').innerText = `p = ${fmt(p)}`;
+        $('val-q').innerText = `q = ${fmt(q)}`;
+        $('lab-top').innerText = `(${fmt(p)}, ${fmt(q)})`;
+        $('lab-a-uitleg').innerText = a > 0 ? 'a > 0: dalparabool (laagste punt).' : a < 0 ? 'a < 0: bergparabool (hoogste punt).' : 'a = 0: geen parabool meer, maar een rechte lijn.';
+        const pPart = p === 0 ? 'x' : `(x ${p > 0 ? '−' : '+'} ${fmt(Math.abs(p))})`;
+        const qPart = q === 0 ? '' : ` ${q > 0 ? '+' : '−'} ${fmt(Math.abs(q))}`;
+        $('lab-formule').innerText = `y = ${fmt(a)}${pPart}²${qPart}`;
+        drawGraph('canvas-lab', {
+            xMin: -5, xMax: 7, yMin: -6, yMax: 8, xStep: 1, yStep: 2, xLabel: 'x', yLabel: 'y',
+            curves: [
+                { f: x => x * x, color: C.slate, width: 1.5 },
+                { f: x => a * (x - p) ** 2 + q, color: C.indigo, width: 3 },
+            ],
+            vLines: [{ x: p, color: C.amber }],
+            points: [{ x: p, y: q, color: C.emerald, label: `T(${fmt(p)}, ${fmt(q)})` }],
+        });
+    }
+
+    // ==================== TAB 3: STAPPENPLAN ====================
+    // ✏️ Voorbeelden = het voorbeeld uit de theorie + 1–2 opgaven uit het boek.
+    const stapVoorbeelden = [
+        { titel: 'y = ½(x − 2)² + 1', a: 0.5, p: 2, q: 1, xMin: -2, xMax: 6, yMin: -1, yMax: 8 },
+        { titel: 'y = −(x − 1)² + 3', a: -1, p: 1, q: 3, xMin: -3, xMax: 5, yMin: -6, yMax: 5 },
+    ];
+    const AANTAL_STAPPEN = 3;
+    let stapIdx = 0, huidigeStap = 1;
+
+    function setStapVoorbeeld(i) {
+        stapIdx = i;
+        setActiveButton('stap-ex-', stapVoorbeelden.length, i);
+        setStap(1);
+    }
+
+    function setStap(s) {
+        huidigeStap = s;
+        for (let i = 1; i <= AANTAL_STAPPEN; i++) {
+            $('stap-btn-' + i).className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        renderStap();
+    }
+
+    function renderStap() {
+        const ex = stapVoorbeelden[stapIdx];
+        const f = x => ex.a * (x - ex.p) ** 2 + ex.q;
+        // De tekening bouwt zich op: elke stap voegt iets toe aan de vorige.
+        const opt = {
+            xMin: ex.xMin, xMax: ex.xMax, yMin: ex.yMin, yMax: ex.yMax, xStep: 1, yStep: 1,
+            xLabel: 'x', yLabel: 'y', curves: [], vLines: [], points: [],
+        };
+        opt.points.push({ x: ex.p, y: ex.q, color: C.emerald, label: `T(${fmt(ex.p)}, ${fmt(ex.q)})` });
+        if (huidigeStap >= 2) opt.vLines.push({ x: ex.p, color: C.amber, label: `x = ${fmt(ex.p)}` });
+        if (huidigeStap >= 3) {
+            [-2, -1, 1, 2].forEach(dx => opt.points.push({ x: ex.p + dx, y: f(ex.p + dx), color: C.sky }));
+            opt.curves.push({ f, color: C.indigo, width: 3 });
+        }
+        drawGraph('canvas-stappen', opt);
+
+        // Uitleg per stap, met de getallen van het gekozen voorbeeld
+        const uitleg = [
+            `<div class="font-bold text-indigo-900 text-base">Stap 1: {{Lees de top af}}</div>
+             <div class="mono text-xs bg-white p-3 rounded-xl border border-indigo-200">${ex.titel} → top (${fmt(ex.p)}, ${fmt(ex.q)})</div>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 2: {{Teken de symmetrieas}}</div>
+             <p>De verticale lijn <strong>x = ${fmt(ex.p)}</strong> gaat door de top.</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 3: {{Bereken punten en teken de kromme}}</div>
+             <p>x = ${fmt(ex.p + 1)} geeft y = ${fmt(f(ex.p + 1))}; spiegel in de as voor x = ${fmt(ex.p - 1)}.</p>`,
+        ];
+        $('stap-uitleg').innerHTML = uitleg[huidigeStap - 1];
+    }
+
+    // ==================== TAB 4: OEFENOPDRACHTEN ====================
+    // ✏️ Eén entry per opdrachtkaart (sleutel = data-q van de kaart).
+    //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //   choice:     'B'                                              — meerkeuze, radio name = sleutel
+    //   check:      () => true/false                                 — eigen controle (bv. grafiek-matcher)
+    //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
+    //   hint:       wijst naar de aanpak en de plek in de les — NIET het antwoord
+    //   goed:       korte bevestiging bij een goed antwoord (optioneel)
+    //   uitwerking: volledige berekening (HTML); verschijnt na goed antwoord of na 2 fouten
+    const exercises = {
+        q1: {
+            fields: { 'q1-p': 2, 'q1-q': 1 },
+            hint: 'Zoek het laagste punt van de grafiek (zie tab 1).',
+            goed: 'Goed afgelezen!',
+            uitwerking: 'Het laagste punt ligt bij x = 2 op hoogte 1, dus de top is <span class="mono">(2, 1)</span>.',
+        },
+        q2: {
+            choice: 'B',
+            hint: 'Let op het teken binnen de haakjes: (x − p) schuift naar rechts.',
+            uitwerking: 'Top (1, −3) en een dalparabool (a = 2 &gt; 0): <span class="mono">y = 2(x − 1)² − 3</span>.',
+        },
+        q3: {
+            check: () => parseNum($('q3-a').value) === -0.5 && parseNum($('q3-p').value) === 1 && parseNum($('q3-q').value) === 3,
+            hint: 'Lees eerst de top af, en bepaal a met een tweede punt (zie tab 3).',
+            uitwerking: 'Top (1, 3); punt (3, 1) geeft a = (1 − 3) / (3 − 1)² = −½, dus <span class="mono">y = −½(x − 1)² + 3</span>.',
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // ✏️ Grafieken bij de opdrachten — exact de figuren uit het boek.
+    function drawQ1() {
+        // Fig {{N.x}}: top (2, 1), punt (4, 3) → y = ½(x − 2)² + 1
+        drawGraph('canvas-q1', {
+            xMin: -1, xMax: 5, yMin: -1, yMax: 6, xStep: 1, yStep: 1, pad: { l: 30, b: 24 },
+            curves: [{ f: x => 0.5 * (x - 2) ** 2 + 1, color: C.rose }],
+        });
+    }
+
+    function drawQ3() {
+        const a = parseNum($('q3-a').value), p = parseNum($('q3-p').value), q = parseNum($('q3-q').value);
+        drawGraph('canvas-q3', {
+            xMin: -3, xMax: 5, yMin: -4, yMax: 5, xStep: 1, yStep: 1,
+            curves: [
+                { f: x => -0.5 * (x - 1) ** 2 + 3, color: C.slate, width: 6, dash: [8, 6] },
+                ...(isFinite(a) && isFinite(p) && isFinite(q) ? [{ f: x => a * (x - p) ** 2 + q, color: C.indigo, width: 3 }] : []),
+            ],
+        });
+    }
+
+    function renderOpdrachten() {
+        drawQ1();
+        drawQ3();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

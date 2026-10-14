@@ -15,10 +15,11 @@
         .mono {
             font-family: 'JetBrains Mono', monospace;
         }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent */
         .tab-btn.active {
-            background-color: #4f46e5;
-            color: white;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
         }
         input[type="range"] {
             accent-color: #4f46e5;
@@ -239,7 +240,7 @@
         <div class="bg-white rounded-2xl p-6 shadow-sm border-2 border-amber-300 relative overflow-hidden">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 pb-4 border-b border-slate-200">
                 <div class="flex items-center gap-3">
-                    <span class="text-2xl">🖩</span>
+                    <span class="text-2xl">🧮</span>
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Cruciale Afspraak bij Hoofdstuk 13</span>
                         <h3 class="text-lg font-bold text-slate-800 mt-0.5">Zet je rekenmachine altijd op RADIALEN (RAD)!</h3>
@@ -523,7 +524,7 @@
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
             <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
             <p class="text-sm text-slate-600 mt-1">
-                Controleer direct je antwoorden. Gebruik een komma of punt voor kommagetallen.
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen; breuken als 1/4 of ¼, en π als pi.
             </p>
         </div>
 
@@ -550,9 +551,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ1()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q1" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ1()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking(1)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -578,9 +583,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ2()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q2" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ2()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking(2)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -610,9 +619,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ3()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q3" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ3()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking(3)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -640,9 +653,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ4()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q4" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ4()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking(4)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -670,9 +687,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ5()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q5" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ5()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking(5)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -685,9 +706,9 @@
                         Van een sinusoïde is gegeven:<br>
                         • <strong>Evenwichtsstand</strong> = 100<br>
                         • <strong>Amplitude</strong> = 8<br>
-                        • <strong>Periode</strong> = 0,2
+                        • <strong>Periode</strong> = 0,2π
                     </p>
-                    <p class="text-xs text-slate-500 mt-2">Tip: Gebruik <span class="mono">c = 2π / periode</span>. Hoeveel π is <span class="mono">c</span>?</p>
+                    <p class="text-xs text-slate-500 mt-2">Tip: Gebruik <span class="mono">c = 2π / periode</span>.</p>
                     <div class="grid grid-cols-3 gap-2 text-xs mt-3">
                         <div>
                             <label class="font-semibold text-slate-700">Waarde a:</label>
@@ -698,17 +719,18 @@
                             <input id="q6-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
                         </div>
                         <div>
-                            <label class="font-semibold text-slate-700">c (als veelvoud π):</label>
-                            <div class="flex items-center mt-1">
-                                <input id="q6-c" type="text" placeholder=".." class="w-full px-2.5 py-1.5 border rounded-l-lg mono" />
-                                <span class="bg-slate-100 border border-l-0 px-2 py-1.5 rounded-r-lg mono font-bold">π</span>
-                            </div>
+                            <label class="font-semibold text-slate-700">Waarde c:</label>
+                            <input id="q6-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ6()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q6" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ6()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking(6)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -733,9 +755,13 @@
                         </label>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ7()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q7" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ7()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking(7)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -763,9 +789,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ8()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q8" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ8()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking(8)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -790,9 +820,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ9()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q9" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ9()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking(9)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -820,9 +854,13 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ10()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer Match</button>
-                    <span id="fb-q10" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ10()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer Match</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking(10)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -849,9 +887,13 @@
                         </label>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t flex items-center justify-between">
-                    <button onclick="checkQ11()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Controleer</button>
-                    <span id="fb-q11" class="text-xs font-semibold"></span>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkQ11()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking(11)" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
                 </div>
             </div>
 
@@ -1742,22 +1784,85 @@
 
     // ==================== TAB 5: OEFENOPDRACHTEN ====================
     const solvedQuestions = new Set();
+    const attempts = {};
+
+    // Volledige uitwerking per opdracht: verschijnt na een goed antwoord of na 2 fouten.
+    const uitwerkingen = {
+        1: 'Hoogste stand 20 (bij t = 1), laagste stand −10 (bij t = 4). De volgende top ligt bij t = 7, dus periode = 7 − 1 = <strong>6</strong>.<br>Evenwichtsstand = (20 + −10) / 2 = <strong>5</strong>. Amplitude = 20 − 5 = <strong>15</strong>.',
+        2: 'Hoogste stand 500, laagste stand 100. Eén golf duurt van t = 0 tot t = 2, dus periode = <strong>2</strong>.<br>Evenwichtsstand = (500 + 100) / 2 = <strong>300</strong>. Amplitude = 500 − 300 = <strong>200</strong>.',
+        3: '22 = 5 × 4 + 2, dus h(22) = h(2) = <strong>1</strong>.<br>33 = 8 × 4 + 1, dus h(33) = h(1) = <strong>3</strong>.<br>35 = 8 × 4 + 3, dus h(35) = h(3) = <strong>−1</strong>.',
+        4: 'Toppen bij t = 2 en t = 22, dus periode = <strong>20</strong> uur. Van de top bij t = 2 naar het dal bij t = 18 duurt <strong>16</strong> uur.<br>140 = 7 × 20, dus op t = 140 is de helderheid gelijk aan die op t = 0: <strong>75%</strong>.',
+        5: 'a = <strong>5</strong> en b = <strong>2</strong>. c = 4π, dus periode = 2π / 4π = <strong>0,5</strong>.',
+        6: 'a = <strong>100</strong>, b = <strong>8</strong> en c = 2π / 0,2π = <strong>10</strong> (de π valt weg).<br>Dus <span class="mono">y = 100 + 8·sin(10x)</span>.',
+        7: 'Top 25, dal 5: evenwichtsstand (25 + 5) / 2 = 15 en amplitude 25 − 15 = 10.<br>Van de top (2, 25) naar het dal (6, 5) is een halve periode, dus periode = 8 en c = 2π / 8 = ¼π.<br>Antwoord <strong>B: <span class="mono">y = 15 + 10·sin(¼πx)</span></strong>.',
+        8: 'a = 20 dm = <strong>2</strong> m en b = 15 dm = <strong>1,5</strong> m.<br>Vul t = 60T in: sin(0,1 · 60T) = sin(6T), dus c = <strong>6</strong>.<br>Dus <span class="mono">H = 2 + 1,5·sin(6T)</span>.',
+        9: 'y₁: 3(x − 0,73) = 0 geeft x = <strong>0,73</strong>, direct af te lezen.<br>y₂: 3x − 0,73 = 0 geeft x = 0,73 / 3 ≈ <strong>0,24</strong>.<br>Alleen in de vorm sin(c(x − d)) lees je het snijpunt direct af.',
+        10: 'Hoogste 4, laagste 1: a = (4 + 1) / 2 = <strong>2,5</strong> en b = 4 − 2,5 = <strong>1,5</strong>.<br>De grafiek gaat stijgend door de evenwichtsstand bij x = 1, dus d = <strong>1</strong> (d = 3 mag ook, één periode verder).<br>Dus <span class="mono">y = 2,5 + 1,5·sin(π(x − 1))</span>, figuur 13.11.',
+        11: '<strong>B.</strong> In graden rekent de GR sin(π) = sin(3,14°) ≈ 0,0548 in plaats van 0.<br>Op [−7, 7] graden draait de sinus bijna niet, dus zie je een vrijwel platte lijn.<br>Oplossing: <span class="mono">MODE → RADIAN</span>.',
+    };
+
+    function showUitwerking(qNum) {
+        const box = document.getElementById('sol-q' + qNum);
+        box.innerHTML = uitwerkingen[qNum];
+        box.classList.remove('hidden');
+        document.getElementById('solbtn-q' + qNum).classList.add('hidden');
+    }
 
     function markSolved(qNum, feedbackEl, msg) {
         solvedQuestions.add(qNum);
         document.getElementById('global-score').innerText = `${solvedQuestions.size} / 11`;
-        feedbackEl.className = 'text-xs font-bold text-emerald-600';
+        feedbackEl.className = 'text-xs font-bold text-emerald-600 text-right';
         feedbackEl.innerText = '✓ ' + msg;
+        showUitwerking(qNum);
     }
 
-    function markWrong(feedbackEl, msg) {
-        feedbackEl.className = 'text-xs font-bold text-rose-600';
-        feedbackEl.innerText = '✗ ' + msg;
+    // De hint wijst naar de aanpak, niet naar het antwoord. Na 2 fouten mag de uitwerking.
+    function markWrong(qNum, feedbackEl, hint) {
+        attempts[qNum] = (attempts[qNum] || 0) + 1;
+        feedbackEl.className = 'text-xs font-bold text-rose-600 text-right';
+        feedbackEl.innerText = '✗ ' + hint;
+        if (attempts[qNum] >= 2 && document.getElementById('sol-q' + qNum).classList.contains('hidden')) {
+            document.getElementById('solbtn-q' + qNum).classList.remove('hidden');
+        }
     }
 
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
     function parseNum(str) {
-        return parseFloat((str || '').trim().replace(',', '.'));
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
     }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    const val = id => parseNum(document.getElementById(id).value);
 
     // Draw mini graphs for exercises
     function drawMiniSine(canvasId, a, b, per, d, maxT, minY, maxY, yStep, tStep) {
@@ -1919,74 +2024,56 @@
 
     // Check functions
     function checkQ1() {
-        const p = parseNum(document.getElementById('q1-p').value);
-        const e = parseNum(document.getElementById('q1-e').value);
-        const a = parseNum(document.getElementById('q1-a').value);
         const fb = document.getElementById('fb-q1');
-        if (p === 6 && e === 5 && a === 15) {
-            markSolved(1, fb, 'Helemaal goed! (20 + -10)/2 = 5 en 20 - 5 = 15.');
+        if (approx(val('q1-p'), 6) && approx(val('q1-e'), 5) && approx(val('q1-a'), 15)) {
+            markSolved(1, fb, 'Helemaal goed!');
         } else {
-            markWrong(fb, 'Tip: Hoogste = 20 (bij t=1), laagste = -10 (bij t=4), volgende top bij t=7.');
+            markWrong(1, fb, 'Periode: van top tot volgende top. Evenwichtsstand: (hoogste + laagste) / 2 (zie tab 1).');
         }
     }
 
     function checkQ2() {
-        const p = parseNum(document.getElementById('q2-p').value);
-        const e = parseNum(document.getElementById('q2-e').value);
-        const a = parseNum(document.getElementById('q2-a').value);
         const fb = document.getElementById('fb-q2');
-        if (p === 2 && e === 300 && a === 200) {
-            markSolved(2, fb, 'Top! Evenwicht = 300, amplitude = 200, periode = 2.');
+        if (approx(val('q2-p'), 2) && approx(val('q2-e'), 300) && approx(val('q2-a'), 200)) {
+            markSolved(2, fb, 'Top!');
         } else {
-            markWrong(fb, 'Tip: Hoogste = 500, laagste = 100. Eén golf duurt van t = 0 tot t = 2.');
+            markWrong(2, fb, 'Lees de hoogste en laagste stand af en kijk hoe lang één hele golf duurt (zie tab 1).');
         }
     }
 
     function checkQ3() {
-        const v1 = parseNum(document.getElementById('q3-1').value);
-        const v2 = parseNum(document.getElementById('q3-2').value);
-        const v3 = parseNum(document.getElementById('q3-3').value);
         const fb = document.getElementById('fb-q3');
-        if (v1 === 1 && v2 === 3 && v3 === -1) {
-            markSolved(3, fb, 'Uitstekend! 22=5×4+2 (h=1), 33=8×4+1 (h=3), 35=8×4+3 (h=-1).');
+        if (approx(val('q3-1'), 1) && approx(val('q3-2'), 3) && approx(val('q3-3'), -1)) {
+            markSolved(3, fb, 'Uitstekend!');
         } else {
-            markWrong(fb, 'Trek telkens veelvouden van periode 4 af (bijv. 22 - 20 = 2).');
+            markWrong(3, fb, 'Haal er hele periodes (van 4) af tot je een t tussen 0 en 4 overhoudt, en lees die af.');
         }
     }
 
     function checkQ4() {
-        const p = parseNum(document.getElementById('q4-p').value);
-        const d = parseNum(document.getElementById('q4-d').value);
-        const h = parseNum(document.getElementById('q4-h').value);
         const fb = document.getElementById('fb-q4');
-        if (p === 20 && d === 16 && h === 75) {
-            markSolved(4, fb, 'Super! Periode = 20u, van t=2 naar t=18 is 16u, en 140 = 7×20 → 75%.');
+        if (approx(val('q4-p'), 20) && approx(val('q4-d'), 16) && approx(val('q4-h'), 75)) {
+            markSolved(4, fb, 'Super!');
         } else {
-            markWrong(fb, 'Tip: Top op t=2, dal op t=18, volgende top op t=22.');
+            markWrong(4, fb, 'Periode: afstand tussen twee toppen. Voor t = 140: haal er hele periodes af.');
         }
     }
 
     function checkQ5() {
-        const e = parseNum(document.getElementById('q5-e').value);
-        const a = parseNum(document.getElementById('q5-a').value);
-        const p = parseNum(document.getElementById('q5-p').value);
         const fb = document.getElementById('fb-q5');
-        if (e === 5 && a === 2 && p === 0.5) {
-            markSolved(5, fb, 'Klopt! Periode = 2π / 4π = 0,5.');
+        if (approx(val('q5-e'), 5) && approx(val('q5-a'), 2) && approx(val('q5-p'), 0.5)) {
+            markSolved(5, fb, 'Klopt!');
         } else {
-            markWrong(fb, 'Tip: Periode = 2π / 4π = 0,5.');
+            markWrong(5, fb, 'In y = a + b·sin(cx) is a de evenwichtsstand, b de amplitude en periode = 2π / c (zie tab 3).');
         }
     }
 
     function checkQ6() {
-        const a = parseNum(document.getElementById('q6-a').value);
-        const b = parseNum(document.getElementById('q6-b').value);
-        const c = parseNum(document.getElementById('q6-c').value);
         const fb = document.getElementById('fb-q6');
-        if (a === 100 && b === 8 && c === 10) {
-            markSolved(6, fb, 'Helemaal goed! c = 2π / 0,2 = 10π.');
+        if (approx(val('q6-a'), 100) && approx(val('q6-b'), 8) && approx(val('q6-c'), 10)) {
+            markSolved(6, fb, 'Helemaal goed!');
         } else {
-            markWrong(fb, 'Tip: c = 2π / 0,2 = 10π.');
+            markWrong(6, fb, 'a is de evenwichtsstand, b de amplitude en c = 2π / periode (zie tab 3).');
         }
     }
 
@@ -1994,44 +2081,37 @@
         const sel = document.querySelector('input[name="q7"]:checked');
         const fb = document.getElementById('fb-q7');
         if (sel && sel.value === 'B') {
-            markSolved(7, fb, 'Correct! a=15, b=10 en c = 2π/8 = ¼π.');
+            markSolved(7, fb, 'Correct!');
         } else {
-            markWrong(fb, 'Kijk goed naar evenwichtsstand (15), amplitude (10) en periode (8).');
+            markWrong(7, fb, 'Bepaal eerst evenwichtsstand, amplitude en periode uit de grafiek; dan c = 2π / periode.');
         }
     }
 
     function checkQ8() {
-        const a = parseNum(document.getElementById('q8-a').value);
-        const b = parseNum(document.getElementById('q8-b').value);
-        const c = parseNum(document.getElementById('q8-c').value);
         const fb = document.getElementById('fb-q8');
-        if (a === 2 && b === 1.5 && c === 6) {
-            markSolved(8, fb, 'Knap! 20 dm = 2 m, 15 dm = 1,5 m en 0,1 × 60T = 6T.');
+        if (approx(val('q8-a'), 2) && approx(val('q8-b'), 1.5) && approx(val('q8-c'), 6)) {
+            markSolved(8, fb, 'Knap!');
         } else {
-            markWrong(fb, 'Tip: 20 dm = 2 m, 15 dm = 1,5 m, en vervang t door 60T: 0,1 × 60 = 6.');
+            markWrong(8, fb, 'Reken a en b om van dm naar m. Voor c: vul t = 60T in de formule in.');
         }
     }
 
     function checkQ9() {
-        const x1 = parseNum(document.getElementById('q9-x1').value);
-        const x2 = parseNum(document.getElementById('q9-x2').value);
         const fb = document.getElementById('fb-q9');
-        if (x1 === 0.73 && Math.abs(x2 - 0.24) <= 0.01) {
-            markSolved(9, fb, 'Top! Bij y₁ lees je 0,73 direct af; bij y₂ is x = 0,73 / 3 ≈ 0,24.');
+        if (approx(val('q9-x1'), 0.73) && approx(val('q9-x2'), 0.24)) {
+            markSolved(9, fb, 'Top!');
         } else {
-            markWrong(fb, 'Tip: Bij y₁ is d = 0,73. Bij y₂ deel je 0,73 door 3 (≈ 0,24).');
+            markWrong(9, fb, 'Een sinus is 0 als wat tussen de haakjes staat 0 is. Let op waar de 3 staat (zie "Let op bij haakjes" in tab 3).');
         }
     }
 
     function checkQ10() {
-        const ua = parseFloat(document.getElementById('q10-a').value);
-        const ub = parseFloat(document.getElementById('q10-b').value);
-        const ud = parseFloat(document.getElementById('q10-d').value);
         const fb = document.getElementById('fb-q10');
-        if (ua === 2.5 && ub === 1.5 && (ud === 1 || ud === 3)) {
-            markSolved(10, fb, 'Perfecte match! y = 2,5 + 1,5·sin(π(x − 1)).');
+        const d = val('q10-d');
+        if (approx(val('q10-a'), 2.5) && approx(val('q10-b'), 1.5) && (approx(d, 1) || approx(d, 3))) {
+            markSolved(10, fb, 'Perfecte match!');
         } else {
-            markWrong(fb, 'Nog niet helemaal gelijk: kijk naar het midden (2,5), de top (4) en het stijgpunt bij x = 1.');
+            markWrong(10, fb, 'Lees het midden en de amplitude af aan de doelgrafiek, en zoek waar die stijgend door het midden gaat (zie tab 3).');
         }
     }
 
@@ -2039,9 +2119,9 @@
         const sel = document.querySelector('input[name="q11"]:checked');
         const fb = document.getElementById('fb-q11');
         if (sel && sel.value === 'B') {
-            markSolved(11, fb, 'Helemaal raak! In graden (DEG) is sin(x) op [-7, 7] bijna een platte lijn.');
+            markSolved(11, fb, 'Helemaal raak!');
         } else {
-            markWrong(fb, 'Denk aan de belangrijke afspraak bij dit hoofdstuk over de hoekeenheid van je GR!');
+            markWrong(11, fb, 'Denk aan de afspraak bij dit hoofdstuk over de hoekeenheid van je GR (zie tab 2).');
         }
     }
 
