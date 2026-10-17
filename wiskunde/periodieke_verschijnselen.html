@@ -634,7 +634,7 @@
                 <div>
                     <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 3 (Figuur 13.6: Cepheïde)</span>
                     <h3 class="font-bold text-slate-800 mt-1">Helderheid van een ster</h3>
-                    <canvas id="canvas-ex4" width="380" height="160" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <canvas id="canvas-ex4" width="380" height="180" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
                     <p class="text-xs text-slate-600 mb-2">
                         De zaagtandgrafiek heeft een top (100%) op <span class="mono">t = 2, 22, 42...</span> uur en een dal (50%) op <span class="mono">t = 18, 38, 58...</span> uur. Op <span class="mono">t = 0</span> is de helderheid 75%.
                     </p>
@@ -931,6 +931,24 @@
         }
     }
 
+    // ==================== ASLABELS ====================
+    // Elke grafiek krijgt aslabels zoals in het boek: de variabele aan het eind van elke as,
+    // buiten het raster (t rechts, h boven), en zo nodig de grootheid met eenheid eronder.
+    function drawAxisLabels(ctx, { axisX, axisY, xEnd, yTop, xLabel, yLabel, xCaption, captionY }) {
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter';
+        ctx.textAlign = 'left';
+        ctx.fillText(xLabel, xEnd + 6, axisY + 4);
+        ctx.textAlign = 'center';
+        ctx.fillText(yLabel, axisX, yTop - 8);
+        if (xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'right';
+            ctx.fillText(xCaption, xEnd, captionY);
+        }
+    }
+
     // ==================== TAB 1: BASISBEGRIPPEN ANIMATIE ====================
     let basisPreset = 1; // 1 = Fig 13.2, 2 = Fig 13.3
     let basisTime = 0;
@@ -1045,6 +1063,11 @@
         ctx.lineTo(gx0, gy1);
         ctx.lineTo(gx1, gy1);
         ctx.stroke();
+        drawAxisLabels(ctx, {
+            axisX: gx0, axisY: gy1, xEnd: gx1, yTop: gy0,
+            xLabel: 't', yLabel: isP1 ? 'h' : 'A',
+            xCaption: isP1 ? 'tijd in seconden' : '', captionY: gy1 + 34,
+        });
 
         // Ferris Wheel on Left
         const wheelX = 105;
@@ -1308,6 +1331,8 @@
         ctx.moveTo(gx0, cy);
         ctx.lineTo(gx1, cy);
         ctx.stroke();
+        drawAxisLabels(ctx, { axisX: cx, axisY: cy, xEnd: cx + r + 15, yTop: cy - r - 15, xLabel: 'x', yLabel: 'y' });
+        drawAxisLabels(ctx, { axisX: gx0, axisY: cy, xEnd: gx1, yTop: cy - r - 20, xLabel: 'x', yLabel: 'y' });
 
         // Full sine curve faint
         ctx.strokeStyle = '#cbd5e1';
@@ -1547,6 +1572,7 @@
         ctx.moveTo(gx0, mapY(0));
         ctx.lineTo(gx1, mapY(0));
         ctx.stroke();
+        drawAxisLabels(ctx, { axisX: gx0, axisY: mapY(0), xEnd: gx1, yTop: gy0, xLabel: 'x', yLabel: 'y' });
 
         // Standard y = sin(x) reference
         ctx.strokeStyle = '#94a3b8';
@@ -1607,15 +1633,18 @@
     const stepExamples = [
         {
             title: 'A = 20 + 15 · sin(π(t − 1½)) op [0, 5]',
-            a: 20, b: 15, c: Math.PI, per: 2, d: 1.5, maxT: 5, minY: 0, maxY: 40, yStep: 10
+            a: 20, b: 15, c: Math.PI, per: 2, d: 1.5, maxT: 5, minY: 0, maxY: 40, yStep: 10,
+            xLabel: 't', yLabel: 'A'
         },
         {
             title: 'N = 10 + 20 · sin(¼π(t − 2)) op [0, 16]',
-            a: 10, b: 20, c: Math.PI / 4, per: 8, d: 2, maxT: 16, minY: -15, maxY: 35, yStep: 10
+            a: 10, b: 20, c: Math.PI / 4, per: 8, d: 2, maxT: 16, minY: -15, maxY: 35, yStep: 10,
+            xLabel: 't', yLabel: 'N'
         },
         {
             title: 'y = 5 + 2 · sin(π(x − ½)) op [0, 4]',
-            a: 5, b: 2, c: Math.PI, per: 2, d: 0.5, maxT: 4, minY: 0, maxY: 8, yStep: 2
+            a: 5, b: 2, c: Math.PI, per: 2, d: 0.5, maxT: 4, minY: 0, maxY: 8, yStep: 2,
+            xLabel: 'x', yLabel: 'y'
         }
     ];
 
@@ -1697,6 +1726,7 @@
         ctx.moveTo(gx0, mapY(0));
         ctx.lineTo(gx1, mapY(0));
         ctx.stroke();
+        drawAxisLabels(ctx, { axisX: gx0, axisY: mapY(0), xEnd: gx1, yTop: gy0, xLabel: ex.xLabel, yLabel: ex.yLabel });
 
         // Step 2+: Evenwichtsstand and equilibrium points
         if (curDrawStep >= 2) {
@@ -1777,7 +1807,7 @@
          <p>• Hoogste punten: <strong>${ex.a} + ${ex.b} = ${ex.a + ex.b}</strong></p>
          <p>• Laagste punten: <strong>${ex.a} − ${ex.b} = ${ex.a - ex.b}</strong></p>`,
             `<div class="font-bold text-indigo-900 text-base">Stap 4: Teken een vloeiende golf (sinusoïde)</div>
-         <p>Verbind alle punten met een mooie vloeiende kromme lijn (geen rechte hoeken bij de toppen!) van <strong>t = 0</strong> tot <strong>t = ${ex.maxT}</strong>.</p>`
+         <p>Verbind alle punten met een mooie vloeiende kromme lijn (geen rechte hoeken bij de toppen!) van <strong>${ex.xLabel} = 0</strong> tot <strong>${ex.xLabel} = ${ex.maxT}</strong>.</p>`
         ];
         expEl.innerHTML = explanations[curDrawStep - 1];
     }
@@ -1865,13 +1895,13 @@
     const val = id => parseNum(document.getElementById(id).value);
 
     // Draw mini graphs for exercises
-    function drawMiniSine(canvasId, a, b, per, d, maxT, minY, maxY, yStep, tStep) {
+    function drawMiniSine(canvasId, a, b, per, d, maxT, minY, maxY, yStep, tStep, xLabel, yLabel) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const gx0 = 38, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gx0 = 38, gx1 = canvas.width - 20, gy0 = 22, gy1 = canvas.height - 25;
         const gw = gx1 - gx0, gh = gy1 - gy0;
         const mapX = t => gx0 + (t / maxT) * gw;
         const mapY = y => gy1 - ((y - minY) / (maxY - minY)) * gh;
@@ -1897,6 +1927,7 @@
         ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1);
         ctx.moveTo(gx0, mapY(0)); ctx.lineTo(gx1, mapY(0));
         ctx.stroke();
+        drawAxisLabels(ctx, { axisX: gx0, axisY: mapY(0), xEnd: gx1, yTop: gy0, xLabel, yLabel });
 
         ctx.strokeStyle = '#e11d48';
         ctx.lineWidth = 2.5;
@@ -1914,12 +1945,12 @@
 
     function drawEx1() {
         // Fig 13.4a: max=20 at t=1, min=-10 at t=4, period=6 => a=5, b=15, d=-0.5
-        drawMiniSine('canvas-ex1', 5, 15, 6, -0.5, 8, -20, 30, 10, 1);
+        drawMiniSine('canvas-ex1', 5, 15, 6, -0.5, 8, -20, 30, 10, 1, 't', 'h');
     }
 
     function drawEx2() {
         // Fig 13.4b: a=300, b=200, per=2, d=0
-        drawMiniSine('canvas-ex2', 300, 200, 2, 0, 4, 0, 600, 200, 1);
+        drawMiniSine('canvas-ex2', 300, 200, 2, 0, 4, 0, 600, 200, 1, 't', 'N');
     }
 
     function drawEx4() {
@@ -1927,12 +1958,13 @@
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const gx0 = 42, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gx0 = 42, gx1 = canvas.width - 20, gy0 = 22, gy1 = canvas.height - 36;
         const gw = gx1 - gx0, gh = gy1 - gy0;
         const mapX = t => gx0 + (t / 80) * gw;
         const mapY = y => gy1 - ((y - 40) / 70) * gh;
 
         ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
         [50, 75, 100].forEach(y => {
             const py = mapY(y);
             ctx.beginPath(); ctx.moveTo(gx0, py); ctx.lineTo(gx1, py); ctx.stroke();
@@ -1945,6 +1977,16 @@
             ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
             ctx.fillText(t, px, gy1 + 14);
         }
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1);
+        ctx.stroke();
+        drawAxisLabels(ctx, {
+            axisX: gx0, axisY: gy1, xEnd: gx1, yTop: gy0,
+            xLabel: 't', yLabel: 'helderheid', xCaption: 'tijd in uren', captionY: gy1 + 30,
+        });
 
         ctx.strokeStyle = '#e11d48';
         ctx.lineWidth = 2.2;
@@ -1960,7 +2002,7 @@
 
     function drawEx7() {
         // Fig 13.8: a=15, b=10, per=8, d=0
-        drawMiniSine('canvas-ex7', 15, 10, 8, 0, 8, 0, 25, 5, 1);
+        drawMiniSine('canvas-ex7', 15, 10, 8, 0, 8, 0, 25, 5, 1, 'x', 'y');
     }
 
     function drawEx10() {
@@ -1969,12 +2011,13 @@
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        const gx0 = 35, gx1 = canvas.width - 15, gy0 = 15, gy1 = canvas.height - 25;
+        const gx0 = 35, gx1 = canvas.width - 20, gy0 = 22, gy1 = canvas.height - 25;
         const gw = gx1 - gx0, gh = gy1 - gy0;
         const mapX = x => gx0 + (x / 4) * gw;
         const mapY = y => gy1 - (y / 5) * gh;
 
         ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
         for (let y = 0; y <= 5; y++) {
             const py = mapY(y);
             ctx.beginPath(); ctx.moveTo(gx0, py); ctx.lineTo(gx1, py); ctx.stroke();
@@ -1987,6 +2030,13 @@
             ctx.fillStyle = '#475569'; ctx.textAlign = 'center';
             ctx.fillText(x, px, gy1 + 14);
         }
+
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(gx0, gy0); ctx.lineTo(gx0, gy1); ctx.lineTo(gx1, gy1);
+        ctx.stroke();
+        drawAxisLabels(ctx, { axisX: gx0, axisY: gy1, xEnd: gx1, yTop: gy0, xLabel: 'x', yLabel: 'y' });
 
         // Target: Fig 13.11 => y = 2.5 + 1.5 * sin(pi * (x - 1))
         ctx.save();

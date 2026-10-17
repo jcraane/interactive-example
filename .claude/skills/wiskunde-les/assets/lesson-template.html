@@ -530,7 +530,8 @@
      * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
      *
      * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
-     *      xLabel, yLabel                                  aslabels, bv. 't (uur)'
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
      *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
      *      curves: [{ f, color, width, dash, domain: [a, b] }]
      *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
@@ -541,7 +542,8 @@
         const canvas = $(canvasId);
         if (!canvas) return null;
         const { ctx, w, h } = setupCanvas(canvas);
-        const pad = Object.assign({ l: 44, r: 18, t: 16, b: 30 }, opt.pad);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
         const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
         const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
         const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
@@ -574,10 +576,18 @@
         const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
         strokeLine(ctx, box.x0, axisY, box.x1, axisY);
         strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
         ctx.fillStyle = '#334155';
-        ctx.font = '600 12px Inter, sans-serif';
-        if (opt.xLabel) { ctx.textAlign = 'right'; ctx.fillText(opt.xLabel, box.x1, axisY - 6); }
-        if (opt.yLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.yLabel, axisX + 6, box.y0 + 10); }
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
 
         // Alles hieronder blijft binnen het grafiekvlak
         ctx.save();
@@ -916,6 +926,7 @@
         // Fig {{N.x}}: top (2, 1), punt (4, 3) → y = ½(x − 2)² + 1
         drawGraph('canvas-q1', {
             xMin: -1, xMax: 5, yMin: -1, yMax: 6, xStep: 1, yStep: 1, pad: { l: 30, b: 24 },
+            xLabel: 'x', yLabel: 'y',
             curves: [{ f: x => 0.5 * (x - 2) ** 2 + 1, color: C.rose }],
         });
     }
@@ -923,7 +934,7 @@
     function drawQ3() {
         const a = parseNum($('q3-a').value), p = parseNum($('q3-p').value), q = parseNum($('q3-q').value);
         drawGraph('canvas-q3', {
-            xMin: -3, xMax: 5, yMin: -4, yMax: 5, xStep: 1, yStep: 1,
+            xMin: -3, xMax: 5, yMin: -4, yMax: 5, xStep: 1, yStep: 1, xLabel: 'x', yLabel: 'y',
             curves: [
                 { f: x => -0.5 * (x - 1) ** 2 + 3, color: C.slate, width: 6, dash: [8, 6] },
                 ...(isFinite(a) && isFinite(p) && isFinite(q) ? [{ f: x => a * (x - p) ** 2 + q, color: C.indigo, width: 3 }] : []),

@@ -46,7 +46,7 @@ easy to drop a figure value or let a concept's colour drift halfway through. Cov
 - evenwichtsstand → rose · amplitude → sky · periode → amber · startpunt → emerald
 
 ## Theorieblokken (in boekvolgorde)
-- Theorie A (p. 12): <kern in één zin> | figuren: 13.2 (min 1 bij t=0, max 6 bij t=2,5) | voorbeeld: …
+- Theorie A (p. 12): <kern in één zin> | figuren: 13.2 (assen h / t, "tijd in seconden"; min 1 bij t=0, max 6 bij t=2,5) | voorbeeld: …
 ## Werkschema's / stappenplannen uit het boek
 ## Afspraken en valkuilen ("Let op", "Afspraak", typische fouten)
 ## GR-gebruik in het boek (welke handelingen, met welke toetsen als het boek ze geeft)
@@ -93,8 +93,8 @@ circle, shading).
   the targets in `exercises`. Also feed Dutch-notation inputs (`"0,5"`, `"¼π"`, `"−3"`) through
   `parseNum` to confirm they pass.
 - If a browser tool is available, serve the folder over `http://` (Playwright blocks `file://`),
-  click through every tab, check the console for errors and screenshot each tab once to judge
-  the layout. If you can't, say that the lesson wasn't viewed in a browser.
+  click through every tab, check the console for errors and `drawGraph` label warnings, and
+  screenshot each tab once to judge the layout. If you can't, say that the lesson wasn't viewed in a browser.
 
 ### 6. Register and report
 
@@ -175,6 +175,14 @@ The `exercises` object is declarative. Each entry has `fields`, `choice` or `che
   don't understand it", not as "the drawing is wrong".
 - Use the book's axis ranges, steps and variable names (`t` in uren, `h` in meters), and π-ticks
   when the book uses them.
+- **Every graph labels both axes, exactly as the book does.** Put the variable at the end of each
+  axis (`t` right of the horizontal axis, `h` above the vertical one). When the book adds the
+  quantity with its unit under the axis ("tijd in seconden", "tijd in uren"), add that too. Pass
+  them to `drawGraph` as `xLabel`, `yLabel` and `xCaption`. `drawGraph` logs a console warning
+  when a label is missing, so the browser check in step 5 catches it. This also covers mini graphs
+  in exercise cards and axes you draw yourself, such as those of a unit circle. The only exception is a
+  simulated GR screen, because the real TI-84 shows no axis labels. Without labels the student
+  can't tell whether they're reading `h` or `t`, and the figure stops matching the book.
 - Canvas `width`/`height` attributes are the logical size. Keep `class="w-full h-auto"`.
 - Animations run in a `requestAnimationFrame` loop that only draws while its tab is visible
   (see `animateLoop`).
