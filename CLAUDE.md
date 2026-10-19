@@ -92,6 +92,14 @@ All examples are in **Dutch** (`lang="nl"`).
   three probabilities always sum to 1. Includes a set-sequence visualizer (drawing the orderings
   each combination counts) and an "x boven y" / nCr mini-widget with the cancel-down trick, the
   factorial formula, and a styled TI-84 Plus keystroke callout.
+- `wiskunde/toepassingen-van-sinusoiden.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.2 of
+  Getal & Ruimte H13 and the follow-up to the §13.1 lesson: from graph or data to the formula
+  y = a + b sin(c(x − d)) and calculating with it. The thread is "één periode = vier kwarten": an
+  animated quarter-period explorer, a formula stappenplan where the student picks d and sees a
+  falling crossing give the mirrored graph, a six-question explorer for Theorie B (max/min without
+  GR, value, intersect, dy/dx, max slope, domain wrap) with a live TI-84 Plus CE screen, a year-model
+  explorer for Theorie C (Napels, zeewater: data → a, b, c, d, dagnummers, time above a threshold),
+  and 11 auto-checked book exercises ending in a graph matcher on figuur 13.15.
 
 Examples are independent — there is no shared library or cross-file dependency.
 

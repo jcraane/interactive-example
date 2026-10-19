@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 13: Toepassingen van sinusoïden</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent */
+        .tab-btn.active {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 13</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">13.2 Toepassingen van sinusoïden</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-opstellen')" id="btn-tab-opstellen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Formule opstellen
+            </button>
+            <button onclick="switchTab('tab-rekenen')" id="btn-tab-rekenen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Rekenen met de sinus
+            </button>
+            <button onclick="switchTab('tab-gebruiken')" id="btn-tab-gebruiken" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Sinusoïden gebruiken
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (11)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Van grafiek naar formule</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In §13.1 tekende je bij een formule de grafiek. Nu draai je het om: bij een <strong>grafiek</strong> of bij <strong>gegevens</strong> zoals "het is het warmst op 20 juli" stel je zelf de formule <span class="mono">y = a + b sin(c(x − d))</span> op. Daarna reken je ermee: het hoogste punt, snijpunten en de helling. Je handigste hulpmiddel daarbij is de <strong>kwart periode</strong>.
+            </p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">a. Evenwichtsstand</div>
+                    <div class="font-bold text-slate-900 mt-1">Het midden van de golf</div>
+                    <p class="text-sm text-slate-600 mt-1">Precies halverwege het hoogste en het laagste punt.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold">
+                        a = (hoogste + laagste) / 2
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">b. Amplitude</div>
+                    <div class="font-bold text-slate-900 mt-1">Hoe ver de golf uitwijkt</div>
+                    <p class="text-sm text-slate-600 mt-1">De afstand van de evenwichtsstand tot het hoogste punt.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        b = hoogste − a
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">c. Periode</div>
+                    <div class="font-bold text-slate-900 mt-1">De lengte van één golf</div>
+                    <p class="text-sm text-slate-600 mt-1">Lees de periode af; c volgt eruit.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">
+                        c = 2π / periode
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">d. Beginpunt</div>
+                    <div class="font-bold text-slate-900 mt-1">Stijgend door de evenwichtsstand</div>
+                    <p class="text-sm text-slate-600 mt-1">Op x = d gaat de grafiek <em>stijgend</em> door de evenwichtsstand.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold">
+                        punt (d, a), grafiek stijgt
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 p-4 rounded-xl bg-amber-50/60 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Eén periode = vier kwarten</div>
+                <div class="flex flex-wrap items-center gap-2 mt-2 text-xs font-semibold">
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">stijgend door de evenwichtsstand (x = d)</span>
+                    <span class="mono text-amber-700">+ ¼ periode →</span>
+                    <span class="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800">hoogste punt</span>
+                    <span class="mono text-amber-700">+ ¼ →</span>
+                    <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800">dalend door de evenwichtsstand</span>
+                    <span class="mono text-amber-700">+ ¼ →</span>
+                    <span class="px-2.5 py-1 rounded-full bg-orange-100 text-orange-800">laagste punt</span>
+                    <span class="mono text-amber-700">+ ¼ →</span>
+                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">weer stijgend</span>
+                </div>
+                <p class="text-sm text-slate-600 mt-2">
+                    Ken je d en de periode, dan weet je meteen waar het hoogste en het laagste punt liggen. En andersom: weet je waar een top ligt, dan vind je d. Dat gebruik je in de hele paragraaf.
+                </p>
+            </div>
+        </div>
+
+        <!-- Verkenner: één periode in vier kwarten -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve animatie: één periode in vier kwarten</h3>
+                    <p class="text-sm text-slate-500">Kies een figuur uit het boek. Het punt loopt over de grafiek: kijk wat er na elke kwart periode gebeurt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Figuur 13.12
+                    </button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Figuur 13.13
+                    </button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Terugblik
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis" width="720" height="360" class="w-full h-auto"></canvas>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                        ⏸ Pauzeer animatie
+                    </button>
+
+                    <div>
+                        <label for="basis-x-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Punt handmatig verschuiven:</span>
+                            <span id="basis-x-label" class="mono font-bold text-indigo-600">x = 0</span>
+                        </label>
+                        <input id="basis-x-slider" type="range" min="0" max="6" step="0.01" value="0" class="w-full mt-1" oninput="manualBasisSlider(this.value)" />
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbare hulplijnen in grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-evenwicht" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Evenwichtsstand</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-amplitude" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+                            <span class="font-medium">Amplitude</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-periode" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+                            <span class="font-medium">Periode (in kwarten)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-kwarten" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-medium">Punten na elke kwart periode</span>
+                        </label>
+                    </div>
+
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: FORMULE OPSTELLEN (THEORIE A) ==================== -->
+    <section id="tab-opstellen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A: een formule van een sinusoïde opstellen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Bij een getekende sinusoïde lees je vier dingen af: het hoogste en laagste punt (voor <span class="mono font-bold text-rose-700">a</span> en <span class="mono font-bold text-sky-700">b</span>), de periode (voor <span class="mono font-bold text-amber-700">c</span>) en een punt waar de grafiek stijgend door de evenwichtsstand gaat (voor <span class="mono font-bold text-emerald-700">d</span>). Kijk daarbij goed welke variabelen bij de assen staan.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: hoe stel je de formule op?</h2>
+                    <p class="text-sm text-slate-600">Kies een figuur uit het boek en klik door de stappen. Bij stap 4 kies je zelf d.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setOpstelVoorbeeld(0)" id="opstel-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">
+                        Voorbeeld: figuur 13.13
+                    </button>
+                    <button onclick="setOpstelVoorbeeld(1)" id="opstel-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Opgave 15: figuur 13.12
+                    </button>
+                    <button onclick="setOpstelVoorbeeld(2)" id="opstel-ex-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                        Terugblik
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-6">
+                <button onclick="setOpstelStap(1)" id="opstel-stap-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">Evenwichtsstand a</div>
+                </button>
+                <button onclick="setOpstelStap(2)" id="opstel-stap-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">Amplitude b</div>
+                </button>
+                <button onclick="setOpstelStap(3)" id="opstel-stap-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Periode → c</div>
+                </button>
+                <button onclick="setOpstelStap(4)" id="opstel-stap-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">Kies d</div>
+                </button>
+                <button onclick="setOpstelStap(5)" id="opstel-stap-5" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100 col-span-2 sm:col-span-1">
+                    <div class="text-xs font-bold text-slate-500">Stap 5</div>
+                    <div class="font-bold text-sm text-slate-800">Formule &amp; controle</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-opstel" width="640" height="360" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1.5 bg-slate-400 inline-block rounded"></span> Grafiek uit het boek</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Grafiek van jouw formule</span>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="opstel-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <div class="flex justify-between">
+                        <button onclick="setOpstelStap(Math.max(1, opstelStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
+                            ← Vorige stap
+                        </button>
+                        <button onclick="setOpstelStap(Math.min(OPSTEL_STAPPEN, opstelStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+                            Volgende stap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie A, opgave R16)</div>
+                <h4 class="font-bold text-slate-800 mt-1">d hoort bij <em>stijgend</em> door de evenwichtsstand</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    De grafiek snijdt de evenwichtsstand twee keer per periode: één keer stijgend en één keer dalend. Neem je het dalende punt, dan krijg je de gespiegelde grafiek: waar het boek een top heeft, heeft jouw grafiek een dal. Probeer het in stap 4.
+                </p>
+                <p class="text-xs text-slate-700 leading-relaxed mt-2">
+                    Er is niet één goede d. Een periode verder of terug gaat de grafiek wéér stijgend door de evenwichtsstand, dus d + periode is ook goed (opgave R16).
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie A)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Let goed op de variabelen bij de assen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In figuur 13.13 staat <span class="mono font-bold">t</span> op de horizontale as en <span class="mono font-bold">N</span> op de verticale as. De formule wordt dan <span class="mono font-bold">N = a + b sin(c(t − d))</span> en niet <span class="mono">y = … sin(c(x − d))</span>.
+                </p>
+                <p class="text-xs text-slate-700 leading-relaxed mt-2">
+                    Zie je liever een top dan een snijpunt? Dat mag ook: d = x van het laagste punt + ¼ periode, of d = x van het hoogste punt − ¼ periode.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: REKENEN MET DE SINUS (THEORIE B) ==================== -->
+    <section id="tab-rekenen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie B: berekeningen met de sinus</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Bij een formule als <span class="mono">y = 3 + 2 sin(¼π(x − 1,5))</span> met <span class="mono">0 ≤ x ≤ 10</span> kun je zes soorten vragen krijgen. Het hoogste en het laagste punt bereken je <strong>zonder GR</strong>, met de kwart periode. Voor een functiewaarde, een snijpunt en de helling gebruik je de <strong>GR</strong>.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve animatie: de zes vragen</h3>
+                    <p class="text-sm text-slate-500">Kies een formule en een vraag. Schuif om te zien hoe het antwoord verandert.</p>
+                </div>
+                <div id="reken-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setRekenPreset(0)" id="reken-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie B</button>
+                <button onclick="setRekenPreset(1)" id="reken-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik</button>
+                <button onclick="setRekenPreset(2)" id="reken-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 24</button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-4 mb-5">
+                <button onclick="setRekenVraag(1)" id="reken-vraag-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-emerald-700">1 • zonder GR</div>
+                    <div class="font-bold text-sm text-slate-800">Maximum</div>
+                </button>
+                <button onclick="setRekenVraag(2)" id="reken-vraag-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-emerald-700">2 • zonder GR</div>
+                    <div class="font-bold text-sm text-slate-800">Minimum</div>
+                </button>
+                <button onclick="setRekenVraag(3)" id="reken-vraag-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">3 • met GR</div>
+                    <div class="font-bold text-sm text-slate-800">y bij een x</div>
+                </button>
+                <button onclick="setRekenVraag(4)" id="reken-vraag-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">4 • met GR</div>
+                    <div class="font-bold text-sm text-slate-800">x bij een y</div>
+                </button>
+                <button onclick="setRekenVraag(5)" id="reken-vraag-5" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">5 • met GR</div>
+                    <div class="font-bold text-sm text-slate-800">Helling in een punt</div>
+                </button>
+                <button onclick="setRekenVraag(6)" id="reken-vraag-6" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">6 • met GR</div>
+                    <div class="font-bold text-sm text-slate-800">Maximale helling</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-reken" width="680" height="360" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Grafiek op het domein</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-3 bg-slate-200 inline-block rounded"></span> Buiten het domein</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> Hoogste/laagste punt</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-violet-600 inline-block"></span> Raaklijn (helling)</span>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="reken-x-paneel" class="hidden p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                        <label for="reken-x" class="flex justify-between text-xs font-bold text-indigo-900">
+                            <span id="reken-x-naam">Kies x:</span>
+                            <span id="reken-x-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="reken-x" type="range" min="0" max="10" step="0.05" value="4.7" class="w-full mt-1.5" oninput="setRekenSlider('x', this.value)" />
+                    </div>
+                    <div id="reken-k-paneel" class="hidden p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                        <label for="reken-k" class="flex justify-between text-xs font-bold text-indigo-900">
+                            <span id="reken-k-naam">Kies y:</span>
+                            <span id="reken-k-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="reken-k" type="range" min="0" max="6" step="0.05" value="4.6" class="w-full mt-1.5" oninput="setRekenSlider('k', this.value)" />
+                    </div>
+                    <div id="reken-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cruciale afspraak: radialen (uit §13.1) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border-2 border-amber-300 flex items-start gap-3">
+            <span class="text-2xl">🧮</span>
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Cruciale afspraak (uit §13.1)</span>
+                <h3 class="font-bold text-slate-800 mt-1">Je GR staat op RADIAN</h3>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Druk <span class="key">MODE</span>, ga met de pijltjes naar <span class="mono font-bold">RADIAN</span> en druk <span class="key">ENTER</span>, dan <span class="key">2nd</span> <span class="key">MODE</span> (QUIT). Bovenin het scherm staat dan RADIAN. Staat je GR op graden (DEGREE), dan zijn alle snijpunten en hellingen in deze paragraaf fout.
+                </p>
+            </div>
+        </div>
+
+        <!-- GR-callout: volgt de gekozen vraag en formule -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: <span id="gr-titel"></span></div>
+                    <div id="gr-tag" class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right"></div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="flex justify-between text-[11px] border-b border-slate-400/50 pb-1 mb-2 font-bold">
+                        <span>NORMAL FLOAT AUTO REAL</span>
+                        <span class="px-1.5 py-0.5 rounded bg-emerald-700 text-white">RADIAN</span>
+                    </div>
+                    <div id="gr-scherm" class="space-y-0.5 break-words"></div>
+                </div>
+                <ol id="gr-stappen" class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300"></ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div id="gr-valkuil-titel" class="font-bold text-amber-900"></div>
+                <p id="gr-valkuil" class="text-xs leading-relaxed"></p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Afspraak (Theorie B)</div>
+                <h4 class="font-bold text-slate-800 mt-1">'Bereken zonder GR'</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij 'Bereken zonder GR' mag je wel berekeningen op het basisscherm maken, zoals <span class="mono">2π / (¼π)</span> of <span class="mono">1,5 + ¼ · 8</span>. Je mag alleen niet de grafiek plotten en de optie maximum of minimum gebruiken.
+                </p>
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800 mt-4">Let op! (opgave 21 en 24)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Controleer het domein</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Valt de x die je met de kwart periode vindt buiten het domein, tel er dan een periode bij of trek er een af. Bij opgave 24 (<span class="mono">0 ≤ t ≤ 15</span>, periode 15) vind je het minimum eerst bij <span class="mono">t = 5,1 + ¾ · 15 = 16,35</span>. Dat ligt buiten het domein, dus neem <span class="mono">16,35 − 15 = 1,35</span>. Kies "Opgave 24" en vraag 2 hierboven om het te zien.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 23)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Eerst de vorm c(x − d) maken</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In <span class="mono">y = 3 + sin(2x − 1)</span> staat geen c(x − d), dus je kunt d niet zomaar aflezen. Haal eerst c buiten haakjes: <span class="mono font-bold">2x − 1 = 2(x − ½)</span>. Dus c = 2 en <strong>d = ½</strong>, niet d = 1. Dat heb je nodig in opgave 23.
+                </p>
+                <canvas id="canvas-letop23" width="460" height="200" class="w-full h-auto my-3 bg-white rounded-lg border border-amber-200"></canvas>
+                <div class="flex flex-wrap gap-3 text-[11px] text-slate-600">
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> <span class="mono">y = 3 + sin(2x − 1)</span></span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-slate-400 inline-block"></span> fout gelezen: <span class="mono">sin(2(x − 1))</span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: SINUSOÏDEN GEBRUIKEN (THEORIE C) ==================== -->
+    <section id="tab-gebruiken" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie C: sinusoïden gebruiken</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                De gemiddelde dagtemperatuur in Napels gaat elk jaar op en neer. Je kunt hem benaderen met het model <span class="mono">T = a + b sin(c(n − d))</span>, met <span class="mono">n</span> het dagnummer (<span class="mono">n = 1</span> op 1 januari). Je hebt geen grafiek nodig: uit de hoogste en laagste temperatuur en de datum van het maximum volgen a, b, c en d. Schuif hieronder aan de gegevens en kijk hoe de formule meeverandert.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve animatie: een jaarmodel</h3>
+                    <p class="text-sm text-slate-500">Eerst stel je het model op, daarna gebruik je het.</p>
+                </div>
+                <div id="gebruik-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setGebruikPreset(0)" id="gebruik-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie C: Napels</button>
+                <button onclick="setGebruikPreset(1)" id="gebruik-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: zeewater</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-4 mb-5">
+                <button onclick="setGebruikModus(1)" id="gebruik-modus-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap A</div>
+                    <div class="font-bold text-sm text-slate-800">Model opstellen</div>
+                </button>
+                <button onclick="setGebruikModus(2)" id="gebruik-modus-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap B</div>
+                    <div class="font-bold text-sm text-slate-800">Een datum invullen</div>
+                </button>
+                <button onclick="setGebruikModus(3)" id="gebruik-modus-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap C</div>
+                    <div class="font-bold text-sm text-slate-800">Hoe lang meer dan …?</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-gebruik" width="680" height="360" class="w-full h-auto"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-3">
+                    <!-- Modus A: gegevens -->
+                    <div id="gebruik-paneel-1" class="space-y-3">
+                        <div class="p-3 rounded-xl bg-orange-50/70 border border-orange-200">
+                            <label for="g-tmax" class="flex justify-between text-xs font-bold text-orange-900">
+                                <span>Moment van het maximum</span>
+                                <span id="g-tmax-label" class="mono text-sm"></span>
+                            </label>
+                            <input id="g-tmax" type="range" min="1" max="365" step="1" value="201" class="w-full mt-1.5" oninput="renderGebruik()" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 rounded-xl bg-orange-50/70 border border-orange-200">
+                                <label for="g-Tmax" class="flex justify-between text-xs font-bold text-orange-900">
+                                    <span>T<sub>max</sub></span>
+                                    <span id="g-Tmax-label" class="mono text-sm"></span>
+                                </label>
+                                <input id="g-Tmax" type="range" min="16" max="30" step="0.5" value="25" class="w-full mt-1.5" oninput="renderGebruik()" />
+                            </div>
+                            <div class="p-3 rounded-xl bg-orange-50/70 border border-orange-200">
+                                <label for="g-Tmin" class="flex justify-between text-xs font-bold text-orange-900">
+                                    <span>T<sub>min</sub></span>
+                                    <span id="g-Tmin-label" class="mono text-sm"></span>
+                                </label>
+                                <input id="g-Tmin" type="range" min="0" max="15" step="0.5" value="9" class="w-full mt-1.5" oninput="renderGebruik()" />
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modus B: datum -->
+                    <div id="gebruik-paneel-2" class="hidden p-3 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                        <label for="g-datum" class="flex justify-between text-xs font-bold text-indigo-900">
+                            <span>Kies een datum</span>
+                            <span id="g-datum-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="g-datum" type="range" min="1" max="365" step="1" value="221" class="w-full mt-1.5" oninput="renderGebruik()" />
+                    </div>
+                    <!-- Modus C: grens -->
+                    <div id="gebruik-paneel-3" class="hidden p-3 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                        <label for="g-k" class="flex justify-between text-xs font-bold text-indigo-900">
+                            <span>Grens: T meer dan</span>
+                            <span id="g-k-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="g-k" type="range" min="0" max="30" step="0.5" value="20" class="w-full mt-1.5" oninput="renderGebruik()" />
+                    </div>
+                    <div id="gebruik-uitleg" class="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-2 text-sm text-slate-800"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h3 class="text-lg font-bold text-slate-800">Dagnummers in een niet-schrikkeljaar (tabel bij opgave 27)</h3>
+            <p class="text-sm text-slate-500 mt-1">De laatste dag van de vorige maand + de dag van de maand geeft het dagnummer. Voorbeeld: 9 augustus → 212 + 9 = 221.</p>
+            <div id="dagnummer-tabel" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 mt-4 text-xs"></div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie C)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Waar begint de tijd?</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij dagnummers is <span class="mono font-bold">n = 1</span> op 1 januari (niet 0). Bij maanden is meestal <span class="mono font-bold">t = 0</span> op 1 januari, dus halverwege februari is <span class="mono">t = 1,5</span>. Lees altijd na waar t = 0 ligt: in opgave 29 is <span class="mono">t = 0</span> op 21 januari!
+                </p>
+                <p class="text-xs text-slate-700 leading-relaxed mt-2">
+                    Een kwart periode van 365 dagen is <span class="mono">¼ · 365 ≈ 91</span> dagen. Zo vind je d = 201 − 91 = 110.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 27, 28 en 29)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Snelheid = helling, en let op de eenheid</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    "De grootste snelheid waarmee de temperatuur stijgt" is de maximale helling (tab 3, vraag 6). Bij <span class="mono">T</span> in °C en <span class="mono">n</span> in dagen is de eenheid °C per dag.
+                </p>
+                <p class="text-xs text-slate-700 leading-relaxed mt-2">
+                    Staat de daglengte in uren en wordt het antwoord in minuten of seconden gevraagd? Reken om: uren × 60 = minuten, uren × 3600 = seconden.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen; breuken als 1/4 of ¼, en π als pi.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 11 opgaven uit §13.2 die samen alle theorie behandelen. De andere opgaven maak je in je schrift.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: opgave 17a -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave 17a (Figuur 13.14a)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Formule opstellen bij een grafiek</h3>
+                    <canvas id="canvas-q1" width="380" height="200" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Stel bij de sinusoïde een formule op van de vorm <span class="mono">y = a + b sin(c(x − d))</span>.</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q1-a" class="font-semibold text-slate-700">a:</label>
+                            <input id="q1-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-b" class="font-semibold text-slate-700">b:</label>
+                            <input id="q1-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-c" class="font-semibold text-slate-700">c (mag met π):</label>
+                            <input id="q1-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-d" class="font-semibold text-slate-700">d:</label>
+                            <input id="q1-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave 17b (meerkeuze) -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 17b (Figuur 13.14b)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke formule hoort erbij?</h3>
+                    <canvas id="canvas-q2" width="380" height="200" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Drie formules bevatten een klassieke fout. Welke formule hoort bij de grafiek?</p>
+                    <div class="space-y-2 text-xs mono">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="A" /> y = 1 + 3 sin(⅔π(x − 0,5))
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="B" /> y = 1 + 3 sin(⅔π(x − 2))
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="C" /> y = 1 + 3 sin(3(x − 2))
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q2" value="D" /> y = 1 + 6 sin(⅔π(x − 2))
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave 19a en b -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 19a en b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Hoogste punt en een functiewaarde</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        y = 2 + 3 sin(⅕π(x − 1)) met 0 ≤ x ≤ 10
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">a. Bereken de coördinaten van het hoogste punt van de grafiek. b. Bereken y in twee decimalen voor x = 1,8.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q3-x" class="font-semibold text-slate-700">a. top: x =</label>
+                            <input id="q3-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-y" class="font-semibold text-slate-700">a. top: y =</label>
+                            <input id="q3-y" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-b" class="font-semibold text-slate-700">b. y (2 dec.):</label>
+                            <input id="q3-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 19c -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 19c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Voor welke x is y = 3,6?</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        y = 2 + 3 sin(⅕π(x − 1)) met 0 ≤ x ≤ 10
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">Voor welke x is y = 3,6? Rond af op twee decimalen. Let op: er zijn twee oplossingen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q4-x1" class="font-semibold text-slate-700">Kleinste x:</label>
+                            <input id="q4-x1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q4-x2" class="font-semibold text-slate-700">Grootste x:</label>
+                            <input id="q4-x2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave 21b en c (domein) -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave 21b en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Maximum en minimum op een klein domein</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        N = −2 + 7 sin(½π(t − 3)) met 0 ≤ t ≤ 4
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">Bereken zonder GR de maximale en de minimale waarde van N, en de t die bij de minimale waarde hoort.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q5-max" class="font-semibold text-slate-700">Maximale N:</label>
+                            <input id="q5-max" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-min" class="font-semibold text-slate-700">Minimale N:</label>
+                            <input id="q5-min" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-t" class="font-semibold text-slate-700">t bij minimum:</label>
+                            <input id="q5-t" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave 22g (maximale helling) -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 22g</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De maximale helling</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        y = 5 + 2 sin(⅖π(x − 0,8)) met 0 ≤ x ≤ 5
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">Bij welke x is de helling van de grafiek maximaal? Bereken die maximale helling in twee decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q6-x" class="font-semibold text-slate-700">x =</label>
+                            <input id="q6-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-h" class="font-semibold text-slate-700">Max. helling (2 dec.):</label>
+                            <input id="q6-h" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave 23a (½q − 1) -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave 23a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Pas op met de haakjes</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        P = 25 + 6 sin(½q − 1) met 0 ≤ q ≤ 15
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">Bereken zonder GR de maximale waarde van P en de bijbehorende q. Rond zo nodig af op twee decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q7-p" class="font-semibold text-slate-700">Maximale P:</label>
+                            <input id="q7-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-q" class="font-semibold text-slate-700">Bijbehorende q (2 dec.):</label>
+                            <input id="q7-q" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave 25 (twee toppen) -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 25</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Twee opeenvolgende toppen</h3>
+                    <canvas id="canvas-q8" width="380" height="190" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Van de sinusoïde <span class="mono">y = a + b sin(c(x − d))</span> zijn de punten (1, 10) en (5, 4) twee opeenvolgende toppen. Je weet al dat a = 7 en b = 3. Bereken de periode en geef een mogelijke waarde van d.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q8-p" class="font-semibold text-slate-700">Periode:</label>
+                            <input id="q8-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q8-d" class="font-semibold text-slate-700">d:</label>
+                            <input id="q8-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: opgave 27a en c (Napels) -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 27a en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De temperatuur in Napels</h3>
+                    <div class="p-3 my-3 rounded-xl bg-slate-900 text-white mono text-center font-bold text-sm">
+                        T = 17 + 8 sin(2π/365 (n − 110))
+                    </div>
+                    <p class="text-xs text-slate-600 mb-3">a. Bereken in één decimaal de gemiddelde dagtemperatuur op 1 maart en op 18 mei. c. Bereken in twee decimalen de grootste snelheid waarmee de temperatuur stijgt.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q9-maart" class="font-semibold text-slate-700">T op 1 maart:</label>
+                            <input id="q9-maart" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-mei" class="font-semibold text-slate-700">T op 18 mei:</label>
+                            <input id="q9-mei" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-v" class="font-semibold text-slate-700">c. °C per dag:</label>
+                            <input id="q9-v" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: opgave 29a (daglengte Nederland) -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave 29a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een model voor de daglengte</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">
+                        De daglengte in Nederland varieert tussen 8 uur op 21 december en 16 uur op 21 juni. Gebruik het model <span class="mono">l = a + b sin(c(t − d))</span> met <span class="mono">l</span> in uren en <span class="mono">t</span> in maanden, met <strong><span class="mono">t = 0</span> op 21 januari</strong>. Bereken a, b, c en d.
+                    </p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q10-a" class="font-semibold text-slate-700">a:</label>
+                            <input id="q10-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-b" class="font-semibold text-slate-700">b:</label>
+                            <input id="q10-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-c" class="font-semibold text-slate-700">c (mag met π):</label>
+                            <input id="q10-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-d" class="font-semibold text-slate-700">d:</label>
+                            <input id="q10-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: einduitdaging, opgave 18 (Figuur 13.15) -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Einduitdaging • Opgave 18 (Figuur 13.15)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw grafiek samenvallen met figuur 13.15!</h3>
+                    <p class="text-xs text-slate-600 mt-1">Stel bij de sinusoïde een formule op van de vorm <span class="mono">N = a + b sin(c(t − d))</span>. Je grafiek verschijnt meteen als je typt.</p>
+                    <canvas id="canvas-q11" width="760" height="260" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q11-a" class="font-semibold text-slate-700">a:</label>
+                            <input id="q11-a" type="text" value="50" oninput="drawQ11()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q11-b" class="font-semibold text-slate-700">b:</label>
+                            <input id="q11-b" type="text" value="50" oninput="drawQ11()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q11-c" class="font-semibold text-slate-700">c (mag met π):</label>
+                            <input id="q11-c" type="text" value="1" oninput="drawQ11()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q11-d" class="font-semibold text-slate-700">d:</label>
+                            <input id="q11-d" type="text" value="0" oninput="drawQ11()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /** Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3". */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    // ==================== LESHULPEN (alleen deze les) ====================
+    const PI = Math.PI;
+
+    /** De sinusoïde y = a + b sin(c(x − d)) als functie. */
+    const sinus = (a, b, c, d) => x => a + b * Math.sin(c * (x - d));
+
+    /** Helling in een punt (numeriek, zoals dy/dx op de GR). */
+    const helling = (f, x) => (f(x + 1e-5) - f(x - 1e-5)) / 2e-5;
+
+    /** Halven, kwarten en achtsten zoals het boek ze schrijft: 3,5 → "3½", −1,5 → "−1½", 5,875 → "5⅞". */
+    function fmtFrac(v, digits = 2) {
+        const q = Math.round(v * 8);
+        if (Math.abs(v * 8 - q) > 1e-9) return fmt(v, digits);
+        const n = Math.abs(q), whole = Math.floor(n / 8);
+        const frac = ['', '⅛', '¼', '⅜', '½', '⅝', '¾', '⅞'][n % 8];
+        return (q < 0 ? '−' : '') + (whole === 0 && frac ? frac : whole + frac);
+    }
+
+    /** Getal in de notatie van het voorbeeld: breuken (3½) of decimalen (3,5), net als het boek op die plek. */
+    const num = (pr, v, digits = 2) => pr.frac ? fmtFrac(v, digits) : fmt(v, digits);
+
+    /**
+     * Alleen een getal bij de veelvouden van n (raster fijner dan de schaalverdeling, zoals in het boek).
+     * "+ 0" maakt van −0 gewoon 0: de rasterlus begint bij xMin = 0 met Math.ceil(−1e-9) = −0.
+     */
+    const labEvery = n => v => Math.abs(v / n - Math.round(v / n)) < 1e-6 ? fmt(v + 0) : '';
+
+    /** Alle x in [lo, hi] waar f(x) = k (raster + bisectie, zoals de optie snijpunt). */
+    function snijpunten(f, k, lo, hi, n = 2000) {
+        const res = [];
+        let px = lo, py = f(lo) - k;
+        for (let i = 1; i <= n; i++) {
+            const x = lo + (hi - lo) * i / n, y = f(x) - k;
+            if (py === 0) res.push(px);
+            else if (py * y < 0) {
+                let a = px, b = x;
+                for (let j = 0; j < 50; j++) {
+                    const m = (a + b) / 2;
+                    if ((f(a) - k) * (f(m) - k) <= 0) b = m; else a = m;
+                }
+                res.push((a + b) / 2);
+            }
+            px = x;
+            py = y;
+        }
+        return res;
+    }
+
+    /**
+     * De punten na elke kwart periode vanaf d, binnen [lo, hi].
+     * type 0 = stijgend door de evenwichtsstand, 1 = hoogste punt, 2 = dalend, 3 = laagste punt.
+     */
+    function kwartPunten(pr, lo, hi) {
+        const kp = pr.per / 4, res = [];
+        for (let k = Math.ceil((lo - pr.d) / kp - 1e-9); pr.d + k * kp <= hi + 1e-9; k++) {
+            res.push({ x: pr.d + k * kp, type: ((k % 4) + 4) % 4 });
+        }
+        return res;
+    }
+    const KWART_KLEUR = [C.emerald, C.orange, C.rose, C.orange];
+    const KWART_NAAM = ['stijgend door de evenwichtsstand', 'hoogste punt', 'dalend door de evenwichtsstand', 'laagste punt'];
+    const KWART_TEKST = ['text-emerald-700', 'text-orange-700', 'text-rose-700', 'text-orange-700'];
+
+    /** Verticale dubbele pijl in grafiekcoördinaten (de amplitude). */
+    function pijlV(g, x, yA, yB, color, label) {
+        const { ctx, mapX, mapY } = g;
+        const px = mapX(x), pa = mapY(yA), pb = mapY(yB);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        strokeLine(ctx, px, pa, px, pb);
+        [[pa, pb], [pb, pa]].forEach(([from, to]) => {
+            const dir = Math.sign(to - from) || 1;
+            ctx.beginPath();
+            ctx.moveTo(px, to);
+            ctx.lineTo(px - 5, to - dir * 8);
+            ctx.lineTo(px + 5, to - dir * 8);
+            ctx.closePath();
+            ctx.fill();
+        });
+        if (label) {
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, px + 7, (pa + pb) / 2 + 4);
+        }
+        ctx.restore();
+    }
+
+    /** Horizontale haak van xA tot xB op hoogte y (de periode), eventueel met streepjes op de kwarten. */
+    function haakH(g, xA, xB, y, color, label, kwarten = false) {
+        const { ctx, mapX, mapY } = g;
+        const pa = mapX(xA), pb = mapX(xB), py = mapY(y);
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        strokeLine(ctx, pa, py, pb, py);
+        strokeLine(ctx, pa, py - 6, pa, py + 6);
+        strokeLine(ctx, pb, py - 6, pb, py + 6);
+        if (kwarten) {
+            for (let i = 1; i < 4; i++) {
+                const q = pa + (pb - pa) * i / 4;
+                strokeLine(ctx, q, py - 4, q, py + 4);
+            }
+        }
+        if (label) {
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, (pa + pb) / 2, py - 8);
+        }
+        ctx.restore();
+    }
+
+    /** Open rondje: een punt buiten het domein. */
+    function openPunt(g, x, y, color, label) {
+        const { ctx, mapX, mapY } = g;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = '#ffffff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(mapX(x), mapY(y), 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        if (label) {
+            ctx.fillStyle = color;
+            ctx.font = '700 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(label, mapX(x) - 9, mapY(y) - 9);
+        }
+        ctx.restore();
+    }
+
+    /** Coördinaten: (3, 8) bij hele getallen, (3,5; 5) zodra er een decimaalkomma in staat. */
+    const punt = (pr, x, y) => {
+        const sx = num(pr, x), sy = num(pr, y);
+        return /,/.test(sx + sy) ? `(${sx}; ${sy})` : `(${sx}, ${sy})`;
+    };
+
+    /** "x − 3" of "x + 2" (geen "x − −2"). */
+    const minD = (v, d) => d < 0 ? `${v} + ${fmt(-d)}` : `${v} − ${fmt(d)}`;
+
+    /** Zoals het boek een GR-uitkomst opschrijft: afgekapt op 2 decimalen met puntjes, 8,9034 → "8,90…". */
+    const fmtAf = v => (Math.trunc(v * 100) / 100).toFixed(2).replace('.', ',').replace('-', '−') + '…';
+
+    /** Getal zoals de GR het toont: punt als decimaalteken, ongeveer 10 cijfers. */
+    const grGetal = (v, p = 10) => String(Number(v.toPrecision(p))).replace('-', '−');
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-opstellen': () => renderOpstel(),
+        'tab-rekenen': () => { renderReken(); drawLetOp23(); },
+        'tab-gebruiken': () => renderGebruik(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN ====================
+    // Figuren uit het boek; de formule is afgeleid uit afleesbare punten.
+    const basisPresets = [
+        // Fig 13.12 (opgave 15): min 1 bij x = ¼ en 3¼, max 5 bij x = 1¾ en 4¾ → a = 3, b = 2,
+        // periode 3 → c = ⅔π; stijgend door y = 3 bij x = 1 → d = 1. Controle: y(0) ≈ 1,27 (figuur ≈ 1,25).
+        { a: 3, b: 2, c: 2 * PI / 3, d: 1, per: 3, frac: true, xL: 'x', yL: 'y',
+          xMin: 0, xMax: 6, yMin: 0, yMax: 5.5, xStep: 0.5, yStep: 0.5, xLab: 1, yLab: 1,
+          formule: 'y = 3 + 2 sin(⅔π(x − 1))' },
+        // Fig 13.13 (voorbeeld Theorie A): max 3½ bij t = 2 en 6, min −1½ bij t = 0 en 4 → a = 1, b = 2½,
+        // stijgend door N = 1 bij t = 1 en 5 → periode 4, c = ½π, d = 1. Controle: N(6,5) ≈ 2,77.
+        { a: 1, b: 2.5, c: PI / 2, d: 1, per: 4, frac: true, xL: 't', yL: 'N',
+          xMin: 0, xMax: 6.5, yMin: -2, yMax: 4, xStep: 0.5, yStep: 0.5, xLab: 1, yLab: 1,
+          formule: 'N = 1 + 2½ sin(½π(t − 1))' },
+        // Terugblik (p. 66): evenwichtsstand 8, amplitude 2, periode 20, stijgend door (3, 8) → c = 0,1π.
+        { a: 8, b: 2, c: 0.1 * PI, d: 3, per: 20, frac: false, xL: 'x', yL: 'y',
+          xMin: 0, xMax: 24, yMin: 0, yMax: 12, xStep: 2, yStep: 2, xLab: 2, yLab: 2,
+          formule: 'y = 8 + 2 sin(0,1π(x − 3))' },
+    ];
+    let basisIdx = 0, basisX = 0, basisPlaying = true, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        const slider = $('basis-x-slider');
+        slider.min = pr.xMin;
+        slider.max = pr.xMax;
+        slider.step = pr.per / 400;
+        basisX = pr.xMin;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+        basisX = parseFloat(val);
+        renderBasis();
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const f = sinus(pr.a, pr.b, pr.c, pr.d), kp = pr.per / 4;
+        const toon = id => $(id).checked;
+        const punten = toon('chk-kwarten')
+            ? kwartPunten(pr, pr.xMin, pr.xMax).map(p => ({ x: p.x, y: f(p.x), color: KWART_KLEUR[p.type], r: 5 }))
+            : [];
+        const g = drawGraph('canvas-basis', {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.yMin, yMax: pr.yMax, xStep: pr.xStep, yStep: pr.yStep,
+            xTick: labEvery(pr.xLab), yTick: labEvery(pr.yLab), xLabel: pr.xL, yLabel: pr.yL,
+            hLines: toon('chk-evenwicht') ? [{ y: pr.a, color: C.rose, label: `evenwichtsstand ${pr.yL} = ${num(pr, pr.a)}` }] : [],
+            curves: [{ f, color: C.indigo, width: 3 }],
+            points: [...punten, { x: basisX, y: f(basisX), color: C.indigo, r: 7 }],
+        });
+        // Eerste punt in beeld waar de grafiek stijgend door de evenwichtsstand gaat
+        const d0 = pr.d + Math.ceil((pr.xMin - pr.d) / pr.per - 1e-9) * pr.per;
+        if (toon('chk-amplitude')) pijlV(g, d0 + kp, pr.a, pr.a + pr.b, C.sky, `amplitude ${num(pr, pr.b)}`);
+        if (toon('chk-periode')) {
+            haakH(g, d0, d0 + pr.per, pr.yMax - (pr.yMax - pr.yMin) * 0.05, C.amber,
+                `periode ${num(pr, pr.per)} = 4 × ${num(pr, kp)}`, true);
+        }
+
+        // Waar in de periode zit het punt?
+        const u = ((((basisX - pr.d) / pr.per) % 1) + 1) % 1;
+        const kwart = Math.min(3, Math.floor(u * 4 + 1e-9));
+        const start = basisX - u * pr.per;
+        const stijgt = kwart === 0 || kwart === 3;
+        const rij = [0, 1, 2, 3, 4].map(i => {
+            const actief = i === kwart || i === kwart + 1;
+            const naam = i === 4 ? 'weer stijgend door de evenwichtsstand' : KWART_NAAM[i];
+            return `<div class="flex justify-between gap-2 px-2 py-1 rounded ${actief ? 'bg-white font-bold ring-1 ring-indigo-300' : ''}">
+                        <span class="${KWART_TEKST[i % 4]}">${naam}</span>
+                        <span class="mono">${pr.xL} = ${num(pr, start + i * kp)}</span>
+                    </div>`;
+        }).join('');
+        $('basis-x-slider').value = basisX;
+        $('basis-x-label').innerText = `${pr.xL} = ${fmt(basisX)}`;
+        $('basis-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900">Het punt zit in kwart ${kwart + 1} van de periode</div>
+            <div class="mono">${pr.xL} = ${fmt(basisX)} → ${pr.yL} = ${fmt(f(basisX))} · de grafiek <strong>${stijgt ? 'stijgt' : 'daalt'}</strong></div>
+            <div class="text-[11px] font-bold text-amber-800 pt-2">Elke stap is ¼ periode = ¼ · ${num(pr, pr.per)} = ${num(pr, kp)}</div>
+            <div class="space-y-0.5">${rij}</div>
+            <div class="pt-2 border-t border-indigo-100">Formule (hoe je die vindt: tab 2):<br><span class="mono font-bold text-indigo-900">${pr.formule}</span></div>`;
+    }
+
+    // Animatie draait alleen terwijl tab 1 zichtbaar is: één periode per 4 seconden.
+    function animateLoop(ts) {
+        if (lastTs !== null && basisPlaying && !$('tab-basis').classList.contains('hidden')) {
+            const pr = basisPresets[basisIdx];
+            basisX += (ts - lastTs) / 1000 * pr.per / 4;
+            if (basisX > pr.xMax) basisX = pr.xMin;
+            renderBasis();
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: FORMULE OPSTELLEN (THEORIE A) ====================
+    const opstelVoorbeelden = [
+        // Voorbeeld Theorie A, fig 13.13: max 3½, min −1½; stijgend door N = 1 bij t = 1 en opvolgend t = 5.
+        { ...basisPresets[1], max: 3.5, min: -1.5, cText: '½π' },
+        // Opgave 15, fig 13.12: max 5, min 1; stijgend door y = 3 bij x = 1 en opvolgend x = 4.
+        { ...basisPresets[0], max: 5, min: 1, cText: '⅔π' },
+        // Terugblik: max 10, min 6; stijgend door y = 8 bij x = 3 en opvolgend x = 23.
+        { ...basisPresets[2], max: 10, min: 6, cText: '0,1π' },
+    ];
+    const OPSTEL_STAPPEN = 5;
+    let opstelIdx = 0, opstelStap = 1, opstelD = null;
+
+    function setOpstelVoorbeeld(i) {
+        opstelIdx = i;
+        opstelD = null;
+        setActiveButton('opstel-ex-', opstelVoorbeelden.length, i);
+        setOpstelStap(1);
+    }
+
+    function setOpstelStap(s) {
+        opstelStap = s;
+        for (let i = 1; i <= OPSTEL_STAPPEN; i++) {
+            const extra = i === 5 ? ' col-span-2 sm:col-span-1' : '';
+            $('opstel-stap-' + i).className = (i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100') + extra;
+        }
+        renderOpstel();
+    }
+
+    function kiesD(x) {
+        opstelD = x;
+        renderOpstel();
+    }
+
+    function renderOpstel() {
+        const ex = opstelVoorbeelden[opstelIdx];
+        const f = sinus(ex.a, ex.b, ex.c, ex.d), kp = ex.per / 4, s = opstelStap;
+        const n = v => num(ex, v);
+        const range = ex.yMax - ex.yMin;
+        // Alle snijpunten met de evenwichtsstand in beeld (om en om stijgend en dalend)
+        const kruisingen = [];
+        for (let k = Math.ceil((ex.xMin - ex.d) / (ex.per / 2) - 1e-9); ex.d + k * ex.per / 2 <= ex.xMax + 1e-9; k++) {
+            kruisingen.push(ex.d + k * ex.per / 2);
+        }
+        const isStijgend = x => Math.abs((x - ex.d) / ex.per - Math.round((x - ex.d) / ex.per)) < 1e-6;
+
+        const opt = {
+            xMin: ex.xMin, xMax: ex.xMax, yMin: ex.yMin, yMax: ex.yMax, xStep: ex.xStep, yStep: ex.yStep,
+            xTick: labEvery(ex.xLab), yTick: labEvery(ex.yLab), xLabel: ex.xL, yLabel: ex.yL,
+            hLines: [], vLines: [], curves: [{ f, color: C.slate, width: 6 }], points: [],
+        };
+        // De tekening bouwt zich op: elke stap voegt iets toe aan de vorige.
+        if (s === 1) {
+            opt.hLines.push({ y: ex.max, color: C.orange, width: 1.5, label: `hoogste ${n(ex.max)}` });
+            opt.hLines.push({ y: ex.min, color: C.orange, width: 1.5, label: `laagste ${n(ex.min)}` });
+        }
+        opt.hLines.push({ y: ex.a, color: C.rose, label: s === 1 ? `a = ${n(ex.a)}` : 'evenwichtsstand' });
+        if (s >= 3) {
+            opt.vLines.push({ x: ex.d, color: C.amber, width: 1.5 }, { x: ex.d + ex.per, color: C.amber, width: 1.5 });
+            opt.points.push({ x: ex.d, y: ex.a, color: C.emerald }, { x: ex.d + ex.per, y: ex.a, color: C.emerald });
+        }
+        if (s === 4) {
+            kruisingen.forEach(x => opt.points.push({ x, y: ex.a, color: x === opstelD ? C.indigo : '#64748b', r: x === opstelD ? 7 : 5 }));
+            if (opstelD !== null) opt.curves.push({ f: sinus(ex.a, ex.b, ex.c, opstelD), color: C.indigo, width: 2.5 });
+        }
+        if (s === 5) {
+            opt.curves.push({ f, color: C.indigo, width: 2.5 });
+            opt.points.push({ x: ex.d + kp, y: ex.max, color: C.orange, label: punt(ex, ex.d + kp, ex.max) });
+        }
+        const g = drawGraph('canvas-opstel', opt);
+        if (s >= 2) pijlV(g, ex.d + kp, ex.a, ex.max, C.sky, `b = ${n(ex.b)}`);
+        if (s >= 3) haakH(g, ex.d, ex.d + ex.per, ex.yMin + range * 0.1, C.amber, `periode = ${n(ex.per)}`);
+
+        const blok = (kleur, html) => `<div class="mono text-xs bg-white p-3 rounded-xl border ${kleur} space-y-1">${html}</div>`;
+        let html;
+        if (s === 1) {
+            html = `<div class="font-bold text-indigo-900 text-base">Stap 1: de evenwichtsstand a</div>
+                <p>Lees de hoogste en de laagste waarde van <span class="mono">${ex.yL}</span> af: <strong>${n(ex.max)}</strong> en <strong>${n(ex.min)}</strong>. De evenwichtsstand ligt precies in het midden.</p>
+                ${blok('border-rose-200 text-rose-800', `a = (${n(ex.max)} + ${n(ex.min)}) / 2 = ${n(ex.a)}`)}`;
+        } else if (s === 2) {
+            html = `<div class="font-bold text-indigo-900 text-base">Stap 2: de amplitude b</div>
+                <p>De amplitude is de afstand van de evenwichtsstand tot het hoogste punt.</p>
+                ${blok('border-sky-200 text-sky-800', `b = ${n(ex.max)} − ${n(ex.a)} = ${n(ex.b)}`)}`;
+        } else if (s === 3) {
+            html = `<div class="font-bold text-indigo-900 text-base">Stap 3: de periode en c</div>
+                <p>De grafiek gaat stijgend door de evenwichtsstand bij <span class="mono">${ex.xL} = ${n(ex.d)}</span> en opvolgend bij <span class="mono">${ex.xL} = ${n(ex.d + ex.per)}</span>.</p>
+                ${blok('border-amber-200 text-amber-800', `periode = ${n(ex.d + ex.per)} − ${n(ex.d)} = ${n(ex.per)}<br>c = 2π / ${n(ex.per)} = ${ex.cText}`)}`;
+        } else if (s === 4) {
+            const knoppen = kruisingen.map(x => `<button onclick="kiesD(${x})" class="px-3 py-1.5 rounded-lg text-xs font-bold mono ${x === opstelD ? 'bg-indigo-600 text-white' : 'bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-100'}">${ex.xL} = ${n(x)}</button>`).join('');
+            let reactie = '<p class="text-xs text-slate-600">Kies een punt. De grafiek van je formule verschijnt in indigo.</p>';
+            if (opstelD !== null) {
+                if (!isStijgend(opstelD)) {
+                    reactie = `<p class="text-xs font-semibold text-rose-700">✗ Bij ${ex.xL} = ${n(opstelD)} gaat de grafiek <strong>dalend</strong> door de evenwichtsstand. Met d = ${n(opstelD)} krijg je de gespiegelde grafiek: waar het boek een top heeft, heeft jouw grafiek een dal.</p>`;
+                } else if (opstelD === ex.d) {
+                    reactie = `<p class="text-xs font-semibold text-emerald-700">✓ Bij ${ex.xL} = ${n(opstelD)} gaat de grafiek stijgend door de evenwichtsstand. Dit punt kiest het boek: d = ${n(opstelD)}.</p>`;
+                } else {
+                    reactie = `<p class="text-xs font-semibold text-emerald-700">✓ Ook goed! Bij ${ex.xL} = ${n(opstelD)} gaat de grafiek ook stijgend door de evenwichtsstand, een periode verder of terug. Met d = ${n(opstelD)} krijg je precies dezelfde grafiek (opgave R16).</p>`;
+                }
+            }
+            html = `<div class="font-bold text-indigo-900 text-base">Stap 4: kies d</div>
+                <p>d is de ${ex.xL} van een punt waar de grafiek <strong>stijgend</strong> door de evenwichtsstand gaat. Welke snijpunten werken?</p>
+                <div class="flex flex-wrap gap-2">${knoppen}</div>
+                ${reactie}`;
+        } else {
+            const xc = ex.d + kp;
+            html = `<div class="font-bold text-indigo-900 text-base">Stap 5: de formule en een controle</div>
+                ${blok('border-indigo-200 text-indigo-900 text-sm font-bold', `${ex.formule}`)}
+                <p class="text-xs">Controle: een kwart periode na d moet het hoogste punt liggen. ${ex.xL} = ${n(ex.d)} + ${n(kp)} = ${n(xc)} geeft</p>
+                ${blok('border-slate-200 text-slate-700', `${ex.yL} = ${n(ex.a)} + ${n(ex.b)} · sin(${ex.cText} · ${n(kp)}) = ${n(ex.a)} + ${n(ex.b)} · 1 = ${n(ex.max)} ✓`)}`;
+        }
+        $('opstel-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 3: REKENEN MET DE SINUS (THEORIE B) ====================
+    const rekenPresets = [
+        // Theorie B (p. 59–60): y = 3 + 2 sin(¼π(x − 1,5)), 0 ≤ x ≤ 10 → periode 8; max 5 bij 3,5; min 1 bij 7,5.
+        // GR: y(4,7) ≈ 4,18; y = 4,6 bij x ≈ 2,68 en 4,32; helling bij x = 5 ≈ −1,45; max helling bij 1,5 ≈ 1,57.
+        { a: 3, b: 2, c: PI / 4, d: 1.5, per: 8, cText: '¼π', dom: [0, 10], frac: false, xL: 'x', yL: 'y',
+          formule: 'y = 3 + 2 sin(¼π(x − 1,5))', grY1: '3+2sin((1/4)π(X−1.5))',
+          xMin: -1, xMax: 12, yMin: 0, yMax: 6, xStep: 1, yStep: 1, xLab: 1, yLab: 1, x3: 4.7, x5: 5, k: 4.6, tag: 'Theorie B' },
+        // Terugblik (p. 66): N = 18 + 5 sin(4/15 π(t − 4)), 0 ≤ t ≤ 8 → periode 7½; max 23 bij 5⅞; min 13 bij 2⅛;
+        // max helling bij t = 4 ≈ 4,19.
+        { a: 18, b: 5, c: 4 * PI / 15, d: 4, per: 7.5, cText: '(4/15 π)', dom: [0, 8], frac: true, xL: 't', yL: 'N',
+          formule: 'N = 18 + 5 sin(4/15 π(t − 4))', grY1: '18+5sin((4/15)π(X−4))',
+          xMin: -1, xMax: 10, yMin: 10, yMax: 25, xStep: 0.5, yStep: 1, xLab: 1, yLab: 5, x3: 6, x5: 6, k: 20, tag: 'Terugblik' },
+        // Opgave 24: N = 30,8 + 6,3 sin(2/15 π(t − 5,1)), t in uren, 0 ≤ t ≤ 15 → periode 15; max 37,1 bij 8,85;
+        // min bij 5,1 + 11,25 = 16,35 valt buiten het domein → 1,35. N(7,2) ≈ 35,65; helling bij t = 10 ≈ −1,22.
+        { a: 30.8, b: 6.3, c: 2 * PI / 15, d: 5.1, per: 15, cText: '(2/15 π)', dom: [0, 15], frac: false, xL: 't', yL: 'N',
+          xCaption: 't in uren', formule: 'N = 30,8 + 6,3 sin(2/15 π(t − 5,1))', grY1: '30.8+6.3sin((2/15)π(X−5.1))',
+          xMin: -1, xMax: 18, yMin: 20, yMax: 40, xStep: 1, yStep: 1, xLab: 1, yLab: 5, x3: 7.2, x5: 10, k: 35, tag: 'Opgave 24' },
+    ];
+    let rekenIdx = 0, rekenVraag = 1, rekenX3 = 4.7, rekenX5 = 5, rekenK = 4.6;
+
+    function setRekenPreset(i) {
+        rekenIdx = i;
+        const pr = rekenPresets[i];
+        rekenX3 = pr.x3;
+        rekenX5 = pr.x5;
+        rekenK = pr.k;
+        setActiveButton('reken-preset-', rekenPresets.length, i);
+        $('reken-formule').innerText = `${pr.formule} met ${fmt(pr.dom[0])} ≤ ${pr.xL} ≤ ${fmt(pr.dom[1])}`;
+        renderReken();
+    }
+
+    function setRekenVraag(v) {
+        rekenVraag = v;
+        for (let i = 1; i <= 6; i++) {
+            $('reken-vraag-' + i).className = i === v
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        renderReken();
+    }
+
+    function setRekenSlider(welke, val) {
+        if (welke === 'k') rekenK = parseFloat(val);
+        else if (rekenVraag === 3) rekenX3 = parseFloat(val);
+        else rekenX5 = parseFloat(val);
+        renderReken();
+    }
+
+    function renderReken() {
+        const pr = rekenPresets[rekenIdx], v = rekenVraag;
+        const f = sinus(pr.a, pr.b, pr.c, pr.d), kp = pr.per / 4;
+        const n = x => num(pr, x);
+        const inDom = x => x >= pr.dom[0] - 1e-9 && x <= pr.dom[1] + 1e-9;
+        const dyd = `[d${pr.yL}/d${pr.xL}]`;
+        const opt = {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.yMin, yMax: pr.yMax, xStep: pr.xStep, yStep: pr.yStep,
+            xTick: labEvery(pr.xLab), yTick: labEvery(pr.yLab), xLabel: pr.xL, yLabel: pr.yL, xCaption: pr.xCaption,
+            hLines: [{ y: pr.a, color: C.rose, width: 1.5, label: 'evenwichtsstand' }], vLines: [],
+            curves: [
+                { f, color: C.slate, width: 1.5, dash: [4, 4] },
+                { f, color: C.indigo, width: 3, domain: pr.dom },
+            ],
+            points: [],
+        };
+        // Faint: alle punten na elke kwart periode op het domein
+        kwartPunten(pr, pr.dom[0], pr.dom[1]).forEach(p => opt.points.push({ x: p.x, y: f(p.x), color: KWART_KLEUR[p.type], r: 3.5 }));
+
+        // Sliders: alleen die bij de gekozen vraag
+        const xSlider = $('reken-x'), kSlider = $('reken-k');
+        $('reken-x-paneel').classList.toggle('hidden', !(v === 3 || v === 5));
+        $('reken-k-paneel').classList.toggle('hidden', v !== 4);
+        xSlider.min = pr.dom[0];
+        xSlider.max = pr.dom[1];
+        xSlider.step = (pr.dom[1] - pr.dom[0]) / 200;
+        kSlider.min = pr.a - pr.b - 1;
+        kSlider.max = pr.a + pr.b + 1;
+        kSlider.step = 0.05;
+        $('reken-x-naam').innerText = `Kies ${pr.xL}:`;
+        $('reken-k-naam').innerText = `Kies ${pr.yL}:`;
+
+        let html = '', overlay = () => {};
+        const badge = zonder => zonder
+            ? '<span class="text-[11px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">zonder GR</span>'
+            : '<span class="text-[11px] font-bold uppercase tracking-wider bg-slate-900 text-white px-2 py-0.5 rounded">met GR</span>';
+        const blok = inner => `<div class="mono text-xs bg-white p-3 rounded-xl border border-indigo-200 space-y-1">${inner}</div>`;
+        const grStap = {};
+
+        if (v === 1 || v === 2) {
+            const top = v === 1;
+            const yT = top ? pr.a + pr.b : pr.a - pr.b;
+            const xEerst = pr.d + (top ? 1 : 3) * kp;
+            const xs = [];
+            for (let k = Math.ceil((pr.dom[0] - xEerst) / pr.per - 1e-9); xEerst + k * pr.per <= pr.dom[1] + 1e-9; k++) xs.push(xEerst + k * pr.per);
+            opt.hLines.push({ y: yT, color: C.orange, width: 1.5 });
+            opt.points.push({ x: pr.d, y: pr.a, color: C.emerald, r: 6 });
+            xs.forEach(x => opt.points.push({ x, y: yT, color: C.orange, r: 7, label: punt(pr, x, yT) }));
+            overlay = g => {
+                const yH = pr.a + (top ? -1 : 1) * (pr.yMax - pr.yMin) * 0.08;
+                haakH(g, pr.d, xEerst, yH, C.amber, `${top ? '¼' : '¾'} periode`);
+                if (!inDom(xEerst)) openPunt(g, xEerst, yT, C.orange, 'buiten domein');
+            };
+            const naam = top ? 'maximale' : 'minimale', sub = top ? 'max' : 'min';
+            let regels = `${pr.yL}<sub>${sub}</sub> = ${n(pr.a)} ${top ? '+' : '−'} ${n(pr.b)} = ${n(yT)}<br>
+                          periode = 2π / ${pr.cText} = ${n(pr.per)}<br>
+                          ${pr.yL}<sub>${sub}</sub> voor ${pr.xL} = ${n(pr.d)} + ${top ? '¼' : '¾'} · ${n(pr.per)} = ${n(xEerst)}`;
+            if (!inDom(xEerst)) {
+                const terug = xEerst > pr.dom[1];
+                regels += `<br>buiten het domein → ${n(xEerst)} ${terug ? '−' : '+'} ${n(pr.per)} = ${n(xEerst + (terug ? -1 : 1) * pr.per)}`;
+            }
+            html = `<div class="flex flex-wrap items-center gap-2">${badge(true)}<span class="font-bold text-indigo-900">${v} Bereken de ${naam} waarde van ${pr.yL} en de bijbehorende ${pr.xL}</span></div>
+                ${blok(regels)}
+                <p class="text-xs">${pr.yL} heeft een ${top ? 'maximum een kwart' : 'minimum driekwart'} periode nadat de grafiek stijgend door de evenwichtsstand is gegaan.${top ? '' : ' Dat is hetzelfde punt als een kwart periode vóór d.'}</p>
+                ${xs.length > 1 ? `<p class="text-xs">Op het domein ligt er nog een: ${xs.map(n).join(' en ')} (een periode verder).</p>` : ''}`;
+            grStap.titel = 'controleren';
+            grStap.scherm = `<div>Y1=${pr.grY1}</div><div class="border-t border-slate-400/50 mt-1 pt-1">${top ? 'Maximum' : 'Minimum'}</div><div>X=${grGetal(xs[0] ?? xEerst, 7)}  Y=${grGetal(yT, 7)}</div>`;
+            grStap.stappen = [
+                'Reken eerst zonder GR, zoals hiernaast. Dat is de berekening die je opschrijft.',
+                `Controleren mag: <span class="key">2nd</span> <span class="key">TRACE</span> (CALC) → <span class="key">${top ? '4:maximum' : '3:minimum'}</span>.`,
+                '<em>Left Bound?</em> cursor links van de top → <span class="key">ENTER</span>, <em>Right Bound?</em> rechts ervan → <span class="key">ENTER</span>, <em>Guess?</em> <span class="key">ENTER</span>.',
+            ];
+            grStap.valTitel = "'Zonder GR' betekent: met de kwart periode";
+            grStap.val = 'De GR geeft bij maximum vaak een benadering als X=3.4999987. Bij "Bereken zonder GR" telt dat niet als berekening: schrijf de stappen met de kwart periode op.';
+        } else if (v === 3) {
+            const x = rekenX3, y = f(x);
+            opt.vLines.push({ x, color: C.indigo, width: 1.5 });
+            opt.points.push({ x, y, color: C.indigo, r: 7, label: punt({ frac: false }, x, y) });
+            $('reken-x').value = x;
+            $('reken-x-label').innerText = `${pr.xL} = ${fmt(x)}`;
+            html = `<div class="flex flex-wrap items-center gap-2">${badge(false)}<span class="font-bold text-indigo-900">3 Bereken ${pr.yL} voor ${pr.xL} = ${fmt(x)}</span></div>
+                ${blok(`${pr.xL} = ${fmt(x)} geeft ${pr.yL} ≈ ${fmt(y)}`)}
+                <p class="text-xs">Dit kan ook zonder plotten: typ de formule met ${pr.xL} = ${fmt(x)} op het basisscherm.</p>`;
+            grStap.titel = 'functiewaarde';
+            grStap.scherm = `<div>Y1=${pr.grY1}</div><div class="border-t border-slate-400/50 mt-1 pt-1">X=${grGetal(x, 6)}  Y=${grGetal(y)}</div>`;
+            grStap.stappen = [
+                'Druk <span class="key">Y=</span> en typ achter Y1= de formule (de x met <span class="key">X,T,θ,n</span>).',
+                `<span class="key">WINDOW</span>: Xmin=${grGetal(pr.dom[0])}, Xmax=${grGetal(pr.dom[1])}, Ymin=${Math.floor(pr.a - pr.b - 1)}, Ymax=${Math.ceil(pr.a + pr.b + 1)}, dan <span class="key">GRAPH</span>.`,
+                `<span class="key">2nd</span> <span class="key">TRACE</span> (CALC) → <span class="key">1:value</span> → typ ${grGetal(x, 6)} (met een punt) → <span class="key">ENTER</span>.`,
+            ];
+            grStap.valTitel = 'Haakjes in de formule';
+            grStap.val = 'Typ de breuk met haakjes, zoals (1/4)π, en zet haakjes om X − 1.5. Lijkt je grafiek niet op die hiernaast? Kijk dan eerst of je GR op RADIAN staat.';
+        } else if (v === 4) {
+            const k = rekenK;
+            const xs = snijpunten(f, k, pr.dom[0], pr.dom[1]);
+            opt.hLines.push({ y: k, color: C.indigo, width: 1.5, label: `${pr.yL} = ${fmt(k)}` });
+            xs.forEach(x => opt.points.push({ x, y: k, color: C.indigo, r: 6, label: `${pr.xL} ≈ ${fmt(x)}` }));
+            $('reken-k').value = k;
+            $('reken-k-label').innerText = `${pr.yL} = ${fmt(k)}`;
+            let extra = '';
+            if (xs.length === 0) {
+                extra = `<p class="text-xs font-semibold text-rose-700">Geen snijpunten: ${pr.yL} = ${fmt(k)} ligt ${k > pr.a ? 'boven het maximum' : 'onder het minimum'} (${n(pr.a + (k > pr.a ? 1 : -1) * pr.b)}).</p>`;
+            } else if (xs.length === 2) {
+                const mid = (xs[0] + xs[1]) / 2, r = (mid - pr.d) / kp, q = Math.round(r);
+                if (Math.abs(r - q) < 1e-3 && q % 2 !== 0) {
+                    extra = `<p class="text-xs">Zie je het? De twee snijpunten liggen symmetrisch om het ${((q % 4) + 4) % 4 === 1 ? 'hoogste' : 'laagste'} punt bij ${pr.xL} = ${n(mid)}.</p>`;
+                }
+            }
+            html = `<div class="flex flex-wrap items-center gap-2">${badge(false)}<span class="font-bold text-indigo-900">4 Voor welke ${pr.xL} is ${pr.yL} = ${fmt(k)}?</span></div>
+                ${blok(`Voer in y<sub>1</sub> = ${pr.formule.split('= ')[1]} en y<sub>2</sub> = ${fmt(k)}.<br>${xs.length ? `De optie snijpunt geeft ${xs.map(x => `${pr.xL} ≈ ${fmt(x)}`).join(' en ')}.` : 'De grafieken snijden elkaar niet.'}`)}
+                ${extra}`;
+            grStap.titel = 'snijpunt';
+            grStap.scherm = `<div>Y1=${pr.grY1}</div><div>Y2=${grGetal(k, 6)}</div>${xs.length ? `<div class="border-t border-slate-400/50 mt-1 pt-1">Intersection</div><div>X=${grGetal(xs[0])}  Y=${grGetal(k, 6)}</div>` : '<div class="border-t border-slate-400/50 mt-1 pt-1">ERR:NO SIGN CHNG</div>'}`;
+            grStap.stappen = [
+                `Druk <span class="key">Y=</span>, typ de formule achter Y1= en typ ${grGetal(k, 6)} achter Y2=.`,
+                `<span class="key">WINDOW</span>: Xmin=${grGetal(pr.dom[0])}, Xmax=${grGetal(pr.dom[1])}, Ymin=${Math.floor(pr.a - pr.b - 1)}, Ymax=${Math.ceil(pr.a + pr.b + 1)}, dan <span class="key">GRAPH</span>.`,
+                '<span class="key">2nd</span> <span class="key">TRACE</span> (CALC) → <span class="key">5:intersect</span> (op een Nederlandstalige GR: snijpunt).',
+                '<em>First curve?</em> <span class="key">ENTER</span>, <em>Second curve?</em> <span class="key">ENTER</span>, <em>Guess?</em> zet de cursor bij het snijpunt → <span class="key">ENTER</span>.',
+                'Doe stap 3 en 4 nog een keer met de cursor bij het andere snijpunt.',
+            ];
+            grStap.valTitel = 'Er zijn vaak twee snijpunten';
+            grStap.val = 'De GR geeft het snijpunt dat het dichtst bij je cursor ligt bij Guess?. Wie de optie maar één keer doet, mist de tweede oplossing.';
+        } else if (v === 5) {
+            const x = rekenX5, y = f(x), m = helling(f, x), w = pr.per / 6;
+            opt.curves.push({ f: t => y + m * (t - x), color: C.violet, width: 2.5, domain: [x - w, x + w] });
+            opt.points.push({ x, y, color: C.violet, r: 7, label: `helling ≈ ${fmt(m)}` });
+            $('reken-x').value = x;
+            $('reken-x-label').innerText = `${pr.xL} = ${fmt(x)}`;
+            const betekenis = Math.abs(m) < 0.02 ? 'Bijna 0: hier ligt een top.' : m > 0 ? 'Positief: de grafiek stijgt hier.' : 'Negatief: de grafiek daalt hier.';
+            html = `<div class="flex flex-wrap items-center gap-2">${badge(false)}<span class="font-bold text-indigo-900">5 Bereken de helling van de grafiek voor ${pr.xL} = ${fmt(x)}</span></div>
+                ${blok(`De helling is ${dyd}<sub>${pr.xL}=${fmt(x)}</sub> ≈ ${fmt(m)}`)}
+                <p class="text-xs">${betekenis} Schuif het punt naar een top en naar de evenwichtsstand: waar is de raaklijn het steilst?</p>`;
+            grStap.titel = 'helling in een punt';
+            grStap.scherm = `<div>Y1=${pr.grY1}</div><div class="border-t border-slate-400/50 mt-1 pt-1">dy/dx=${grGetal(m, 7)}</div><div>X=${grGetal(x, 6)}</div>`;
+            grStap.stappen = [
+                'Druk <span class="key">Y=</span> en typ de formule achter Y1=, dan <span class="key">GRAPH</span>.',
+                `<span class="key">2nd</span> <span class="key">TRACE</span> (CALC) → <span class="key">6:dy/dx</span> → typ ${grGetal(x, 6)} → <span class="key">ENTER</span>.`,
+                'Onderaan staat dy/dx: dat is de helling in dat punt.',
+            ];
+            grStap.valTitel = 'Helling = steilheid in één punt';
+            grStap.val = 'Positief: de grafiek stijgt. Negatief: hij daalt. In een top is de helling 0. Ligt de x buiten het venster (WINDOW), dan rekent de GR niet of in het verkeerde punt.';
+        } else {
+            const xs = [];
+            for (let k = Math.ceil((pr.dom[0] - pr.d) / pr.per - 1e-9); pr.d + k * pr.per <= pr.dom[1] + 1e-9; k++) xs.push(pr.d + k * pr.per);
+            const m = helling(f, pr.d), w = pr.per / 6;
+            xs.forEach(x => {
+                opt.curves.push({ f: t => pr.a + m * (t - x), color: C.violet, width: 2.5, domain: [x - w, x + w] });
+                opt.points.push({ x, y: pr.a, color: C.emerald, r: 7, label: `helling ≈ ${fmt(m)}` });
+            });
+            html = `<div class="flex flex-wrap items-center gap-2">${badge(false)}<span class="font-bold text-indigo-900">6 Bereken de maximale helling van de grafiek</span></div>
+                <p class="text-xs">De helling is maximaal als de grafiek stijgend door de evenwichtsstand gaat. Dat is bij ${pr.xL} = ${n(pr.d)}${xs.length > 1 ? ` (en ook bij ${xs.filter(x => x !== pr.d).map(n).join(' en ')})` : ''}.</p>
+                ${blok(`De maximale helling is ${dyd}<sub>${pr.xL}=${fmt(pr.d)}</sub> ≈ ${fmt(m)}`)}`;
+            if (!xs.length) html += '<p class="text-xs text-rose-700">Op dit domein gaat de grafiek nergens stijgend door de evenwichtsstand.</p>';
+            grStap.titel = 'maximale helling';
+            grStap.scherm = `<div>Y1=${pr.grY1}</div><div class="border-t border-slate-400/50 mt-1 pt-1">dy/dx=${grGetal(m, 7)}</div><div>X=${grGetal(pr.d, 6)}</div>`;
+            grStap.stappen = [
+                `Zoek eerst zonder GR waar de grafiek stijgend door de evenwichtsstand gaat: ${pr.xL} = d = ${fmt(pr.d)}.`,
+                `<span class="key">2nd</span> <span class="key">TRACE</span> (CALC) → <span class="key">6:dy/dx</span> → typ ${grGetal(pr.d, 6)} → <span class="key">ENTER</span>.`,
+            ];
+            grStap.valTitel = 'Niet bij de top!';
+            grStap.val = 'In een top is de helling juist 0. Het steilst stijgt de grafiek precies in het midden tussen een laagste en een hoogste punt: stijgend door de evenwichtsstand.';
+        }
+
+        const g = drawGraph('canvas-reken', opt);
+        // Buiten het domein lichtgrijs, zodat je ziet welk stuk meetelt
+        const { ctx, mapX, box } = g;
+        ctx.save();
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.16)';
+        const xa = mapX(pr.dom[0]), xb = mapX(pr.dom[1]);
+        if (xa > box.x0) ctx.fillRect(box.x0, box.y0, xa - box.x0, box.y1 - box.y0);
+        if (xb < box.x1) ctx.fillRect(xb, box.y0, box.x1 - xb, box.y1 - box.y0);
+        ctx.restore();
+        overlay(g);
+
+        $('reken-uitleg').innerHTML = html;
+        $('gr-titel').innerText = grStap.titel;
+        $('gr-tag').innerText = `${pr.tag} • vraag ${v}`;
+        $('gr-scherm').innerHTML = grStap.scherm;
+        $('gr-stappen').innerHTML = grStap.stappen.map(s => `<li>${s}</li>`).join('');
+        $('gr-valkuil-titel').innerText = grStap.valTitel;
+        $('gr-valkuil').innerText = grStap.val;
+    }
+
+    // Let op bij opgave 23 (eigen voorbeeld, zodat de opgave zelf niet voorgezegd wordt):
+    // sin(2x − 1) = sin(2(x − ½)) gaat stijgend door de evenwichtsstand bij x = ½, niet bij x = 1.
+    function drawLetOp23() {
+        const g = drawGraph('canvas-letop23', {
+            xMin: 0, xMax: 4, yMin: 1.5, yMax: 4.5, xStep: 0.25, yStep: 0.5, xTick: labEvery(1), yTick: labEvery(1),
+            xLabel: 'x', yLabel: 'y', pad: { l: 34, b: 24, t: 22, r: 22 },
+            hLines: [{ y: 3, color: C.rose, width: 1.5 }],
+            curves: [
+                { f: x => 3 + Math.sin(2 * (x - 1)), color: C.slate, width: 2, dash: [5, 4] },
+                { f: x => 3 + Math.sin(2 * x - 1), color: C.indigo, width: 3 },
+            ],
+            points: [
+                { x: 1, y: 3, color: '#64748b', r: 4.5 },
+                { x: 0.5, y: 3, color: C.emerald, r: 6 },
+            ],
+        });
+        // Labels aan weerszijden, zodat ze elkaar niet raken
+        const { ctx, mapX, mapY } = g;
+        ctx.save();
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.fillStyle = C.emerald;
+        ctx.textAlign = 'right';
+        ctx.fillText('d = ½ ✓', mapX(0.5) - 8, mapY(3) - 8);
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'left';
+        ctx.fillText('d = 1 ✗', mapX(1) + 8, mapY(3) + 16);
+        ctx.restore();
+    }
+
+    // ==================== TAB 4: SINUSOÏDEN GEBRUIKEN (THEORIE C) ====================
+    const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    const MAAND_KORT = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+    // Eerste dagnummer van elke maand in een niet-schrikkeljaar (tabel bij opgave 27).
+    const MAAND_START = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+
+    const maandVanDag = n => { let i = 11; while (i > 0 && MAAND_START[i] > n) i--; return i; };
+    const wrapDag = n => ((Math.round(n) - 1) % 365 + 365) % 365 + 1;
+    const datumVanDag = n => { const d = wrapDag(n), i = maandVanDag(d); return `${d - MAAND_START[i] + 1} ${MAANDEN[i]}`; };
+    function datumVanMaand(t) {
+        const w = ((t % 12) + 12) % 12, i = Math.floor(w + 1e-9), rest = w - i;
+        if (rest < 0.02) return `1 ${MAANDEN[i]}`;
+        if (Math.abs(rest - 0.5) < 0.02) return `halverwege ${MAANDEN[i]}`;
+        return `± ${Math.min(30, Math.floor(rest * 30) + 1)} ${MAANDEN[i]}`;
+    }
+
+    const gebruikPresets = [
+        // Theorie C: Napels, Tmax = 25 °C op 20 juli (n = 201), Tmin = 9 °C op 19 januari; n = 1 op 1 januari.
+        // a = 17, b = 8, c = 2π/365, ¼ · 365 ≈ 91 → d = 201 − 91 = 110.
+        { eenheid: 'dag', per: 365, kp: 91, tMax: 201, Tmax: 25, Tmin: 9, k: 20, datum: 221, xL: 'n', yL: 'T',
+          xCaption: 'dagnummer (n = 1 op 1 januari)', xMin: 0, xMax: 365, xStep: 50, yMin: 0, yMax: 30, yStep: 5,
+          cText: '2π/365', cUitleg: 'c = 2π / 365   (periode 365 dagen)', tag: 'Theorie C' },
+        // Terugblik: zeewater, min 4,5 °C halverwege februari (t = 1,5), max 20,0 °C halverwege augustus (t = 7,5);
+        // t in maanden, t = 0 op 1 januari. a = 12,25, b = 7,75, c = ⅙π, d = 1,5 + 3 = 4,5. Meer dan 18 °C: 6,09 tot 8,90.
+        { eenheid: 'maand', per: 12, kp: 3, tMax: 7.5, Tmax: 20, Tmin: 4.5, k: 18, datum: 2.5, xL: 't', yL: 'T',
+          xCaption: 'tijd in maanden (t = 0 op 1 januari)', xMin: 0, xMax: 12, xStep: 1, yMin: 0, yMax: 25, yStep: 5,
+          cText: '⅙π', cUitleg: 'c = 2π / 12 = ⅙π   (periode 12 maanden)', tag: 'Terugblik' },
+    ];
+    let gebruikIdx = 0, gebruikModus = 1;
+
+    function setGebruikPreset(i) {
+        gebruikIdx = i;
+        const pr = gebruikPresets[i];
+        const dag = pr.eenheid === 'dag';
+        const zet = (id, min, max, step, value) => Object.assign($(id), { min, max, step, value });
+        zet('g-tmax', dag ? 1 : 0, dag ? 365 : 12, dag ? 1 : 0.5, pr.tMax);
+        zet('g-datum', dag ? 1 : 0, dag ? 365 : 12, dag ? 1 : 0.1, pr.datum);
+        $('g-Tmax').value = pr.Tmax;
+        $('g-Tmin').value = pr.Tmin;
+        $('g-k').value = pr.k;
+        setActiveButton('gebruik-preset-', gebruikPresets.length, i);
+        renderGebruik();
+    }
+
+    function setGebruikModus(m) {
+        gebruikModus = m;
+        for (let i = 1; i <= 3; i++) {
+            $('gebruik-modus-' + i).className = i === m
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+            $('gebruik-paneel-' + i).classList.toggle('hidden', i !== m);
+        }
+        renderGebruik();
+    }
+
+    /** Het model uit de gegevens, precies zoals in Theorie C: a, b uit Tmax/Tmin, d = moment max − ¼ periode. */
+    function gebruikModel() {
+        const pr = gebruikPresets[gebruikIdx];
+        const tMax = parseFloat($('g-tmax').value), Tmax = parseFloat($('g-Tmax').value), Tmin = parseFloat($('g-Tmin').value);
+        const a = (Tmax + Tmin) / 2, b = Tmax - a, c = 2 * PI / pr.per, d = tMax - pr.kp;
+        let tMin = tMax - pr.per / 2;
+        if (tMin < pr.xMin) tMin += pr.per;
+        return { pr, tMax, Tmax, Tmin, a, b, c, d, tMin, f: sinus(a, b, c, d) };
+    }
+
+    const momentTekst = (pr, t) => pr.eenheid === 'dag'
+        ? `${datumVanDag(t)} (n = ${fmt(t, 1)})`
+        : `${datumVanMaand(t)} (t = ${fmt(t, 1)})`;
+
+    function renderGebruik() {
+        const m = gebruikModel(), pr = m.pr, dag = pr.eenheid === 'dag';
+        const formule = `T = ${fmt(m.a)} + ${fmt(m.b)} sin(${pr.cText}${dag ? ' ' : ''}(${minD(pr.xL, m.d)}))`;
+        $('gebruik-formule').innerText = formule;
+        $('g-tmax-label').innerText = dag ? datumVanDag(m.tMax) : datumVanMaand(m.tMax);
+        $('g-Tmax-label').innerText = `${fmt(m.Tmax)} °C`;
+        $('g-Tmin-label').innerText = `${fmt(m.Tmin)} °C`;
+
+        const opt = {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.yMin, yMax: pr.yMax, xStep: pr.xStep, yStep: pr.yStep,
+            xTick: labEvery(pr.xStep), yTick: labEvery(pr.yStep), xLabel: pr.xL, yLabel: pr.yL, xCaption: pr.xCaption,
+            hLines: [{ y: m.a, color: C.rose, width: 1.5 }], vLines: [],
+            curves: [{ f: m.f, color: C.indigo, width: 3 }], points: [],
+        };
+        let html = '', overlay = () => {};
+        const blok = (kleur, inner) => `<div class="mono text-xs bg-white px-3 py-2 rounded-lg border ${kleur}">${inner}</div>`;
+
+        if (gebruikModus === 1) {
+            const dToon = m.d >= pr.xMin ? m.d : m.d + pr.per;
+            opt.points.push(
+                { x: m.tMax, y: m.Tmax, color: C.orange, r: 6.5, label: `max ${fmt(m.Tmax)} °C` },
+                { x: m.tMin, y: m.Tmin, color: C.orange, r: 6.5, label: `min ${fmt(m.Tmin)} °C` },
+                { x: dToon, y: m.a, color: C.emerald, r: 6.5 },
+            );
+            overlay = g => {
+                if (dToon + pr.kp <= pr.xMax) haakH(g, dToon, dToon + pr.kp, m.a + (pr.yMax - pr.yMin) * 0.07, C.amber, `¼ periode ≈ ${pr.kp}`);
+                g.ctx.save();
+                g.ctx.fillStyle = C.emerald;
+                g.ctx.font = '700 11px Inter, sans-serif';
+                g.ctx.textAlign = 'right';
+                g.ctx.fillText(`d = ${fmt(dToon)}`, g.mapX(dToon) - 8, g.mapY(m.a) + 16);
+                g.ctx.restore();
+            };
+            const vroeg = m.tMin < m.tMax;
+            const dViaMin = m.tMin + pr.kp;
+            const dViaMinTekst = dag ? Math.round(m.tMin) + pr.kp : dViaMin;
+            html = `<div class="font-bold text-indigo-900">Gegevens</div>
+                <div class="text-xs">Warmst: <strong>${fmt(m.Tmax)} °C</strong> op ${momentTekst(pr, m.tMax)}.<br>
+                Koudst: <strong>${fmt(m.Tmin)} °C</strong>, een halve periode ${vroeg ? 'eerder' : 'later'}: ${dag ? '≈ ' : ''}${momentTekst(pr, m.tMin)}.</div>
+                <div class="font-bold text-indigo-900 pt-1">Model opstellen</div>
+                ${blok('border-rose-200 text-rose-800', `a = (${fmt(m.Tmax)} + ${fmt(m.Tmin)}) / 2 = ${fmt(m.a)}`)}
+                ${blok('border-sky-200 text-sky-800', `b = ${fmt(m.Tmax)} − ${fmt(m.a)} = ${fmt(m.b)}`)}
+                ${blok('border-amber-200 text-amber-800', pr.cUitleg)}
+                ${blok('border-emerald-200 text-emerald-800', `¼ · ${pr.per} ${dag ? '≈' : '='} ${pr.kp}, dus d = ${fmt(m.tMax)} − ${pr.kp} = ${fmt(m.d)}`)}
+                <p class="text-xs">De grafiek gaat een kwart periode vóór het maximum stijgend door de evenwichtsstand. Via het minimum kan ook: d = ${fmt(dag ? Math.round(m.tMin) : m.tMin)} + ${pr.kp} = ${fmt(dViaMinTekst)}${Math.abs(dViaMinTekst - m.d) > 1 ? ` (een periode verder: ook goed)` : ''}.</p>`;
+        } else if (gebruikModus === 2) {
+            const t = parseFloat($('g-datum').value), T = m.f(t);
+            opt.vLines.push({ x: t, color: C.indigo, width: 1.5 });
+            opt.points.push({ x: t, y: T, color: C.indigo, r: 7, label: `${fmt(T, 1)} °C` });
+            let omreken;
+            if (dag) {
+                const i = maandVanDag(t), dagVanMaand = t - MAAND_START[i] + 1;
+                omreken = i === 0
+                    ? `januari begint bij n = 1, dus ${dagVanMaand} januari is n = ${fmt(t)}`
+                    : `${MAANDEN[i - 1]} eindigt bij n = ${MAAND_START[i] - 1}, dus ${dagVanMaand} ${MAANDEN[i]} is n = ${MAAND_START[i] - 1} + ${dagVanMaand} = ${fmt(t)}`;
+                $('g-datum-label').innerText = `${datumVanDag(t)} · n = ${fmt(t)}`;
+            } else {
+                omreken = `t = 0 op 1 januari, dus ${datumVanMaand(t)} is t = ${fmt(t, 1)}`;
+                $('g-datum-label').innerText = `t = ${fmt(t, 1)}`;
+            }
+            html = `<div class="font-bold text-indigo-900">Een datum invullen</div>
+                <p class="text-xs">Reken de datum eerst om naar ${dag ? 'een dagnummer (tabel hieronder)' : 'maanden'}:</p>
+                ${blok('border-indigo-200 text-indigo-900', omreken)}
+                <p class="text-xs">Vul dat in de formule in (op het basisscherm of met de optie value):</p>
+                ${blok('border-indigo-200 text-indigo-900', `T = ${fmt(m.a)} + ${fmt(m.b)} sin(${pr.cText} · (${minD(fmt(t, dag ? 0 : 1), m.d)})) ≈ ${fmt(T, 1)} °C`)}`;
+        } else {
+            const k = parseFloat($('g-k').value);
+            $('g-k-label').innerText = `${fmt(k)} °C`;
+            const xs = snijpunten(m.f, k, pr.xMin, pr.xMax);
+            opt.hLines.push({ y: k, color: C.indigo, width: 1.5, label: `T = ${fmt(k)}` });
+            xs.forEach(x => opt.points.push({ x, y: k, color: C.indigo, r: 6, label: `${pr.xL} = ${fmtAf(x)}` }));
+            overlay = g => {
+                const { ctx, mapX, mapY, box } = g;
+                ctx.save();
+                ctx.strokeStyle = 'rgba(79, 70, 229, 0.16)';
+                ctx.lineWidth = 1;
+                for (let px = box.x0; px <= box.x1; px++) {
+                    const x = pr.xMin + (px - box.x0) / (box.x1 - box.x0) * (pr.xMax - pr.xMin), y = m.f(x);
+                    if (y > k) strokeLine(ctx, px, mapY(k), px, mapY(y));
+                }
+                ctx.restore();
+            };
+            // Duur van T > k binnen één periode (ook als het stuk over de jaarwisseling loopt)
+            let duur, van, tot;
+            if (k >= m.a + m.b) duur = 0;
+            else if (k <= m.a - m.b) duur = pr.per;
+            else {
+                duur = pr.per * (PI - 2 * Math.asin((k - m.a) / m.b)) / (2 * PI);
+                // Boven de grens vanaf het stijgende snijpunt tot het dalende (eventueel over de jaarwisseling)
+                van = xs.find(x => helling(m.f, x) > 0);
+                tot = xs.find(x => helling(m.f, x) < 0);
+            }
+            let regels;
+            if (duur === 0) regels = `T komt nooit boven ${fmt(k)} °C: het maximum is ${fmt(m.Tmax)} °C.`;
+            else if (duur === pr.per) regels = `T is het hele jaar meer dan ${fmt(k)} °C: het minimum is ${fmt(m.Tmin)} °C.`;
+            else {
+                regels = `Voer in y<sub>1</sub> = de formule en y<sub>2</sub> = ${fmt(k)}.<br>De optie snijpunt geeft ${pr.xL} = ${fmtAf(van)} en ${pr.xL} = ${fmtAf(tot)}<br>`;
+                if (dag) {
+                    // Hele dagen: de eerste dag na het stijgende snijpunt t/m de laatste dag vóór het dalende
+                    const eerste = Math.ceil(van), laatste = Math.floor(tot);
+                    let dagen = 0;
+                    for (let d = 1; d <= 365; d++) if (m.f(d) > k) dagen++;
+                    regels += `T &gt; ${fmt(k)} °C van ${datumVanDag(eerste)} (n = ${wrapDag(eerste)}) tot en met ${datumVanDag(laatste)} (n = ${wrapDag(laatste)}): ${dagen} dagen.`;
+                } else {
+                    const verschil = van < tot ? `${fmtAf(tot)} − ${fmtAf(van)} = ` : '';
+                    regels += `Dat is ${verschil}${fmtAf(duur)} maanden ≈ ${fmt(duur * 30, 0)} dagen (1 maand ≈ 30 dagen).`;
+                }
+            }
+            html = `<div class="font-bold text-indigo-900">Hoe lang is T meer dan ${fmt(k)} °C?</div>
+                ${blok('border-indigo-200 text-indigo-900', regels)}
+                <p class="text-xs">Het gekleurde stuk is de tijd boven de grens. Je rekent met de snijpunten van de grafiek en de lijn T = ${fmt(k)}${duur > 0 && duur < pr.per && van > tot ? '. Het stuk loopt hier over de jaarwisseling' : ''}.</p>`;
+        }
+
+        const g = drawGraph('canvas-gebruik', opt);
+        // Maandbanden met afkortingen bovenin, zodat je datum en dagnummer naast elkaar ziet
+        const { ctx, mapX, box } = g;
+        ctx.save();
+        ctx.font = '600 10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        for (let i = 0; i < 12; i++) {
+            const a = dag ? MAAND_START[i] - 1 : i, b = dag ? (i < 11 ? MAAND_START[i + 1] - 1 : 365) : i + 1;
+            if (i % 2 === 1) {
+                ctx.fillStyle = 'rgba(148, 163, 184, 0.10)';
+                ctx.fillRect(mapX(a), box.y0, mapX(b) - mapX(a), box.y1 - box.y0);
+            }
+            ctx.fillStyle = '#94a3b8';
+            ctx.fillText(MAAND_KORT[i], (mapX(a) + mapX(b)) / 2, box.y0 + 12);
+        }
+        ctx.restore();
+        overlay(g);
+        $('gebruik-uitleg').innerHTML = html;
+
+        // Dagnummertabel: de maand van de gekozen datum licht op
+        const actief = gebruikModus === 2 && dag ? maandVanDag(parseFloat($('g-datum').value)) : -1;
+        $('dagnummer-tabel').innerHTML = MAANDEN.map((naam, i) => {
+            const eind = i < 11 ? MAAND_START[i + 1] - 1 : 365;
+            return `<div class="p-2 rounded-lg border ${i === actief ? 'bg-indigo-50 border-indigo-400 font-bold' : 'bg-slate-50 border-slate-200'}">
+                        <div class="text-slate-700">${naam}</div>
+                        <div class="mono text-slate-900">${MAAND_START[i]}–${eind}</div>
+                    </div>`;
+        }).join('');
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //   choice:     'B'                                              — meerkeuze, radio name = sleutel
+    //   check:      () => true/false                                 — eigen controle (bv. grafiek-matcher)
+    //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
+    //   hint:       wijst naar de aanpak en de plek in de les — NIET het antwoord
+    //   goed:       korte bevestiging bij een goed antwoord (optioneel)
+    //   uitwerking: volledige berekening (HTML); verschijnt na goed antwoord of na 2 fouten
+    // Afgeronde antwoorden staan erin als [afgerond, onafgerond] met een kleine tol: zo telt
+    // zowel "3,45" als het GR-getal "3,4453", maar niet een verkeerd afgeronde "3,44".
+    const exercises = {
+        q1: {
+            // Fig 13.14a: max 3,5 (x = 2,25), min 0,5 (x = 0,75), stijgend door y = 2 bij x = 1,5 → periode 3
+            fields: { 'q1-a': 2, 'q1-b': 1.5, 'q1-c': 2 * PI / 3, 'q1-d': [-1.5, 1.5, 4.5, 7.5] },
+            hint: 'Werk het stappenplan af: a, b, de periode → c, en een punt waar de grafiek stijgend door de evenwichtsstand gaat (tab 2).',
+            goed: 'Goed opgesteld!',
+            uitwerking: `Hoogste waarde 3,5 en laagste 0,5: <span class="mono">a = (3,5 + 0,5) / 2 = 2</span> en <span class="mono">b = 3,5 − 2 = 1,5</span>.
+                De toppen liggen bij x = 2,25 en x = 5,25, dus periode = 3 en <span class="mono">c = 2π / 3 = ⅔π</span>.
+                Stijgend door de evenwichtsstand bij x = 1,5, dus d = 1,5 (of een periode verder: 4,5).<br>
+                <span class="mono font-bold">y = 2 + 1,5 sin(⅔π(x − 1,5))</span>`,
+        },
+        q2: {
+            // Fig 13.14b: max 4 (x = 2,75), min −2 (x = 1,25) → a = 1, b = 3, periode 3, stijgend door y = 1 bij x = 2
+            choice: 'B',
+            hint: 'Controleer elk onderdeel apart: b = hoogste − a, c = 2π / periode, en d bij stijgend door de evenwichtsstand (tab 2).',
+            uitwerking: `a = (4 + −2) / 2 = 1, b = 4 − 1 = 3, periode 3 dus c = 2π / 3 = ⅔π. Bij x = 2 gaat de grafiek stijgend door y = 1, dus d = 2:
+                <span class="mono font-bold">y = 1 + 3 sin(⅔π(x − 2))</span>.<br>
+                A: bij x = 0,5 gaat de grafiek <em>dalend</em> door de evenwichtsstand. C: c is niet de periode, maar 2π / periode. D: 6 is hoogste − laagste; de amplitude is de helft daarvan.`,
+        },
+        q3: {
+            // Periode 2π / ⅕π = 10; max 2 + 3 = 5 bij x = 1 + ¼ · 10 = 3,5; y(1,8) = 3,4453…
+            fields: { 'q3-x': 3.5, 'q3-y': 5, 'q3-b': [3.45, 3.4453] },
+            tol: 0.002,
+            hint: 'Hoogste punt: evenwichtsstand + amplitude, een kwart periode na d (tab 3, vraag 1). Voor b vul je x = 1,8 in (tab 3, vraag 3).',
+            uitwerking: `Periode = 2π / ⅕π = 10. <span class="mono">y<sub>max</sub> = 2 + 3 = 5</span> voor <span class="mono">x = 1 + ¼ · 10 = 3,5</span>. Het hoogste punt is (3,5; 5).<br>
+                b. x = 1,8 geeft <span class="mono">y = 2 + 3 sin(⅕π · 0,8) ≈ 3,45</span>.`,
+        },
+        q4: {
+            // y = 3,6 → snijpunten 1,8953… en 5,1047… (symmetrisch om de top x = 3,5)
+            fields: { 'q4-x1': [1.90, 1.8953], 'q4-x2': [5.10, 5.1047] },
+            tol: 0.002,
+            hint: 'Voer y1 en y2 = 3,6 in en gebruik de optie snijpunt, twee keer (tab 3, vraag 4).',
+            uitwerking: `Voer in <span class="mono">y<sub>1</sub> = 2 + 3 sin(⅕π(x − 1))</span> en <span class="mono">y<sub>2</sub> = 3,6</span>. De optie snijpunt geeft <span class="mono">x ≈ 1,90</span> en <span class="mono">x ≈ 5,10</span>.<br>
+                Mooi om te zien: ze liggen symmetrisch om de top x = 3,5 (3,5 − 1,6 en 3,5 + 1,6).`,
+        },
+        q5: {
+            // Periode 4; max 5 bij t = 4 (en t = 0); min −9 bij t = 3 + 3 = 6 → buiten domein → 6 − 4 = 2
+            fields: { 'q5-max': 5, 'q5-min': -9, 'q5-t': 2 },
+            hint: 'Ga vanaf t = 3 een kwart en driekwart periode verder, en controleer of die t binnen 0 ≤ t ≤ 4 valt (Let op "domein" in tab 3).',
+            uitwerking: `Periode = 2π / ½π = 4. <span class="mono">N<sub>max</sub> = −2 + 7 = 5</span> voor t = 3 + ¼ · 4 = 4 (en een periode eerder: t = 0).<br>
+                <span class="mono">N<sub>min</sub> = −2 − 7 = −9</span> voor t = 3 + ¾ · 4 = 6. Dat ligt buiten het domein, dus t = 6 − 4 = <strong>2</strong>.`,
+        },
+        q6: {
+            // Max helling bij stijgend door de evenwichtsstand: x = 0,8; dy/dx ≈ 2,5133
+            fields: { 'q6-x': 0.8, 'q6-h': [2.51, 2.5133] },
+            tol: 0.002,
+            hint: 'Waar stijgt de grafiek het steilst? Bereken daar de helling met de GR (tab 3, vraag 6).',
+            uitwerking: `De helling is maximaal als de grafiek stijgend door de evenwichtsstand gaat: bij x = d = 0,8.
+                <span class="mono">[dy/dx]<sub>x=0,8</sub> ≈ 2,51</span>.`,
+        },
+        q7: {
+            // ½q − 1 = ½(q − 2) → c = ½, d = 2, periode 4π; max 31 bij q = 2 + π ≈ 5,1416
+            fields: { 'q7-p': 31, 'q7-q': [5.14, 5.1416] },
+            tol: 0.002,
+            hint: '½q − 1 is nog niet van de vorm c(q − d). Haal eerst ½ buiten haakjes (Let op in tab 3).',
+            uitwerking: `<span class="mono">½q − 1 = ½(q − 2)</span>, dus c = ½ en d = 2. Periode = 2π / ½ = 4π.<br>
+                <span class="mono">P<sub>max</sub> = 25 + 6 = 31</span> voor <span class="mono">q = 2 + ¼ · 4π = 2 + π ≈ 5,14</span>.<br>
+                Wie d = 1 neemt, vindt q = 1 + π ≈ 4,14 en dat is fout.`,
+        },
+        q8: {
+            // (1, 10) hoogste en (5, 4) laagste punt: halve periode 4 → periode 8; stijgend bij 5 + 2 = 7 of 1 − 2 = −1
+            fields: { 'q8-p': 8, 'q8-d': [-9, -1, 7, 15] },
+            hint: 'Een top kan een hoogste óf een laagste punt zijn. Tussen twee opeenvolgende toppen zit een halve periode; ga dan een kwart periode verder (tab 1).',
+            uitwerking: `(1, 10) is een hoogste punt en (5, 4) een laagste punt. Daartussen zit een halve periode, dus periode = 2 · (5 − 1) = 8 en c = 2π / 8 = ¼π.<br>
+                Een kwart periode na het laagste punt gaat de grafiek stijgend door de evenwichtsstand: x = 5 + 2 = 7. Een kwart periode vóór het hoogste punt kan ook: x = 1 − 2 = −1.<br>
+                <span class="mono font-bold">y = 7 + 3 sin(¼π(x − 7))</span>`,
+        },
+        q9: {
+            // 1 maart: n = 60 → 10,93…; 18 mei: n = 138 → 20,71…; max stijgsnelheid bij n = 110: 0,1377…
+            fields: { 'q9-maart': [10.9, 10.9336], 'q9-mei': [20.7, 20.7084], 'q9-v': [0.14, 0.1377] },
+            tol: 0.004,
+            hint: 'Zoek de dagnummers op in de tabel (tab 4) en vul ze in. De grootste stijgsnelheid is de maximale helling (tab 3, vraag 6).',
+            uitwerking: `1 maart: n = 59 + 1 = 60 geeft <span class="mono">T ≈ 10,9 °C</span>. 18 mei: n = 120 + 18 = 138 geeft <span class="mono">T ≈ 20,7 °C</span>.<br>
+                c. De temperatuur stijgt het snelst als de grafiek stijgend door de evenwichtsstand gaat, bij n = 110:
+                <span class="mono">[dT/dn]<sub>n=110</sub> ≈ 0,14</span> °C per dag.`,
+        },
+        q10: {
+            // a = 12, b = 4, c = 2π/12 = ⅙π; langste dag 21 juni = 5 maanden na 21 januari → d = 5 − 3 = 2
+            fields: { 'q10-a': 12, 'q10-b': 4, 'q10-c': PI / 6, 'q10-d': [-10, 2, 14] },
+            hint: 'Werk zoals bij Napels (tab 4): a en b uit 16 en 8 uur, periode 12 maanden, en d = moment van de langste dag − ¼ periode.',
+            uitwerking: `<span class="mono">a = (16 + 8) / 2 = 12</span>, <span class="mono">b = 16 − 12 = 4</span>, periode 12 maanden dus <span class="mono">c = 2π / 12 = ⅙π</span>.<br>
+                De langste dag is 21 juni: dat is 5 maanden na 21 januari, dus t = 5. Een kwart periode (3 maanden) eerder gaat de grafiek stijgend door de evenwichtsstand: d = 5 − 3 = 2.<br>
+                <span class="mono font-bold">l = 12 + 4 sin(⅙π(t − 2))</span>`,
+        },
+        q11: {
+            // Fig 13.15: min 25 bij t = 1,5 en 11,5, max 175 bij t = 6,5, stijgend door N = 100 bij t = 4
+            // → N = 100 + 75 sin(⅕π(t − 4)). Elke formule met dezelfde grafiek op 0 ≤ t ≤ 12 telt als goed.
+            check: () => {
+                const [a, b, c, d] = ['a', 'b', 'c', 'd'].map(k => parseNum($('q11-' + k).value));
+                if (![a, b, c, d].every(isFinite)) return false;
+                const doel = sinus(100, 75, PI / 5, 4), jij = sinus(a, b, c, d);
+                for (let t = 0; t <= 12; t += 0.05) if (Math.abs(jij(t) - doel(t)) > 3) return false;
+                return true;
+            },
+            hint: 'Lees af: de hoogste en laagste N, de periode en een t waar de grafiek stijgend door de evenwichtsstand gaat (stappenplan in tab 2). Typ c bijvoorbeeld als 0,5π of pi/2.',
+            goed: 'Precies over figuur 13.15!',
+            uitwerking: `Hoogste N = 175, laagste N = 25: <span class="mono">a = (175 + 25) / 2 = 100</span> en <span class="mono">b = 175 − 100 = 75</span>.
+                Laagste punten bij t = 1,5 en t = 11,5, dus periode = 10 en <span class="mono">c = 2π / 10 = ⅕π</span>.
+                Stijgend door N = 100 bij t = 4, dus d = 4.<br>
+                <span class="mono font-bold">N = 100 + 75 sin(⅕π(t − 4))</span>`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Grafieken bij de opdrachten — exact de figuren uit het boek.
+    function drawQ1() {
+        // Fig 13.14a: min 0,5 bij x = 0,75 en 3,75, max 3,5 bij x = 2,25 en 5,25 → y = 2 + 1,5 sin(⅔π(x − 1,5))
+        drawGraph('canvas-q1', {
+            xMin: 0, xMax: 6, yMin: 0, yMax: 4, xStep: 0.5, yStep: 0.5, xTick: labEvery(1), yTick: labEvery(1),
+            pad: { l: 30, b: 24 }, xLabel: 'x', yLabel: 'y',
+            curves: [{ f: sinus(2, 1.5, 2 * PI / 3, 1.5), color: C.rose }],
+        });
+    }
+
+    function drawQ2() {
+        // Fig 13.14b: min −2 bij x = 1,25 en 4,25, max 4 bij x = 2,75 en 5,75 → y = 1 + 3 sin(⅔π(x − 2)); y(0) ≈ 3,6
+        drawGraph('canvas-q2', {
+            xMin: 0, xMax: 6, yMin: -3, yMax: 5, xStep: 0.5, yStep: 1, xTick: labEvery(1), yTick: labEvery(2),
+            pad: { l: 30, b: 24 }, xLabel: 'x', yLabel: 'y',
+            curves: [{ f: sinus(1, 3, 2 * PI / 3, 2), color: C.rose }],
+        });
+    }
+
+    function drawQ8() {
+        // Opgave 25: alleen de twee gegeven toppen (1, 10) en (5, 4)
+        drawGraph('canvas-q8', {
+            xMin: -2, xMax: 9, yMin: 0, yMax: 12, xStep: 1, yStep: 1, xTick: labEvery(1), yTick: labEvery(2),
+            pad: { l: 30, b: 24 }, xLabel: 'x', yLabel: 'y',
+            points: [
+                { x: 1, y: 10, color: C.orange, label: '(1, 10)' },
+                { x: 5, y: 4, color: C.orange, label: '(5, 4)' },
+            ],
+        });
+    }
+
+    function drawQ11() {
+        // Fig 13.15: min 25 bij t = 1,5 en 11,5, max 175 bij t = 6,5 → N = 100 + 75 sin(⅕π(t − 4)); N(0) ≈ 56
+        const [a, b, c, d] = ['a', 'b', 'c', 'd'].map(k => parseNum($('q11-' + k).value));
+        drawGraph('canvas-q11', {
+            xMin: 0, xMax: 12, yMin: 0, yMax: 200, xStep: 1, yStep: 25, xTick: labEvery(2), yTick: labEvery(50),
+            xLabel: 't', yLabel: 'N',
+            curves: [
+                { f: sinus(100, 75, PI / 5, 4), color: C.slate, width: 6, dash: [8, 6] },
+                ...([a, b, c, d].every(isFinite) ? [{ f: sinus(a, b, c, d), color: C.indigo, width: 3 }] : []),
+            ],
+        });
+    }
+
+    function renderOpdrachten() {
+        drawQ1();
+        drawQ2();
+        drawQ8();
+        drawQ11();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    setOpstelVoorbeeld(0);
+    setRekenPreset(0);
+    setGebruikPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>
