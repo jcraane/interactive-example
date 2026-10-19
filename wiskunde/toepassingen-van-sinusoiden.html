@@ -973,9 +973,14 @@
         emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
     };
 
-    /** Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3". */
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
     function fmt(v, digits = 2) {
         if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
         const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
         return s.replace('-', '−');
     }

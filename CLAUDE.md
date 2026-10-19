@@ -100,6 +100,16 @@ All examples are in **Dutch** (`lang="nl"`).
   GR, value, intersect, dy/dx, max slope, domain wrap) with a live TI-84 Plus CE screen, a year-model
   explorer for Theorie C (Napels, zeewater: data → a, b, c, d, dagnummers, time above a threshold),
   and 11 auto-checked book exercises ending in a graph matcher on figuur 13.15.
+- `wiskunde/formules-herschrijven.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.3 of
+  Getal & Ruimte H13 "Allerlei formules" (a different book from the sinusoid lessons): breuken
+  herleiden, variabelen vrijmaken and formules combineren. The chapter has no figures, so the thread
+  is "herleiden verandert de vorm, niet de waarde": an invul-controle explorer (pick a rewrite and see
+  whether its graph covers the original everywhere, including a coincidence at x = y = 2), herleidings-
+  ladders for Theorie A and B where every line shows its value for slider-chosen numbers and a
+  "klassieke fout" toggle shows the wrong line breaking, a terugreken-graph for vrijmaken, a 4-step
+  combineren stappenplan whose route dots line up on the combined formula, and 12 auto-checked book
+  exercises (fill-in boxes in a given form) ending in a matcher on opgave A53c. Book-style fractions
+  and roots come from a small `fm()` markup helper (`{teller|noemer}`, `√[…]`, `^[…]`, `#1`).
 
 Examples are independent — there is no shared library or cross-file dependency.
 

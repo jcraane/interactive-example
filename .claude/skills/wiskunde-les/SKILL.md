@@ -74,9 +74,10 @@ what to change:
 
 - **Keep as-is:** `<head>` styles, header, tab navigation pattern, back-link to `../index.html`,
   and everything under `HULPFUNCTIES` and `NAVIGATIE` in the script (`fmt`, `fmtPi`,
-  `parseNum`, `approx`, `setupCanvas`, `drawGraph`, `setActiveButton`, `switchTab`), plus the
+  `parseNum`, `approx`, `setupCanvas`, `drawGraph`, `setActiveButton`, `fm`, `switchTab`), plus the
   exercise engine (`checkExercise`, `showUitwerking`, `updateScore`). Lessons look and behave the
-  same because they share this code.
+  same because they share this code. Put lesson-specific helpers in their own block after
+  `HULPFUNCTIES`, not inside it.
 - **Replace:** every `{{…}}` placeholder and every block marked `✏️`. The template's demo content
   (parabolas) only shows how each component works. Delete what the chapter doesn't need.
 - **Add:** extra tabs by copying the explorer card. Register each tab in `tabRenderers`.
@@ -164,6 +165,11 @@ The `exercises` object is declarative. Each entry has `fields`, `choice` or `che
   matching `tol` (0,05 for "afronden op 1 decimaal", wider for values read off a graph).
 - **State the expected form in the label** whenever there's ambiguity: "c (in π)",
   "afgerond op 2 decimalen", "in uren".
+- **When the answer is a formula** ("schrijf als één breuk", "druk x uit in y"), don't make the
+  student type it. Show the target form with numbered boxes, `fm('D = {#1x − #2|x²}')`, and
+  ask for the numbers in fields labelled "vakje 1", "vakje 2". Choose a form with one correct
+  filling, for example with the coefficient of one term fixed. When the book itself says "in de vorm
+  A = p/x + qx", ask for p and q.
 - The score in the header counts automatically from `exercises`. Keep the tab label's count
   `Oefenopdrachten (k)` equal to the number of cards.
 
@@ -196,6 +202,11 @@ The `exercises` object is declarative. Each entry has `fields`, `choice` or `che
   canvas text). Formulas use book notation: `·`, `−` (U+2212), `½`, `¼π`, superscripts `²`.
 - Formulas are text in `.mono`. The live/featured formula goes in the dark slate pill. Don't use
   MathJax or KaTeX.
+- When the book stacks a fraction or draws a root bar, do the same with `fm()`:
+  `{teller|noemer}` (nests), `√[…]`, `∛[…]`, `^[…]` for exponents such as `x^[−1,2]`. In markup
+  write `<span class="mono" data-f="{3|x − 1} − x"></span>` (START fills every `data-f`); in JS use
+  `` `${fm('{3|x − 1}')}` ``. A chapter about rewriting fractions is unreadable as `3/(x − 1)`, and
+  the student has to recognise the book's picture. Simple inline values (`½x`, `¼π`) stay plain text.
 
 ## House style
 
