@@ -104,7 +104,8 @@ Add the `index.html` entry after the existing Wiskunde entries:
 ```js
 {
   file: 'wiskunde/<naam>.html',
-  icon: '<één emoji die het onderwerp vangt>',
+  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3>',
+  icon: '<één kleurrijke emoji die het onderwerp vangt; geen zwart symbool als ➗, dat verdwijnt op de donkere kaart>',
   title: '<Onderwerp zoals in het boek>',
   tagline: '<Eén zin: wat je ziet gebeuren of wat verrast, plus wat erin zit (stappenplan, N oefenopdrachten).>',
   accent: '<hex die past bij het onderwerp>',

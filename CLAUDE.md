@@ -38,7 +38,9 @@ All examples are in **Dutch** (`lang="nl"`).
 
 - `index.html` — the landing page linking every example, with a one-line Dutch teaser each.
   Cards are generated from an `examples` array in the inline script; add a new example by
-  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`).
+  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`
+  and `paragraaf`). `paragraaf` (e.g. `'13.3'`) shows as a "§ 13.3" pill next to the card's icon;
+  every Wiskunde lesson sets it so the student sees at once which book section it covers.
   Cards are grouped into sections by `category` (first-seen order); `categoryMeta` holds each
   section's label icon + tag. Omit `category` to fall under the default "Animaties" section.
 - `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
@@ -101,7 +103,7 @@ All examples are in **Dutch** (`lang="nl"`).
   explorer for Theorie C (Napels, zeewater: data → a, b, c, d, dagnummers, time above a threshold),
   and 11 auto-checked book exercises ending in a graph matcher on figuur 13.15.
 - `wiskunde/formules-herschrijven.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.3 of
-  Getal & Ruimte H13 "Allerlei formules" (a different book from the sinusoid lessons): breuken
+  Getal & Ruimte H13 "Allerlei formules" (the same chapter as the two sinusoid lessons): breuken
   herleiden, variabelen vrijmaken and formules combineren. The chapter has no figures, so the thread
   is "herleiden verandert de vorm, niet de waarde": an invul-controle explorer (pick a rewrite and see
   whether its graph covers the original everywhere, including a coincidence at x = y = 2), herleidings-

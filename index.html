@@ -142,6 +142,25 @@
       border: 1px solid color-mix(in srgb, var(--accent, #3b82f6) 30%, transparent);
     }
 
+    /* Bovenrij van een kaart: icoon links, optioneel paragraafnummer (§ 13.3) rechts */
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .para {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: var(--accent, #3b82f6);
+      background: color-mix(in srgb, var(--accent, #3b82f6) 14%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent, #3b82f6) 30%, transparent);
+      white-space: nowrap;
+    }
+
     .card h2 {
       font-size: 1.2rem;
       margin: 0;
@@ -363,7 +382,8 @@
     },
     {
       file: 'wiskunde/periodieke_verschijnselen.html',
-      icon: '〰️',
+      paragraaf: '13.1',
+      icon: '🎡',
       title: 'Periodieke verschijnselen & sinusoïden',
       tagline: 'Evenwichtsstand, amplitude, periode — schuif aan a, b, c en d in y = a + b·sin(c(x − d)) en zie de golf meebewegen. Met stappenplan en 11 oefenopdrachten.',
       accent: '#6366f1',
@@ -371,6 +391,7 @@
     },
     {
       file: 'wiskunde/toepassingen-van-sinusoiden.html',
+      paragraaf: '13.2',
       icon: '🌡️',
       title: 'Toepassingen van sinusoïden',
       tagline: 'Van grafiek of gegevens naar de formule: met de kwart periode vind je d, het hoogste punt en hoe lang het zeewater warmer is dan 18 °C. Met stappenplan, GR-hulp en 11 oefenopdrachten.',
@@ -379,7 +400,8 @@
     },
     {
       file: 'wiskunde/formules-herschrijven.html',
-      icon: '➗',
+      paragraaf: '13.3',
+      icon: '✏️',
       title: 'Formules herschrijven',
       tagline: 'Breuken samennemen, uitdelen, een variabele vrijmaken en formules combineren — elke stap rekent live mee, zodat je ziet dat de vorm verandert maar de uitkomst niet. Met stappenplannen, GR-hulp en 12 oefenopdrachten.',
       accent: '#10b981',
@@ -436,6 +458,17 @@
       icon.className = 'icon';
       icon.textContent = ex.icon;
 
+      // Bovenrij: icoon, en rechts het paragraafnummer als het voorbeeld er een heeft (Wiskunde)
+      const top = document.createElement('div');
+      top.className = 'card-top';
+      top.appendChild(icon);
+      if (ex.paragraaf) {
+        const para = document.createElement('span');
+        para.className = 'para';
+        para.textContent = '§ ' + ex.paragraaf;
+        top.appendChild(para);
+      }
+
       const cardTitle = document.createElement('h2');
       cardTitle.textContent = ex.title;
 
@@ -446,7 +479,7 @@
       go.className = 'go';
       go.textContent = 'Bekijk voorbeeld →';
 
-      card.append(icon, cardTitle, p, go);
+      card.append(top, cardTitle, p, go);
       grid.appendChild(card);
     });
     sections.appendChild(grid);
