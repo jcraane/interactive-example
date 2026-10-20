@@ -1,0 +1,7 @@
+# Browserlogs en snapshots van de Playwright-tool
+.playwright-mcp/
+
+# IntelliJ: lokale moduleconfiguratie (misc.xml en .idea/.gitignore staan wel in git)
+*.iml
+.idea/modules.xml
+.idea/vcs.xml
