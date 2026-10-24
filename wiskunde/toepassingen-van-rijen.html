@@ -1,0 +1,2524 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 12: Toepassingen van rijen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Lesspecifiek: indexnotatie u_n zoals in het boek */
+        sub {
+            font-size: 0.68em;
+            vertical-align: -0.25em;
+            line-height: 0;
+        }
+        /* GR-tabel: vaste kolommen zoals op de TI-84 Plus CE */
+        .ti-table {
+            display: grid;
+            grid-template-columns: 3.2em 5.4em 1fr;
+            font-size: 0.8rem;
+        }
+        .ti-table > span {
+            padding: 0 0.35em;
+            border-right: 1px solid rgba(15, 23, 42, 0.35);
+            line-height: 1.45;
+        }
+        .ti-table > span.ti-leeg {
+            border-right: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 12</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">12.3 Toepassingen van rijen</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-opstellen')" id="btn-tab-opstellen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Formules opstellen
+            </button>
+            <button onclick="switchTab('tab-lab')" id="btn-tab-lab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Rij-Lab &amp; GR
+            </button>
+            <button onclick="switchTab('tab-patronen')" id="btn-tab-patronen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Patronen
+            </button>
+            <button onclick="switchTab('tab-stappen')" id="btn-tab-stappen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Stappenplan
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                6. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Rente erbij, geld eraf: rijen in het echt</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Julius zet 2000 euro op de bank, krijgt elk jaar 0,1% <strong>rente</strong> en neemt elk jaar 150 euro op. Zulke situaties beschrijf je met een <strong>recursieve formule</strong> die een <strong>factor</strong> (voor het percentage) combineert met een <strong>vast getal</strong> erbij of eraf. In deze paragraaf leer je die formules opstellen en doorrekenen met de GR. Bij <strong>patronen</strong> van stippen en kubussen leid je de recursieve formule af uit de directe formule.
+            </p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">1. Beginterm</div>
+                    <div class="font-bold text-slate-900 mt-1">De startwaarde</div>
+                    <p class="text-sm text-slate-600 mt-1">Zonder beginterm kun je een recursieve formule niet doorrekenen. Kijk goed of hij bij n = 0 of bij n = 1 hoort.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold">
+                        W(0) = 20 000 · K<sub>1</sub> = 1
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">2. Factor uit een percentage</div>
+                    <div class="font-bold text-slate-900 mt-1">Groei of afname in procenten</div>
+                    <p class="text-sm text-slate-600 mt-1">Een percentage erbij of eraf is vermenigvuldigen met een factor. Reken uit wat er <em>overblijft</em>.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold">
+                        30% eruit → · 0,7<br>0,1% rente → · 1,001
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. Vaste hoeveelheid</div>
+                    <div class="font-bold text-slate-900 mt-1">Elke stap hetzelfde getal erbij of eraf</div>
+                    <p class="text-sm text-slate-600 mt-1">Bijvullen, opnemen, verkopen: dat is een vast getal dat je optelt of aftrekt, net als het verschil van een rekenkundige rij.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        + 5000 liter &nbsp; − 150 euro
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">4. Rangnummer n</div>
+                    <div class="font-bold text-slate-900 mt-1">n telt de stappen</div>
+                    <p class="text-sm text-slate-600 mt-1">Dagen, weken of jaren na het begin. Een vraag over een datum vertaal je eerst naar n, en een gevonden n weer terug naar een datum.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">
+                        6 maart → n = 5 &nbsp; n = 7 → 2027
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-orange-50 border border-orange-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-orange-700">5. Evenwicht</div>
+                    <div class="font-bold text-slate-900 mt-1">Waar percentage en vast getal elkaar opheffen</div>
+                    <p class="text-sm text-slate-600 mt-1">Bij één waarde haalt het percentage er precies evenveel af als er vast bijkomt. Daar komt de rij niet onder of boven.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-orange-200 mt-2 text-orange-800 font-semibold">
+                        30% van 16 667 ≈ 5000
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">6. Patronen: wat komt erbij?</div>
+                    <div class="font-bold text-slate-900 mt-1">Het verschil K<sub>n</sub> − K<sub>n−1</sub></div>
+                    <p class="text-sm text-slate-600 mt-1">Bij een patroon tel je wat er bij elke stap bijkomt. Dat verschil geeft de recursieve formule.</p>
+                    <div class="mono text-sm bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        K<sub>n</sub> = K<sub>n−1</sub> + 2n − 1
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: opgave 41 (Julius) en het voorbeeld (tank), staaf voor staaf -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve animatie: zo bouwt een recursieve formule de rij op</h3>
+                    <p class="text-sm text-slate-500">Elke nieuwe staaf begint bij de vorige term. Eerst werkt de factor (rose), daarna het vaste getal (blauw). Opgave 41 geeft drie formules voor Julius: kijk welke bij zijn verhaal past.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 md:justify-end md:max-w-sm">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Opgave 41: formule 1</button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Formule 2</button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Formule 3</button>
+                    <button onclick="setBasisPreset(3)" id="basis-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld: tank</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 space-y-3">
+                    <div class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 text-white">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Formule</span>
+                        <span id="basis-formule" class="mono text-base md:text-lg font-bold"></span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Beginterm</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-indigo-600 inline-block"></span> Termen</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-500 inline-block"></span> Door de factor</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-sky-500 inline-block"></span> Vast getal</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                        ⏸ Pauzeer animatie
+                    </button>
+
+                    <div>
+                        <label for="basis-n-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Bekijk de stap naar term n:</span>
+                            <span id="basis-n-label" class="mono font-bold text-amber-600">n = 1</span>
+                        </label>
+                        <input id="basis-n-slider" type="range" min="1" max="10" step="1" value="1" class="w-full mt-1" oninput="manualBasisSlider(this.value)" />
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbaar in de grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-begin" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-medium">Beginterm</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-factor" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Deel door de factor</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-vast" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+                            <span class="font-medium">Vast getal</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-evenwicht" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span>
+                            <span class="font-medium">Evenwicht (als hij in beeld is)</span>
+                        </label>
+                    </div>
+
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Voorkennis uit §12.1 en §12.2</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een mengvorm van twee soorten rijen</h4>
+                <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                    Een <span class="text-sky-700 font-semibold">rekenkundige rij</span> telt elke stap hetzelfde getal op: u<sub>n</sub> = u<sub>n−1</sub> + v.
+                    Een <span class="text-rose-700 font-semibold">meetkundige rij</span> vermenigvuldigt elke stap met dezelfde factor: u<sub>n</sub> = r · u<sub>n−1</sub>.
+                    In deze paragraaf komen ze samen: <span class="mono font-semibold">u<sub>n</sub> = <span class="text-rose-700">1,001</span> · u<sub>n−1</sub> <span class="text-sky-700">− 150</span></span>. Zo'n rij is rekenkundig noch meetkundig, dus een directe formule heb je dan niet. Je rekent hem door met het rijen-invoerscherm van de GR (tab 3).
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 41)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een kleine rente zie je bijna niet, maar hij telt wel</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    0,1% van 2000 euro is maar 2 euro. In de grafiek valt de rose strook van de rente bijna weg, maar formule 1 en formule 3 geven toch andere getallen. Vergelijk in het uitlegvak de getallen, niet alleen de plaatjes.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: FORMULES OPSTELLEN (THEORIE A) ==================== -->
+    <section id="tab-opstellen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A: recursieve en directe formules opstellen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed text-sm">
+                Bij een rente van 0,35% per jaar groeit een bedrag B volgens <span class="mono font-semibold">B<sub>n</sub> = <span class="text-rose-700">1,0035</span> · B<sub>n−1</sub></span>.
+                Neem je daarnaast elk jaar 150 euro op, dan krijg je <span class="mono font-semibold">B<sub>n</sub> = <span class="text-rose-700">1,0035</span> · B<sub>n−1</sub> <span class="text-sky-700">− 150</span></span>.
+                Lees een verhaal dus in stukjes: het <span class="text-rose-700 font-semibold">percentage</span> wordt een factor, de <span class="text-sky-700 font-semibold">vaste hoeveelheid</span> komt erbij of eraf, de <span class="text-emerald-700 font-semibold">startwaarde</span> wordt de beginterm en de zin met <span class="text-amber-700 font-semibold">n</span> zegt waar je begint te tellen.
+            </p>
+        </div>
+
+        <!-- Verkenner: formulebouwer -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Formulebouwer: past jouw formule bij het verhaal?</h3>
+                    <p class="text-sm text-slate-500">Kies per onderdeel een stukje formule. De grijze stippen laten zien wat er in het verhaal echt gebeurt, de indigo stippen wat jouw formule ervan maakt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 md:justify-end">
+                    <button onclick="setBouwSituatie(0)" id="bouw-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld: tank</button>
+                    <button onclick="setBouwSituatie(1)" id="bouw-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: zwembad</button>
+                    <button onclick="setBouwSituatie(2)" id="bouw-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: bavianen</button>
+                </div>
+            </div>
+
+            <div id="bouw-verhaal" class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 leading-relaxed"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-7 space-y-3">
+                    <div class="flex flex-wrap items-center gap-3 px-4 py-3 rounded-2xl bg-slate-900 text-white">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Jouw formule</span>
+                        <span id="bouw-formule" class="mono text-base md:text-lg font-bold"></span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-bouw" width="660" height="300" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-full bg-slate-300 inline-block"></span> Wat er in het verhaal gebeurt</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> Jouw formule</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-3">
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="text-xs font-bold text-rose-800">Factor voor het percentage</div>
+                        <div id="bouw-factor" class="flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <div class="text-xs font-bold text-sky-800">Vaste hoeveelheid erbij of eraf</div>
+                        <div id="bouw-vast" class="flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                        <div class="text-xs font-bold text-emerald-800">Beginterm</div>
+                        <div id="bouw-begin" class="flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+                    <div id="bouw-oordeel" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+
+            <div class="mt-5 overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead>
+                        <tr class="text-slate-500 border-b">
+                            <th class="py-1.5 pr-3 text-amber-700">n</th>
+                            <th class="py-1.5 pr-3 text-amber-700">moment</th>
+                            <th class="py-1.5 pr-3">verhaal</th>
+                            <th class="py-1.5 pr-3 text-indigo-700">jouw formule</th>
+                            <th class="py-1.5"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bouw-tabel" class="mono"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6 items-start">
+            <!-- Mini-widget: percentage → factor -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800">Van percentage naar factor</h3>
+                <p class="text-sm text-slate-600 mt-1">Typ een percentage en kies of het erbij of eraf gaat. De factor is wat er van 100% overblijft.</p>
+                <div class="flex flex-wrap items-end gap-3 mt-3">
+                    <div>
+                        <label for="pf-pct" class="text-xs font-semibold text-slate-600">percentage</label>
+                        <div class="flex items-center gap-1 mt-1">
+                            <input id="pf-pct" type="text" value="30" oninput="updatePf()" class="w-20 px-2.5 py-1.5 border border-rose-200 rounded-lg mono" />
+                            <span class="text-sm text-slate-600">%</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="setPfRichting(1)" id="pf-erbij" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">erbij</button>
+                        <button onclick="setPfRichting(-1)" id="pf-eraf" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white">eraf</button>
+                    </div>
+                </div>
+                <div id="pf-uitkomst" class="mt-3 p-3 rounded-xl bg-rose-50 border border-rose-200 mono text-sm text-rose-900"></div>
+                <div class="flex flex-wrap gap-2 mt-3 text-xs">
+                    <span class="font-semibold text-slate-500 mr-1 self-center">Uit het boek:</span>
+                    <button onclick="setPf(30, -1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-100">30% overgeheveld</button>
+                    <button onclick="setPf(0.1, 1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-100">0,1% rente</button>
+                    <button onclick="setPf(0.35, 1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-100">0,35% rente</button>
+                    <button onclick="setPf(12, 1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-100">12% groei</button>
+                    <button onclick="setPf(2, -1)" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-100">2% lekt weg</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (voorbeeld, Theorie A)</div>
+                    <h4 class="font-bold text-slate-800 mt-1">Eerst het percentage, dan het vaste getal</h4>
+                    <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                        In de tank gaat eerst 30% weg en <em>daarna</em> komt er 5000 liter bij: <span class="mono">W(n) = 0,7 · W(n − 1) + 5000</span>. Schrijf je <span class="mono">0,7 · (W(n − 1) + 5000)</span>, dan haal je ook 30% van het nieuwe water weg. Lees in het verhaal in welke volgorde het gebeurt.
+                    </p>
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800 mt-4">Let op! (beginterm u<sub>0</sub> of u<sub>1</sub>, §12.2)</div>
+                    <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                        "n dagen <em>na</em> 1 maart" betekent dat 1 maart bij n = 0 hoort: de beginterm is W(0). Is u<sub>n</sub> bijvoorbeeld "de n<sup>e</sup> kabel", dan is de eerste kabel u<sub>1</sub>. Bij een meetkundige rij wordt de directe formule dan u<sub>n</sub> = u<sub>1</sub> · r<sup>n−1</sup>.
+                    </p>
+                </div>
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Recursief of direct?</div>
+                    <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                        Is er alleen een <span class="text-rose-700 font-semibold">percentage</span>, dan is het een meetkundige rij en kun je ook de directe formule geven: <span class="mono">V<sub>n</sub> = 50 000 · 0,98<sup>n</sup></span>.
+                        Komt er ook een <span class="text-sky-700 font-semibold">vast getal</span> bij of af, dan is er alleen een recursieve formule. Die reken je door op de GR (tab 3).
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: RIJ-LAB & GR ==================== -->
+    <section id="tab-lab" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Rij-Lab: <span class="mono text-indigo-600">u<sub>n</sub> = <span class="text-rose-600">r</span> · u<sub>n−1</sub> + <span class="text-sky-600">b</span></span></h2>
+                    <p class="text-sm text-slate-600 mt-1">Schuif aan het percentage, het vaste getal en de beginterm. Zoek in de tabel welke n bij een waarde hoort, en zie waar de rij in evenwicht komt.</p>
+                </div>
+                <div id="lab-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setLabPreset(0)" id="lab-preset-0" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white">Voorbeeld: tank</button>
+                <button onclick="setLabPreset(1)" id="lab-preset-1" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 41: Julius</button>
+                <button onclick="setLabPreset(2)" id="lab-preset-2" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: bavianen</button>
+                <button onclick="setLabPreset(3)" id="lab-preset-3" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: zwembad</button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-8 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-lab" width="720" height="360" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Beginterm</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> <span>Termen u<sub>n</sub></span></span>
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-orange-500 inline-block"></span> Evenwicht</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Gevonden n</span>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="p-4 rounded-xl bg-orange-50 border border-orange-200 text-xs text-slate-700 space-y-1.5" id="lab-evenwicht"></div>
+                        <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-slate-700 space-y-2">
+                            <div class="font-bold text-amber-900 text-sm">Omgekeerd: welke n hoort bij een waarde?</div>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <span>Eerste n waarbij u<sub>n</sub></span>
+                                <select id="lab-zoek-op" onchange="renderLab()" class="px-1.5 py-1 border rounded mono bg-white">
+                                    <option value="lt">&lt;</option>
+                                    <option value="gt">&gt;</option>
+                                </select>
+                                <input id="lab-zoek-w" type="text" value="17000" oninput="renderLab()" class="w-24 px-2 py-1 border rounded mono" />
+                            </div>
+                            <div id="lab-zoek-uitkomst" class="mono"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="flex justify-between text-xs font-bold text-rose-800">
+                            <label for="slider-pct">Percentage per stap</label>
+                            <span id="val-pct" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-pct" type="range" min="-50" max="20" step="0.05" value="-30" class="w-full mt-1.5" oninput="renderLab()" />
+                        <div class="text-[11px] text-rose-700 mt-0.5" id="lab-r-uitleg"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <div class="flex justify-between text-xs font-bold text-sky-800">
+                            <label for="slider-b">Vast getal b</label>
+                            <span id="val-b" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-b" type="range" min="-10000" max="10000" step="100" value="5000" class="w-full mt-1.5" oninput="renderLab()" />
+                        <div class="text-[11px] text-sky-700 mt-0.5" id="lab-b-uitleg"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                        <div class="flex justify-between text-xs font-bold text-emerald-800">
+                            <label for="slider-u0">Beginterm u<sub>0</sub></label>
+                            <span id="val-u0" class="mono text-sm"></span>
+                        </div>
+                        <input id="slider-u0" type="range" min="0" max="40000" step="500" value="20000" class="w-full mt-1.5" oninput="renderLab()" />
+                    </div>
+
+                    <!-- Gesimuleerde GR-tabel -->
+                    <div class="bg-slate-900 p-3 rounded-2xl border border-slate-700">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-xs font-bold text-white">🧮 Tabel op de GR</div>
+                            <div class="flex gap-1">
+                                <button onclick="scrollLabTabel(-1)" class="key" aria-label="Omhoog in de tabel">▲</button>
+                                <button onclick="scrollLabTabel(1)" class="key" aria-label="Omlaag in de tabel">▼</button>
+                            </div>
+                        </div>
+                        <div class="gr-screen text-slate-900 rounded-xl p-2.5 border-4 border-slate-700 mono">
+                            <div class="text-[10px] font-bold leading-tight border-b border-slate-400/60 pb-1 mb-1">
+                                <div>NORM DRIJF AUTO REËEL RAD WN</div>
+                                <div>DRUK OP + VOOR ΔTbl</div>
+                            </div>
+                            <div id="lab-ti-tabel" class="ti-table"></div>
+                            <div id="lab-ti-voet" class="text-xs font-bold border-t border-slate-400/60 mt-1 pt-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GR-callout: het rijen-invoerscherm -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: een rij invoeren en een tabel maken</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Theorie A • Voorbeeld b</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="text-[11px] font-bold leading-tight border-b border-slate-400/50 pb-1 mb-2">
+                        <div>NORM DRIJF AUTO REËEL RAD WN</div>
+                        <div>TWEEDE VOORWAARDE INDIEN NODIG</div>
+                    </div>
+                    <div class="text-xs">Plot1 &nbsp;Plot2 &nbsp;Plot3</div>
+                    <div class="text-xs">TYPE: <span class="bg-slate-800 text-emerald-100 px-1">RIJ(n)</span> &nbsp;RIJ(n+1) &nbsp;RIJ(n+2)</div>
+                    <div class="mt-1" id="gr-invoer"></div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">MODE</span> en kies in de regel met de functiemodus <span class="mono">RIJ</span> (op een Engelstalige GR: <span class="mono">SEQ</span>). Druk <span class="key">ENTER</span> en dan <span class="key">2nd</span> <span class="key">MODE</span> (QUIT).</li>
+                    <li>Druk <span class="key">Y=</span>. Laat <span class="mono">TYPE</span> op <span class="mono">RIJ(n)</span> staan en zet <span class="mono">nMin=0</span>, want de beginterm is u<sub>0</sub>.</li>
+                    <li>Typ achter <span class="mono">u(n)=</span> de formule, zoals hierboven. De <span class="mono">u</span> typ je met <span class="key">2nd</span> <span class="key">7</span>, de <span class="mono">n</span> met <span class="key">X,T,θ,n</span>.</li>
+                    <li>Typ achter <span class="mono">u(0)=</span> de beginterm.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">WINDOW</span> (TBLSET) en zet <span class="mono">TblStart=0</span> en <span class="mono">ΔTbl=1</span>.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">GRAPH</span> (TABLE). In de kolom <span class="mono">u(n)</span> staan de termen; met de pijltjes scroll je verder.</li>
+                    <li><strong class="text-amber-300">Klaar?</strong> Kies bij <span class="key">MODE</span> in dezelfde regel weer de eerste optie, de functiemodus (Engelstalige GR: <span class="mono">FUNCTION</span>). Anders tekent je GR straks geen gewone grafieken meer.</li>
+                </ol>
+                <p class="text-xs text-slate-400 mt-3">Schrijf in je uitwerking op wat je invoert, bijvoorbeeld: voer in u(n) = 0,7u(n − 1) + 5000 met nMin = 0 en u(0) = 20 000.</p>
+            </div>
+            <div class="lg:col-span-5 space-y-4">
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                    <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                    <p class="text-xs leading-relaxed">De letter <span class="mono">u</span> getypt met <span class="key">ALPHA</span> is voor de GR een variabele, geen rij. Gebruik <span class="key">2nd</span> <span class="key">7</span>.</p>
+                    <p class="text-xs leading-relaxed"><span class="mono">nMin</span> past niet bij de beginterm. Begint de rij bij u<sub>1</sub>, zet dan <span class="mono">nMin=1</span>; het scherm vraagt dan om <span class="mono">u(1)=</span>.</p>
+                    <p class="text-xs leading-relaxed">Op het scherm typ je een punt als decimaalteken: <span class="mono">0.7</span>, niet <span class="mono">0,7</span>.</p>
+                </div>
+                <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (voorbeeld b en opgave 41)</div>
+                    <h4 class="font-bold text-slate-800 mt-1">Vertaal de vraag naar n, en het antwoord terug</h4>
+                    <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                        W(n) is de hoeveelheid <em>n dagen na</em> 1 maart. Bij 6 maart hoort dus <span class="mono text-amber-800 font-bold">n = 5</span>, niet n = 6. Vind je in de tabel bij Julius n = 7, dan is het antwoord niet "7" maar het jaar <span class="mono text-amber-800 font-bold">2020 + 7 = 2027</span>. Lees ook goed wat een term betekent: "direct na het opnemen" of "op 1 januari, voor het opnemen".
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: PATRONEN (THEORIE B) ==================== -->
+    <section id="tab-patronen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie B: patronen en meetkundige figuren</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed text-sm">
+                Bij patronen kun je vaak <em>niet</em> de formules van rekenkundige of meetkundige rijen gebruiken. Wel kun je kijken wat er bij elke stap <span class="text-sky-700 font-semibold">bijkomt</span>. Dat is het verschil K<sub>n</sub> − K<sub>n−1</sub>, en daarmee schrijf je de recursieve formule K<sub>n</sub> = K<sub>n−1</sub> + … op. De directe formule K<sub>n</sub> = n² vertelt hoeveel het er in totaal zijn.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Interactieve animatie: wat komt er bij elke stap bij?</h3>
+                    <p class="text-sm text-slate-500">Schuif n omhoog. Het vorige bouwwerk (grijs) blijft staan, het nieuwe deel (blauw) komt erbij. Bij n = 1 zie je alleen de beginterm (groen).</p>
+                </div>
+                <div class="flex flex-wrap gap-2 md:justify-end md:max-w-sm">
+                    <button onclick="setPatroon(0)" id="pat-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Figuur 12.2: kubussen</button>
+                    <button onclick="setPatroon(1)" id="pat-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 12.3: driehoeksgetallen</button>
+                    <button onclick="setPatroon(2)" id="pat-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: vierkanten</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-patroon" width="660" height="380" class="w-full h-auto"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div>
+                        <label for="pat-n-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Bouwwerk nummer:</span>
+                            <span id="pat-n-label" class="mono font-bold text-amber-600">n = 1</span>
+                        </label>
+                        <input id="pat-n-slider" type="range" min="1" max="6" step="1" value="1" class="w-full mt-1" oninput="setPatN(this.value)" />
+                    </div>
+                    <button onclick="togglePatPlay()" id="btn-pat-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">▶ Laat het patroon groeien</button>
+                    <label id="pat-verdubbel-wrap" class="hidden flex items-center gap-2 cursor-pointer text-sm p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <input type="checkbox" id="chk-verdubbel" onchange="renderPatroon()" />
+                        <span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
+                        <span class="font-medium">Figuur 12.4: leg er een kopie naast</span>
+                    </label>
+                    <div id="pat-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="text-slate-500 border-b">
+                                    <th class="py-1 pr-3 text-amber-700">n</th>
+                                    <th class="py-1 pr-3" id="pat-kop-term">K<sub>n</sub></th>
+                                    <th class="py-1 text-sky-700" id="pat-kop-verschil">K<sub>n</sub> − K<sub>n−1</sub></th>
+                                </tr>
+                            </thead>
+                            <tbody id="pat-tabel" class="mono"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <div class="bg-sky-50 rounded-2xl p-5 border border-sky-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-sky-800">Opgave 46c: welke regelmaat ontdek je?</div>
+                <h4 class="font-bold text-slate-800 mt-1">De verschillen vormen een rekenkundige rij</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij de kubussen komen er 3, 5, 7, 9, … bij: elke stap 2 meer. Het bouwwerk zelf is dus geen rekenkundige rij (1, 4, 9, 16 heeft geen vast verschil), maar de <em>verschillen</em> zijn dat wel. Daarom staat er in de recursieve formule een stuk met n: K<sub>n</sub> = K<sub>n−1</sub> + 2n − 1.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie B)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Ook hier hoort er een beginterm bij</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    K<sub>n</sub> = K<sub>n−1</sub> + 2n − 1 alleen is geen volledige formule: je weet dan niet waar je begint. Het eerste bouwwerk is n = 1, dus schrijf erbij <span class="mono text-emerald-800 font-bold">met K<sub>1</sub> = 1</span>. Die beginterm haal je uit de directe formule: K<sub>1</sub> = 1² = 1.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: STAPPENPLAN ==================== -->
+    <section id="tab-stappen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: van directe naar recursieve formule</h2>
+                    <p class="text-sm text-slate-600">De aanpak uit het voorbeeld van Theorie B. Kies een formule uit het boek en klik door de stappen.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 md:justify-end">
+                    <button onclick="setStapVoorbeeld(0)" id="stap-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld: K<sub>n</sub> = n²</button>
+                    <button onclick="setStapVoorbeeld(1)" id="stap-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 47c: D<sub>n</sub> = ½n² + ½n</button>
+                    <button onclick="setStapVoorbeeld(2)" id="stap-ex-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: A<sub>n</sub> = n² + 2n + 2</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                <button onclick="setStap(1)" id="stap-btn-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">Schrijf de vorm op</div>
+                </button>
+                <button onclick="setStap(2)" id="stap-btn-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">Vervang n door n − 1</div>
+                </button>
+                <button onclick="setStap(3)" id="stap-btn-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Bereken het verschil</div>
+                </button>
+                <button onclick="setStap(4)" id="stap-btn-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">Formule + beginterm</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-stappen" width="640" height="340" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> De termen</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border-2 border-slate-400 inline-block"></span> De vorige term</span>
+                        <span class="flex items-center gap-1.5"><span class="w-1 h-3 bg-sky-500 inline-block"></span> verschil</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> beginterm</span>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <div class="flex justify-between">
+                        <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">← Vorige stap</button>
+                        <button onclick="setStap(Math.min(AANTAL_STAPPEN, huidigeStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">Volgende stap →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (stap 3)</div>
+            <h4 class="font-bold text-slate-800 mt-1">Zet K<sub>n−1</sub> tussen haakjes als je hem aftrekt</h4>
+            <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                Goed: <span class="mono">n² − (n² − 2n + 1) = n² − n² + 2n − 1 = 2n − 1</span>. Wie de haakjes vergeet, schrijft <span class="mono">n² − n² − 2n + 1 = −2n + 1</span>. Controleer met n = 2: K<sub>2</sub> − K<sub>1</sub> = 4 − 1 = 3, en 2 · 2 − 1 = 3 klopt, maar −2 · 2 + 1 = −3 niet. Het minteken voor de haakjes verandert <em>elk</em> teken erbinnen.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 6: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen. Typ grote getallen zonder punt of spatie ertussen, dus 96134,77. Voor de meeste opgaven gebruik je het rijen-invoerscherm van de GR (tab 3).
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: 44a meerkeuze -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave 44a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Zevenblad in de tuin</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Op 1 augustus 2020 is 250 m² van de tuin bedekt met zevenblad. De bedekte oppervlakte groeit jaarlijks met 12%. Shawn verwijdert elk jaar eind juli 50 m². A<sub>n</sub> is de bedekte oppervlakte in m², n jaar na 1 augustus 2020. Welke recursieve formule hoort hierbij?</p>
+                    <div class="space-y-2 text-xs mono">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q1" value="A" /> <span>A<sub>n</sub> = 0,12 · A<sub>n−1</sub> − 50 met A<sub>0</sub> = 250</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q1" value="B" /> <span>A<sub>n</sub> = 1,12 · (A<sub>n−1</sub> − 50) met A<sub>0</sub> = 250</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q1" value="C" /> <span>A<sub>n</sub> = 1,12 · A<sub>n−1</sub> − 50 met A<sub>0</sub> = 250</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q1" value="D" /> <span>A<sub>n</sub> = 1,12 · A<sub>n−1</sub> − 50 met A<sub>1</sub> = 250</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: 43a en 43b, vakjes -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 43a en 43b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Van percentage naar factor</h3>
+                    <p class="text-xs text-slate-600 mt-1"><strong>43a</strong> Een container van 250 liter vol chemisch afval lekt elke week 5% van de overgebleven inhoud weg in de bodem. V<sub>n</sub> is het volume na n weken.</p>
+                    <div class="mono text-sm my-2 text-slate-800">V<sub>n</sub> = <span data-f="#1"></span> · V<sub>n−1</sub> met V<sub>0</sub> = 250</div>
+                    <p class="text-xs text-slate-600"><strong>43b</strong> Bij een tuibrug is de eerste kabel 80 meter lang en elke volgende kabel is 40% korter dan de vorige. L<sub>n</sub> is de lengte in meters van de n<sup>e</sup> kabel. Geef de directe formule.</p>
+                    <div class="mono text-sm my-2 text-slate-800">L<sub>n</sub> = <span data-f="#2 · #3^[n − 1]"></span></div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q2-1" class="font-semibold text-slate-700">vakje 1:</label>
+                            <input id="q2-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-2" class="font-semibold text-slate-700">vakje 2:</label>
+                            <input id="q2-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-3" class="font-semibold text-slate-700">vakje 3:</label>
+                            <input id="q2-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: O41b -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 41b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Wanneer is het geld van Julius op?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Julius zet op 1 januari 2020 2000 euro op de bank tegen 0,1% rente per jaar. Met ingang van 1 januari 2021 neemt hij jaarlijks op 1 januari 150 euro op. Hierbij hoort u<sub>n</sub> = 1,001 · u<sub>n−1</sub> − 150 met u<sub>0</sub> = 2000. Onderzoek met de GR in welk jaar het saldo op 1 januari voor het eerst <em>ontoereikend</em> is om 150 euro op te nemen.</p>
+                    <div class="text-xs max-w-[12rem]">
+                        <label for="q3-jaar" class="font-semibold text-slate-700">jaartal:</label>
+                        <input id="q3-jaar" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: R42a -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave R42a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De tank met 35%</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Neem het voorbeeld van de tank (20 000 liter op 1 maart, elke dag bijvullen met 5000 liter), maar nu wordt er elke dag 35% van de aanwezige hoeveelheid overgeheveld. Ook nu komt de hoeveelheid water niet beneden een bepaalde waarde. Welke waarde is dat? Geef het antwoord in liters nauwkeurig.</p>
+                    <div class="text-xs max-w-[12rem]">
+                        <label for="q4-w" class="font-semibold text-slate-700">waarde (liter):</label>
+                        <input id="q4-w" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: R42b meerkeuze -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave R42b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">En met 25%?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Nu wordt er elke dag 25% van de aanwezige hoeveelheid overgeheveld (weer 20 000 liter op 1 maart en 5000 liter bijvullen). Wat gebeurt er met de hoeveelheid water in de tank?</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q5" value="A" /> De hoeveelheid daalt en nadert een waarde onder 20 000 liter.
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q5" value="B" /> De hoeveelheid blijft elke dag precies 20 000 liter.
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q5" value="C" /> De hoeveelheid stijgt elke dag een beetje.
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q5" value="D" /> De tank loopt uiteindelijk leeg.
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: 44b -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 44b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Minder dan 150 m² zevenblad</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Gebruik de situatie van opdracht 1: 250 m² op 1 augustus 2020, 12% groei per jaar en elk jaar eind juli 50 m² verwijderen. In welk jaar is er op 1 augustus voor het eerst minder dan 150 m² door zevenblad bedekt?</p>
+                    <div class="text-xs max-w-[12rem]">
+                        <label for="q6-jaar" class="font-semibold text-slate-700">jaartal:</label>
+                        <input id="q6-jaar" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: A45b, c, d -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave A45b, c en d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De geldprijs van Widhi</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Widhi zet op 1 januari 2020 125 000 euro op een spaarrekening. Ze krijgt 0,2% rente per jaar en neemt elk jaar op 1 januari 6000 euro op, voor het eerst op 1 januari 2021. B<sub>n</sub> is het bedrag direct na het opnemen van de 6000 euro, n jaar na 1 januari 2020. Stel eerst zelf de recursieve formule op (opgave 45a).</p>
+                    <div class="grid sm:grid-cols-3 gap-3 text-xs">
+                        <div>
+                            <label for="q7-b" class="font-semibold text-slate-700">b. bedrag op 1 januari 2025, direct na het opnemen (in euro's, op de cent):</label>
+                            <input id="q7-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-c" class="font-semibold text-slate-700">c. jaar waarin er na het opnemen voor het eerst minder dan 50 000 euro op staat:</label>
+                            <input id="q7-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-d" class="font-semibold text-slate-700">d. bedrag dat ze vanaf 1 januari 2021 jaarlijks kan opnemen zodat het saldo na het opnemen elk jaar hetzelfde is (in euro's):</label>
+                            <input id="q7-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: 47a, b met figuur 12.3 -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 47a en 47b (Figuur 12.3)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Driehoeksgetallen</h3>
+                    <canvas id="canvas-q8" width="380" height="130" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Het n<sup>e</sup> driehoeksgetal is D<sub>n</sub> = ½n² + ½n.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q8-a" class="font-semibold text-slate-700">a. het twaalfde driehoeksgetal:</label>
+                            <input id="q8-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q8-b" class="font-semibold text-slate-700">b. het hoeveelste driehoeksgetal is 325? n =</label>
+                            <input id="q8-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: 49b, c met figuur 12.5 -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 49b en 49c (Figuur 12.5)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Rechthoeksgetallen</h3>
+                    <canvas id="canvas-q9" width="380" height="170" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600">Het n<sup>e</sup> rechthoeksgetal is R<sub>n</sub> = n² + n. Leid voor c de recursieve formule af uit de directe formule.</p>
+                    <div class="mono text-sm my-2 text-slate-800">R<sub>n</sub> = R<sub>n−1</sub> + <span data-f="#1"></span>n met R<sub>1</sub> = <span data-f="#2"></span></div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q9-n" class="font-semibold text-slate-700">b. 156 = R<sub>n</sub> met n =</label>
+                            <input id="q9-n" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-1" class="font-semibold text-slate-700">c. vakje 1:</label>
+                            <input id="q9-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-2" class="font-semibold text-slate-700">c. vakje 2:</label>
+                            <input id="q9-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: A51 met figuur 12.6 -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave A51 (Figuur 12.6)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Vijfhoeksgetallen</h3>
+                    <canvas id="canvas-q10" width="380" height="210" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600">Het n<sup>e</sup> vijfhoeksgetal is V<sub>n</sub> = 1½n² − ½n. Stel de recursieve formule op.</p>
+                    <div class="mono text-sm my-2 text-slate-800">V<sub>n</sub> = V<sub>n−1</sub> + <span data-f="#1"></span>n − <span data-f="#2"></span> met V<sub>1</sub> = <span data-f="#3"></span></div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q10-1" class="font-semibold text-slate-700">vakje 1:</label>
+                            <input id="q10-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-2" class="font-semibold text-slate-700">vakje 2:</label>
+                            <input id="q10-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-3" class="font-semibold text-slate-700">vakje 3:</label>
+                            <input id="q10-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: A52c, d -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Opgave A52c en A52d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een toren van champagneglazen</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">
+                        Een toren van champagneglazen heeft lagen in de vorm van een driehoek. In de n<sup>e</sup> laag (van boven geteld) staan D<sub>n</sub> = ½n² + ½n glazen. Een toren met n lagen bestaat in totaal uit
+                        P<sub>n</sub> = <span class="mono" data-f="{1|6}n(n + 1)(n + 2)"></span> glazen. In 2021 bouwde een Nederlands team een toren van 54 740 glazen.
+                    </p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q11-lagen" class="font-semibold text-slate-700">c. aantal lagen:</label>
+                            <input id="q11-lagen" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-onder" class="font-semibold text-slate-700">c. glazen in de onderste laag:</label>
+                            <input id="q11-onder" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-extra" class="font-semibold text-slate-700">d. extra glazen voor één laag hoger:</label>
+                            <input id="q11-extra" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: Einduitdaging, matcher -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging • Variant op het voorbeeld (tank)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw rij samenvallen met de tank!</h3>
+                    <p class="text-xs text-slate-600 mt-1">
+                        In een andere tank zit op 1 april 12 000 liter vervuild water. Elke dag wordt 20% van de aanwezige hoeveelheid overgeheveld; direct daarna wordt de tank bijgevuld met 4000 liter. W(n) is de hoeveelheid water in liters, n dagen na 1 april.
+                        Vul de recursieve formule in: je stippen verschijnen meteen. Geef ook de waarde die W(n) nadert (de oranje lijn).
+                    </p>
+                    <div class="mono text-sm my-2 text-slate-800">W(n) = <span class="text-rose-700">r</span> · W(n − 1) + <span class="text-sky-700">b</span> met W(0) = <span class="text-emerald-700">u<sub>0</sub></span></div>
+                    <canvas id="canvas-q12" width="760" height="260" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q12-r" class="font-semibold text-rose-700">factor r:</label>
+                            <input id="q12-r" type="text" value="1" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-b" class="font-semibold text-sky-700">vast getal b:</label>
+                            <input id="q12-b" type="text" value="0" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-u0" class="font-semibold text-emerald-700">beginterm W(0):</label>
+                            <input id="q12-u0" type="text" value="10000" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-e" class="font-semibold text-orange-700">W(n) nadert (liter):</label>
+                            <input id="q12-e" type="text" placeholder="..." oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== LESSPECIFIEKE HULPFUNCTIES ====================
+    /** Zoals fmt, maar vanaf 10 000 met een spatie tussen de duizendtallen, zoals in het boek: 20 000, 17 227. */
+    function fmtG(v, digits = 2) {
+        const s = fmt(v, digits);
+        const m = s.match(/^(−?)(\d+)(.*)$/);
+        if (!m || m[2].length < 5) return s;
+        return m[1] + m[2].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + m[3];
+    }
+
+    /** Rondt een factor af op 6 decimalen, zodat 1 + 0,1/100 netjes 1,001 is. */
+    const rond6 = v => Math.round(v * 1e6) / 1e6;
+
+    /** Termen u₀ … u_N van uₙ = r · uₙ₋₁ + b. */
+    function rij(r, b, u0, N) {
+        const u = [u0];
+        for (let n = 1; n <= N; n++) u.push(r * u[n - 1] + b);
+        return u;
+    }
+
+    /** Mooie stapgrootte en grenzen voor een as van lo tot hi. */
+    function niceRange(lo, hi, target = 6) {
+        if (!(hi - lo > 1e-9)) { hi = lo + 1; lo = lo - 1; }
+        const raw = (hi - lo) / target;
+        const mag = 10 ** Math.floor(Math.log10(raw));
+        const norm = raw / mag;
+        const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+        return { min: Math.floor(lo / step + 1e-9) * step, max: Math.ceil(hi / step - 1e-9) * step, step };
+    }
+
+    /** Getal zoals in een tabel op de TI-84 Plus CE: hooguit 6 tekens, punt als decimaalteken. */
+    function tiFmt(v) {
+        if (!isFinite(v)) return 'ERROR';
+        const neg = v < 0, a = Math.abs(v);
+        const intDigits = a < 1 ? 1 : Math.floor(Math.log10(a)) + 1;
+        const room = 6 - (neg ? 1 : 0) - intDigits;
+        let s;
+        if (room < 0) s = a.toExponential(2).replace('e+', 'E');
+        else if (room <= 1) s = String(Math.round(a));
+        else s = String(+a.toFixed(room - 1));
+        return (neg ? '-' : '') + s;
+    }
+
+    /** Getal zoals je het op de GR typt (punt als decimaalteken). */
+    const tiNum = v => String(rond6(v));
+
+    /** Term in de notatie van het boek: haakjes W(n) of index u<sub>n</sub>. */
+    function term(letter, idx, notatie) {
+        return notatie === 'haakjes' ? `${letter}(${idx})` : `${letter}<sub>${idx}</sub>`;
+    }
+
+    /** De recursieve formule als HTML, met de conceptkleuren. */
+    function recFormule(letter, notatie, r, b, u0, startIdx = 0, kleur = true) {
+        const rs = kleur ? 'text-rose-300' : '', bs = kleur ? 'text-sky-300' : '', es = kleur ? 'text-emerald-300' : '';
+        const vorige = term(letter, notatie === 'haakjes' ? 'n − 1' : 'n−1', notatie);
+        const factor = r === 1 ? '' : `<span class="${rs}">${fmt(r, 4)}</span> · `;
+        const vast = b === 0 ? '' : ` <span class="${bs}">${b > 0 ? '+' : '−'} ${fmtG(Math.abs(b))}</span>`;
+        return `${term(letter, 'n', notatie)} = ${factor}${vorige}${vast} <span class="text-slate-400 font-normal">met</span> <span class="${es}">${term(letter, startIdx, notatie)} = ${fmtG(u0)}</span>`;
+    }
+
+    const MAANDEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
+    /** Datum n dagen na (dag, maandindex), bv. datumNa(1, 2, 5) = "6 maart". */
+    function datumNa(dag, maand, n) {
+        const d = new Date(2023, maand, dag + n);
+        return `${d.getDate()} ${MAANDEN[d.getMonth()]}`;
+    }
+
+    /** Cijfers als subscript voor canvastekst: K₁₂. */
+    const subDig = n => String(n).replace(/\d/g, c => '₀₁₂₃₄₅₆₇₈₉'[c]);
+
+    /** Label boven een horizontale hulplijn, rechts in het grafiekvlak (links staan de eerste termen). */
+    function labelRechts(g, y, tekst, kleur) {
+        const { ctx, mapY, box } = g;
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        const py = mapY(y), tw = ctx.measureText(tekst).width;
+        ctx.fillStyle = 'rgba(248, 250, 252, 0.9)';
+        ctx.fillRect(box.x1 - 8 - tw, py - 20, tw + 6, 15);
+        ctx.fillStyle = kleur;
+        ctx.fillText(tekst, box.x1 - 5, py - 8);
+    }
+
+    function polygon(ctx, pts, fill, stroke, lw = 1.2) {
+        ctx.beginPath();
+        pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+    }
+
+    function dot(ctx, x, y, r, fill) {
+        ctx.fillStyle = fill;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-opstellen': () => renderBouw(),
+        'tab-lab': () => renderLab(),
+        'tab-patronen': () => renderPatroon(),
+        'tab-stappen': () => renderStap(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN ====================
+    // Opgave 41: Julius, 2000 euro op 1-1-2020, 0,1% rente, vanaf 1-1-2021 jaarlijks 150 eraf.
+    // Voorbeeld Theorie A: tank, W(n) = 0,7 · W(n − 1) + 5000 met W(0) = 20 000 (evenwicht 5000 / 0,3 ≈ 16 667).
+    const julius = { u0: 2000, nMax: 10, letter: 'u', notatie: 'index', eenheid: 'euro', xCaption: 'jaren na 1 januari 2020', moment: n => `1 januari ${2020 + n}` };
+    const basisPresets = [
+        { ...julius, r: 1, b: -150, naam: 'formule 1',
+          oordeel: 'Formule 1 haalt er alleen elk jaar 150 euro af. De rente van 0,1% ontbreekt: het saldo daalt precies 150 per jaar. Past niet bij het verhaal.' },
+        { ...julius, r: 1.001, b: 0, naam: 'formule 2',
+          oordeel: 'Formule 2 rekent alleen de rente. Julius neemt hier niets op, dus het saldo groeit heel langzaam. Past niet bij het verhaal.' },
+        { ...julius, r: 1.001, b: -150, naam: 'formule 3',
+          oordeel: 'Formule 3 doet allebei: eerst 0,1% rente erbij (· 1,001), dan 150 euro eraf. Dit is de formule die bij Julius past.' },
+        { r: 0.7, b: 5000, u0: 20000, nMax: 10, letter: 'W', notatie: 'haakjes', eenheid: 'liter', xCaption: 'dagen na 1 maart', naam: 'tank',
+          moment: n => datumNa(1, 2, n),
+          oordeel: 'Elke dag gaat er 30% uit (· 0,7) en komt er 5000 liter bij. Hoe minder water er is, hoe kleiner die 30%: de rij zakt steeds langzamer naar het evenwicht.' },
+    ];
+    const BOUW_DUUR = 1.6, HOUD_DUUR = 0.6;
+    let basisIdx = 0, basisN = 1, basisT = 0, basisPlaying = true, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        $('basis-n-slider').max = pr.nMax;
+        basisN = 1;
+        basisT = 0;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        $('basis-formule').innerHTML = recFormule(pr.letter, pr.notatie, pr.r, pr.b, pr.u0);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+        basisN = parseInt(val, 10);
+        basisT = BOUW_DUUR;
+        renderBasis();
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const u = rij(pr.r, pr.b, pr.u0, pr.nMax);
+        const n = basisN;
+        const p = Math.min(1, basisT / BOUW_DUUR);
+        const p1 = Math.min(1, p / 0.45), p2 = Math.max(0, Math.min(1, (p - 0.5) / 0.45));
+        const showBegin = $('chk-begin').checked, showF = $('chk-factor').checked;
+        const showV = $('chk-vast').checked, showE = $('chk-evenwicht').checked;
+        const E = pr.r !== 1 ? pr.b / (1 - pr.r) : null;
+        const R = niceRange(0, Math.max(...u, pr.u0) * 1.08, 5);
+        const eInBeeld = E !== null && showE && E > R.min && E < R.max;
+
+        // Staaf k staat bij x = k + 1, zodat de y-as links van de eerste staaf blijft.
+        const g = drawGraph('canvas-basis', {
+            xMin: 0.4, xMax: pr.nMax + 1.6, yMin: R.min, yMax: R.max, xStep: 1, yStep: R.step,
+            xTick: v => fmt(v - 1), yTick: v => fmtG(v), xLabel: 'n', yLabel: pr.letter, xCaption: pr.xCaption,
+            pad: { l: 60, r: 120 },
+            hLines: eInBeeld ? [{ y: E, color: C.orange }] : [],
+        });
+        const { ctx, mapX, mapY } = g;
+        if (eInBeeld) labelRechts(g, E, `evenwicht ≈ ${fmtG(E, 0)}`, C.orange);
+        const bw = (mapX(2) - mapX(1)) * 0.6;
+        const bar = (k, lo, hi, fill, alpha = 1) => {
+            const x = mapX(k + 1) - bw / 2, y0 = mapY(Math.min(lo, hi)), y1 = mapY(Math.max(lo, hi));
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = fill;
+            ctx.fillRect(x, y1, bw, y0 - y1);
+            ctx.globalAlpha = 1;
+        };
+        const rand = (k, lo, hi, kleur) => {
+            const x = mapX(k + 1) - bw / 2, y0 = mapY(Math.min(lo, hi)), y1 = mapY(Math.max(lo, hi));
+            ctx.save();
+            ctx.setLineDash([4, 3]);
+            ctx.strokeStyle = kleur;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x, y1, bw, y0 - y1);
+            ctx.restore();
+        };
+
+        for (let k = 0; k < n; k++) bar(k, 0, u[k], k === 0 && showBegin ? C.emerald : C.indigo, k === n - 1 ? 1 : 0.8);
+
+        // De staaf die nu gebouwd wordt: vorige term → · r → ± b
+        const vorig = u[n - 1], na1 = pr.r * vorig, na2 = na1 + pr.b;
+        const h1 = vorig + (na1 - vorig) * p1;
+        const h2 = h1 + (na2 - na1) * p2;
+        const hoog = p2 > 0 ? h2 : h1;
+        rand(n, 0, vorig, C.slate);
+        bar(n, 0, hoog, C.indigo, 0.9);
+        if (showF && Math.abs(na1 - vorig) > 1e-9) {
+            if (na1 > vorig) bar(n, vorig, h1, C.rose);
+            else { bar(n, h1, vorig, C.rose, 0.25); rand(n, h1, vorig, C.rose); }
+        }
+        if (showV && p2 > 0 && pr.b !== 0) {
+            if (pr.b > 0) bar(n, na1, h2, C.sky);
+            else { bar(n, h2, na1, C.sky, 0.25); rand(n, h2, na1, C.sky); }
+        }
+
+        // Labels naast de nieuwe staaf
+        const tx = mapX(n + 1) + bw / 2 + 6;
+        ctx.textAlign = 'left';
+        ctx.font = '700 11px Inter, sans-serif';
+        if (showF && p1 > 0.05 && pr.r !== 1) {
+            ctx.fillStyle = C.rose;
+            ctx.fillText(`· ${fmt(pr.r, 4)}: ${na1 >= vorig ? '+' : '−'}${fmtG(Math.abs(na1 - vorig))}`, tx, Math.max(14, mapY(Math.max(vorig, na1)) - 4));
+        }
+        if (showV && p2 > 0.05 && pr.b !== 0) {
+            ctx.fillStyle = C.sky;
+            ctx.fillText(`${pr.b > 0 ? '+' : '−'} ${fmtG(Math.abs(pr.b))}`, tx, Math.max(28, mapY(Math.max(na1, na2)) + 14));
+        }
+
+        $('basis-n-slider').value = n;
+        $('basis-n-label').innerText = `n = ${n}`;
+        const t = k => term(pr.letter, k, pr.notatie);
+        const winst = na1 - vorig;
+        $('basis-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900">Stap naar n = ${n} <span class="text-amber-700">(${pr.moment(n)})</span></div>
+            <div class="mono">${t(n - 1)} = ${fmtG(vorig)}</div>
+            ${pr.r !== 1 ? `<div class="mono text-rose-700">· ${fmt(pr.r, 4)} → ${fmtG(na1)} <span class="font-sans">(${winst >= 0 ? '+' : '−'}${fmtG(Math.abs(winst))})</span></div>` : '<div class="text-rose-700">geen factor: er gaat geen percentage af of bij</div>'}
+            ${pr.b !== 0 ? `<div class="mono text-sky-700">${pr.b > 0 ? '+' : '−'} ${fmtG(Math.abs(pr.b))} → ${fmtG(na2)}</div>` : '<div class="text-sky-700">geen vast getal erbij of eraf</div>'}
+            <div class="mono font-bold text-indigo-900">${t(n)} = ${fmtG(na2)} ${pr.eenheid}</div>
+            <div class="pt-1.5 mt-1 border-t border-indigo-100">${pr.oordeel}</div>`;
+    }
+
+    // Eén animatielus voor alle tabs; elke tab tekent alleen als hij zichtbaar is.
+    function animateLoop(ts) {
+        if (lastTs !== null) {
+            const dt = Math.min(0.1, (ts - lastTs) / 1000);
+            if (basisPlaying && !$('tab-basis').classList.contains('hidden')) {
+                basisT += dt;
+                if (basisT > BOUW_DUUR + HOUD_DUUR) {
+                    basisT = 0;
+                    basisN = basisN >= basisPresets[basisIdx].nMax ? 1 : basisN + 1;
+                }
+                renderBasis();
+            }
+            if (!$('tab-patronen').classList.contains('hidden')) stepPatroon(dt);
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: FORMULES OPSTELLEN ====================
+    const HL = {
+        e: 'bg-emerald-100 text-emerald-800 font-semibold rounded px-1',
+        r: 'bg-rose-100 text-rose-800 font-semibold rounded px-1',
+        s: 'bg-sky-100 text-sky-800 font-semibold rounded px-1',
+        a: 'bg-amber-100 text-amber-800 font-semibold rounded px-1',
+    };
+    const bouwSituaties = [
+        {   // Voorbeeld Theorie A (p. 27)
+            letter: 'W', notatie: 'haakjes', u0: 20000, nMax: 8, xCaption: 'dagen na 1 maart', moment: n => datumNa(1, 2, n),
+            tekst: `Op 1 maart zit er <span class="${HL.e}">20 000 liter</span> vervuild water in een tank. Elke dag wordt <span class="${HL.r}">30% van de in de tank aanwezige hoeveelheid</span> voor zuivering overgeheveld. Direct daarna wordt de tank <span class="${HL.s}">bijgevuld met 5000 liter</span> vervuild water. W(n) is de hoeveelheid water in liters in de tank, <span class="${HL.a}">n dagen na 1 maart</span>.`,
+            factoren: [0.3, 0.7, 1.3], vast: [5000, -5000, 0], begin: [0, 1],
+            goed: { r: 0.7, b: 5000, start: 0 },
+            fout: {
+                'r0.3': '· 0,3 betekent dat er maar 30% overblijft. Er gaat 30% wég, dus er blijft 70% over: · 0,7.',
+                'r1.3': '· 1,3 hoort bij 30% erbij. Hier gaat er 30% af.',
+                'b-5000': 'De tank wordt bijgevuld: de 5000 liter komt erbij, dus + 5000.',
+                'b0': 'Je vergeet het bijvullen met 5000 liter.',
+                's1': 'Op 1 maart zelf is n = 0 (nul dagen na 1 maart). De beginterm is dus W(0) = 20 000.',
+            },
+            rijSoort: 'Er gaat een percentage af én er komt een vast getal bij. Dat is geen meetkundige en geen rekenkundige rij: een directe formule heb je hier niet. Reken de rij door op de GR (tab 3).',
+        },
+        {   // Terugblik (p. 32): zwembad
+            letter: 'V', notatie: 'index', u0: 50000, nMax: 8, xCaption: 'weken', moment: n => (n === 0 ? 'begin' : `na ${n} ${n === 1 ? 'week' : 'weken'}`),
+            tekst: `Een zwembad met een inhoud van <span class="${HL.e}">50 000 liter</span> heeft lekkage. Per week <span class="${HL.r}">lekt 2% van het overgebleven water weg</span>. V<sub>n</sub> is het volume van het water in liters <span class="${HL.a}">na n weken</span>.`,
+            factoren: [0.02, 0.98, 1], vast: [0, -1000, 1000], begin: [0, 1],
+            goed: { r: 0.98, b: 0, start: 0 },
+            fout: {
+                'r0.02': '· 0,02 houdt maar 2% over. Er lekt 2% weg, dus er blijft 98% over: · 0,98.',
+                'r1': '· 1 betekent dat het percentage niets doet. Het lekken is 2% per week, en een percentage is een factor.',
+                'b-1000': 'Er gaat geen vaste 1000 liter per week af. 2% van 50 000 is 1000, maar daarna is het 2% van steeds minder water. Vergelijk na 2 weken: 48 020 tegen 48 000.',
+                'b1000': 'Er komt geen water bij: het zwembad lekt alleen.',
+                's1': 'V<sub>0</sub> is het volume na 0 weken. De beginterm is V<sub>0</sub> = 50 000.',
+            },
+            rijSoort: 'Er is alleen een percentage, dus dit is een meetkundige rij met factor 0,98. Dan is er ook een directe formule: <span class="mono font-bold">V<sub>n</sub> = 50 000 · 0,98<sup>n</sup></span>.',
+        },
+        {   // Terugblik (p. 32): bavianen
+            letter: 'B', notatie: 'index', u0: 50, nMax: 8, xCaption: 'jaren na 1 januari 2020', moment: n => `1 januari ${2020 + n}`,
+            tekst: `De populatie bavianen in een dierentuin telt <span class="${HL.e}">50 exemplaren op 1 januari 2020</span>. Jaarlijks <span class="${HL.r}">groeit de populatie met 12%</span>. Om overbevolking tegen te gaan, wil men met ingang van 1 januari 2021 <span class="${HL.s}">jaarlijks 8 bavianen</span> aan andere dierentuinen <span class="${HL.s}">verkopen</span>. B<sub>n</sub> is het aantal bavianen <span class="${HL.a}">n jaar na 1 januari 2020</span>.`,
+            factoren: [0.12, 1.12, 1.012], vast: [8, -8, 0], begin: [0, 1],
+            goed: { r: 1.12, b: -8, start: 0 },
+            fout: {
+                'r0.12': '· 0,12 houdt maar 12% over. De populatie groeit met 12%: dan is het 112%, dus · 1,12.',
+                'r1.012': '· 1,012 hoort bij 1,2% groei, niet bij 12%.',
+                'b8': 'De bavianen worden verkocht: er gaan er 8 af, dus − 8.',
+                'b0': 'Je vergeet de 8 bavianen die elk jaar verkocht worden.',
+                's1': 'Op 1 januari 2020 is n = 0. De beginterm is B<sub>0</sub> = 50.',
+            },
+            rijSoort: 'Een percentage erbij én een vast getal eraf: alleen een recursieve formule. Om de populatie constant te houden, moet men elk jaar precies 12% van 50 = 0,12 · 50 = 6 bavianen verkopen (zie het Rij-Lab).',
+        },
+    ];
+    let bouwIdx = 0;
+    let keuze = { r: null, b: null, s: null };
+
+    function setBouwSituatie(i) {
+        bouwIdx = i;
+        keuze = { r: null, b: null, s: null };
+        setActiveButton('bouw-preset-', bouwSituaties.length, i);
+        renderBouw();
+    }
+
+    function kies(soort, waarde) {
+        keuze[soort] = waarde;
+        renderBouw();
+    }
+
+    function keuzeKnoppen(id, soort, opties, label, kleur) {
+        $(id).innerHTML = opties.map(o => {
+            const actief = keuze[soort] === o;
+            const cls = actief
+                ? `px-3 py-1.5 rounded-lg text-xs font-bold mono bg-${kleur}-600 text-white border border-${kleur}-600`
+                : `px-3 py-1.5 rounded-lg text-xs font-bold mono bg-white text-${kleur}-800 border border-${kleur}-200 hover:bg-${kleur}-50`;
+            return `<button class="${cls}" onclick="kies('${soort}', ${o})">${label(o)}</button>`;
+        }).join('');
+    }
+
+    function renderBouw() {
+        const sit = bouwSituaties[bouwIdx];
+        const L = sit.letter, nt = sit.notatie;
+        $('bouw-verhaal').innerHTML = sit.tekst;
+        keuzeKnoppen('bouw-factor', 'r', sit.factoren, r => (r === 1 ? '· 1 (geen)' : `· ${fmt(r, 4)}`), 'rose');
+        keuzeKnoppen('bouw-vast', 'b', sit.vast, b => (b === 0 ? 'niets' : `${b > 0 ? '+' : '−'} ${fmtG(Math.abs(b))}`), 'sky');
+        keuzeKnoppen('bouw-begin', 's', sit.begin, s => `${term(L, s, nt)} = ${fmtG(sit.u0)}`, 'emerald');
+
+        // Formule in de pil: wat nog niet gekozen is, wordt een vraagteken
+        const vraag = '<span class="text-slate-500">?</span>';
+        const fr = keuze.r === null ? `${vraag} · ` : keuze.r === 1 ? '' : `<span class="text-rose-300">${fmt(keuze.r, 4)}</span> · `;
+        const vb = keuze.b === null ? ` ${vraag}` : keuze.b === 0 ? '' : ` <span class="text-sky-300">${keuze.b > 0 ? '+' : '−'} ${fmtG(Math.abs(keuze.b))}</span>`;
+        const bt = keuze.s === null ? vraag : `<span class="text-emerald-300">${term(L, keuze.s, nt)} = ${fmtG(sit.u0)}</span>`;
+        $('bouw-formule').innerHTML = `${term(L, 'n', nt)} = ${fr}${term(L, nt === 'haakjes' ? 'n − 1' : 'n−1', nt)}${vb} <span class="text-slate-400 font-normal">met</span> ${bt}`;
+
+        // Het verhaal stap voor stap, en wat jouw formule ervan maakt
+        const N = sit.nMax;
+        const verhaal = rij(sit.goed.r, sit.goed.b, sit.u0, N);
+        const compleet = keuze.r !== null && keuze.b !== null && keuze.s !== null;
+        let jouw = null;
+        if (compleet) {
+            const v = rij(keuze.r, keuze.b, sit.u0, N);
+            jouw = keuze.s === 0 ? v : [null, ...v.slice(0, N)];
+        }
+        const alles = [...verhaal, ...(jouw || []).filter(v => v !== null)];
+        const R = niceRange(0, Math.max(...alles) * 1.05, 5);
+        drawGraph('canvas-bouw', {
+            xMin: -0.4, xMax: N + 0.5, yMin: Math.min(0, R.min), yMax: R.max, xStep: 1, yStep: R.step,
+            xLabel: 'n', yLabel: L, xCaption: sit.xCaption, yTick: v => fmtG(v), pad: { l: 60 },
+            points: [
+                ...verhaal.map((y, n) => ({ x: n, y, color: '#cbd5e1', r: 9 })),
+                ...(jouw || []).map((y, n) => (y === null ? null : { x: n, y, color: C.indigo, r: 4.5 })).filter(Boolean),
+            ],
+        });
+
+        // Tabel met ✓/✗ per rij
+        let eersteFout = null;
+        $('bouw-tabel').innerHTML = verhaal.slice(0, 7).map((v, n) => {
+            const j = jouw ? jouw[n] : undefined;
+            let teken = '', jt = '–';
+            if (jouw) {
+                if (j === null) { jt = 'bestaat niet'; teken = '<span class="text-rose-600 font-bold">✗</span>'; }
+                else {
+                    jt = fmtG(j);
+                    const ok = Math.abs(j - v) < 0.005;
+                    teken = ok ? '<span class="text-emerald-600 font-bold">✓</span>' : '<span class="text-rose-600 font-bold">✗</span>';
+                }
+                if (!teken.includes('✓') && eersteFout === null) eersteFout = n;
+            }
+            return `<tr class="border-b border-slate-100">
+                <td class="py-1 pr-3 text-amber-700 font-bold">${n}</td>
+                <td class="py-1 pr-3 font-sans text-slate-500">${sit.moment(n)}</td>
+                <td class="py-1 pr-3">${fmtG(v)}</td>
+                <td class="py-1 pr-3 text-indigo-700">${jt}</td>
+                <td class="py-1">${teken}</td></tr>`;
+        }).join('');
+
+        // Oordeel: per verkeerd gekozen onderdeel de uitleg uit het verhaal
+        const o = $('bouw-oordeel');
+        if (!compleet) {
+            o.innerHTML = '<div class="font-bold text-indigo-900">Kies bij elk van de drie onderdelen een optie.</div><div>Lees in het verhaal de gekleurde stukjes: rose wordt de factor, blauw het vaste getal, groen de beginterm.</div>';
+            return;
+        }
+        const fouten = [];
+        if (keuze.r !== sit.goed.r) fouten.push(`<div class="text-rose-800">• ${sit.fout['r' + keuze.r]}</div>`);
+        if (keuze.b !== sit.goed.b) fouten.push(`<div class="text-sky-800">• ${sit.fout['b' + keuze.b]}</div>`);
+        if (keuze.s !== sit.goed.start) fouten.push(`<div class="text-emerald-800">• ${sit.fout['s' + keuze.s]}</div>`);
+        o.innerHTML = fouten.length === 0
+            ? `<div class="font-bold text-emerald-700">✓ Jouw formule past bij het verhaal: alle stippen vallen samen.</div><div>${sit.rijSoort}</div>`
+            : `<div class="font-bold text-rose-700">✗ Vanaf n = ${eersteFout} past jouw formule niet meer bij het verhaal.</div>${fouten.join('')}`;
+    }
+
+    // Mini-widget: percentage → factor
+    let pfRichting = -1;
+    function setPfRichting(d) {
+        pfRichting = d;
+        $('pf-erbij').className = d > 0 ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700';
+        $('pf-eraf').className = d < 0 ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-600 text-white' : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700';
+        updatePf();
+    }
+    function setPf(p, d) {
+        $('pf-pct').value = fmt(p, 4);
+        setPfRichting(d);
+    }
+    function updatePf() {
+        const p = parseNum($('pf-pct').value);
+        if (!isFinite(p)) { $('pf-uitkomst').innerHTML = 'Typ een percentage, bijvoorbeeld 30 of 0,35.'; return; }
+        const r = rond6(1 + pfRichting * p / 100);
+        $('pf-uitkomst').innerHTML = `${fmt(p, 4)}% ${pfRichting > 0 ? 'erbij' : 'eraf'} → 100% ${pfRichting > 0 ? '+' : '−'} ${fmt(p, 4)}% = ${fmt(100 + pfRichting * p, 4)}%
+            <div class="font-bold text-base mt-1">factor = ${fmt(r, 6)}</div>`;
+    }
+
+    // ==================== TAB 3: RIJ-LAB & GR ====================
+    const labPresets = [
+        // Voorbeeld: tank. 6 maart → n = 5, W(5) ≈ 17 227; vanaf n = 24 is W(n) ≈ 16 667.
+        { pct: -30, b: 5000, u0: 20000, nMax: 30, bRange: [-10000, 10000, 100], uRange: [0, 40000, 500], zoek: ['lt', 17000],
+          xCaption: 'dagen na 1 maart', moment: n => datumNa(1, 2, n), eenheid: 'liter' },
+        // Opgave 41: Julius
+        { pct: 0.1, b: -150, u0: 2000, nMax: 16, bRange: [-300, 300, 1], uRange: [0, 4000, 50], zoek: ['lt', 1000],
+          xCaption: 'jaren na 1 januari 2020', moment: n => `1 januari ${2020 + n}`, eenheid: 'euro' },
+        // Terugblik: bavianen. Constant houden: 0,12 · 50 = 6.
+        { pct: 12, b: -8, u0: 50, nMax: 12, bRange: [-20, 20, 1], uRange: [0, 100, 1], zoek: ['lt', 25],
+          xCaption: 'jaren na 1 januari 2020', moment: n => `1 januari ${2020 + n}`, eenheid: 'bavianen' },
+        // Terugblik: zwembad, alleen een percentage (meetkundige rij)
+        { pct: -2, b: 0, u0: 50000, nMax: 52, bRange: [-2000, 2000, 50], uRange: [0, 60000, 1000], zoek: ['lt', 25000],
+          xCaption: 'weken', moment: n => `na ${n} ${n === 1 ? 'week' : 'weken'}`, eenheid: 'liter' },
+    ];
+    const LAB_N = 100, TABEL_RIJEN = 8;
+    let labIdx = 0, labTabelStart = 0;
+
+    function setLabPreset(i) {
+        labIdx = i;
+        const pr = labPresets[i];
+        const sb = $('slider-b'), su = $('slider-u0');
+        [sb.min, sb.max, sb.step] = pr.bRange;
+        [su.min, su.max, su.step] = pr.uRange;
+        $('slider-pct').value = pr.pct;
+        sb.value = pr.b;
+        su.value = pr.u0;
+        $('lab-zoek-op').value = pr.zoek[0];
+        $('lab-zoek-w').value = fmt(pr.zoek[1]);
+        labTabelStart = 0;
+        setActiveButton('lab-preset-', labPresets.length, i,
+            'px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-600 text-white',
+            'px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200');
+        renderLab();
+    }
+
+    function scrollLabTabel(d) {
+        labTabelStart = Math.max(0, Math.min(LAB_N - TABEL_RIJEN + 1, labTabelStart + d));
+        renderLab(false);
+    }
+
+    function maakConstant() {
+        const r = rond6(1 + parseFloat($('slider-pct').value) / 100);
+        const u0 = parseFloat($('slider-u0').value);
+        $('slider-b').value = rond6((1 - r) * u0);
+        renderLab();
+    }
+
+    function renderLab(volgZoek = true) {
+        const pr = labPresets[labIdx];
+        const pct = parseFloat($('slider-pct').value);
+        const r = rond6(1 + pct / 100);
+        const b = parseFloat($('slider-b').value);
+        const u0 = parseFloat($('slider-u0').value);
+        const u = rij(r, b, u0, LAB_N);
+
+        $('val-pct').innerText = `${pct > 0 ? '+' : pct < 0 ? '−' : ''}${fmt(Math.abs(pct))}%`;
+        $('lab-r-uitleg').innerHTML = pct === 0 ? 'Factor r = 1: geen percentage.' :
+            `${pct > 0 ? 'Er komt' : 'Er gaat'} ${fmt(Math.abs(pct))}% ${pct > 0 ? 'bij' : 'af'} → factor <strong>r = ${fmt(r, 6)}</strong>`;
+        $('val-b').innerText = `${b > 0 ? '+' : b < 0 ? '−' : ''}${fmtG(Math.abs(b))}`;
+        $('lab-b-uitleg').innerText = b === 0 ? 'Er komt geen vast getal bij of af.' : b > 0 ? `Elke stap komt er ${fmtG(b)} bij.` : `Elke stap gaat er ${fmtG(-b)} af.`;
+        $('val-u0').innerText = fmtG(u0);
+        $('lab-formule').innerHTML = recFormule('u', 'index', r, b, u0);
+
+        // Zoeken: eerste n waarbij uₙ < w of > w
+        const op = $('lab-zoek-op').value, w = parseNum($('lab-zoek-w').value);
+        let gevonden = -1;
+        if (isFinite(w)) gevonden = u.findIndex(v => (op === 'lt' ? v < w : v > w));
+
+        // Grafiek: bereik groeit mee als de gevonden n verder ligt
+        const nMax = Math.min(LAB_N, Math.max(pr.nMax, gevonden >= 0 ? gevonden + 2 : 0));
+        const zicht = u.slice(0, nMax + 1);
+        let lo = Math.min(0, ...zicht), hi = Math.max(...zicht);
+        const E = r !== 1 ? b / (1 - r) : null;
+        const marge = (hi - lo) || 1;
+        if (E !== null && E >= lo - marge * 0.5 && E <= hi + marge * 0.5) { lo = Math.min(lo, E); hi = Math.max(hi, E); }
+        if (isFinite(w) && w >= lo - marge * 0.5 && w <= hi + marge * 0.5) { lo = Math.min(lo, w); hi = Math.max(hi, w); }
+        const R = niceRange(lo, hi + (hi - lo) * 0.05, 6);
+        const xStap = nMax > 40 ? 10 : nMax > 20 ? 5 : nMax > 10 ? 2 : 1;
+        const ptR = nMax > 40 ? 3 : 4.5;
+        const gLab = drawGraph('canvas-lab', {
+            xMin: -0.4, xMax: nMax + 0.5, yMin: R.min, yMax: R.max, xStep: xStap, yStep: R.step,
+            xLabel: 'n', yLabel: 'u', xCaption: pr.xCaption, yTick: v => fmtG(v), pad: { l: 70 },
+            hLines: [
+                ...(E !== null ? [{ y: E, color: C.orange }] : []),
+                ...(isFinite(w) ? [{ y: w, color: C.slate, dash: [3, 4], width: 1.5 }] : []),
+            ],
+            vLines: gevonden >= 0 && gevonden <= nMax ? [{ x: gevonden, color: C.amber, label: `n = ${gevonden}` }] : [],
+            points: [
+                ...zicht.map((y, n) => ({ x: n, y, color: n === 0 ? C.emerald : C.indigo, r: n === 0 ? 6 : ptR })),
+                ...(gevonden >= 0 && gevonden <= nMax ? [{ x: gevonden, y: u[gevonden], color: C.amber, r: 7 }] : []),
+            ],
+        });
+
+        if (E !== null && E > R.min && E < R.max) labelRechts(gLab, E, `evenwicht ≈ ${fmtG(E, E > 100 ? 0 : 1)}`, C.orange);
+
+        // Uitkomst van het zoeken, met de vertaling naar een datum
+        $('lab-zoek-uitkomst').innerHTML = !isFinite(w) ? '<span class="font-sans">Typ een getal.</span>'
+            : gevonden < 0 ? `<span class="font-sans">Tot n = ${LAB_N} is er geen term ${op === 'lt' ? 'kleiner' : 'groter'} dan ${fmtG(w)}.</span>`
+            : `${gevonden > 0 ? `u<sub>${gevonden - 1}</sub> ≈ ${fmtG(u[gevonden - 1])}<br>` : ''}u<sub>${gevonden}</sub> ≈ ${fmtG(u[gevonden])}
+               <div class="font-sans font-bold text-amber-800 mt-1">Eerste n = ${gevonden} → ${pr.moment(gevonden)}</div>`;
+
+        // Evenwicht en constant houden
+        const ev = $('lab-evenwicht');
+        let gedrag;
+        if (E === null) {
+            gedrag = b === 0 ? 'Factor 1 en geen vast getal: de rij blijft gelijk.' : `Factor 1: elke stap precies ${b > 0 ? '+' : '−'} ${fmtG(Math.abs(b))}. Dat is een rekenkundige rij, zonder evenwicht.`;
+        } else if (Math.abs(u0 - E) < 1e-6) {
+            gedrag = 'De beginterm ligt precies op het evenwicht: de rij blijft constant.';
+        } else if (r < 1) {
+            gedrag = `Het percentage gaat eraf: de rij nadert het evenwicht ${u0 > E ? 'van boven' : 'van onder'} en komt er nooit voorbij.`;
+        } else {
+            gedrag = `Het percentage komt erbij: de rij loopt steeds verder ${u0 > E ? 'omhoog' : 'omlaag'}, weg van het evenwicht.`;
+        }
+        const bNodig = rond6((1 - r) * u0);
+        ev.innerHTML = `
+            <div class="font-bold text-orange-900 text-sm">Evenwicht${E !== null ? `: u ≈ ${fmtG(E, E > 100 ? 0 : 2)}` : ''}</div>
+            ${E !== null ? `<div>Daar is de verandering door het percentage (${fmt(Math.abs(pct))}% van ${fmtG(E, 0)} ≈ ${fmtG(Math.abs((r - 1) * E), 0)}) precies even groot als het vaste getal (${fmtG(Math.abs(b))}).</div>` : ''}
+            <div>${gedrag}</div>
+            <div class="pt-1.5 border-t border-orange-200">Constant houden op u<sub>0</sub> = ${fmtG(u0)}: het vaste getal moet ${fmt(Math.abs(pct))}% van ${fmtG(u0)} = <strong>${fmtG(Math.abs(bNodig))}</strong> ${bNodig >= 0 ? 'erbij' : 'eraf'}.
+            <button onclick="maakConstant()" class="ml-1 px-2 py-0.5 rounded bg-orange-600 text-white font-bold hover:bg-orange-700">Maak constant</button></div>`;
+
+        // GR-tabel: volgt de gevonden n, tenzij je zelf scrolt
+        if (volgZoek) labTabelStart = gevonden >= 0 ? Math.max(0, Math.min(LAB_N - TABEL_RIJEN + 1, gevonden - 3)) : 0;
+        let html = '<span class="font-bold border-b border-slate-500/50">n</span><span class="font-bold border-b border-slate-500/50">u(n)</span><span class="ti-leeg border-b border-slate-500/50"></span>';
+        for (let n = labTabelStart; n < labTabelStart + TABEL_RIJEN && n <= LAB_N; n++) {
+            const hl = n === gevonden ? ' bg-amber-300/70' : '';
+            html += `<span class="font-bold${hl}">${n}</span><span class="text-indigo-900${hl}">${tiFmt(u[n])}</span><span class="ti-leeg${hl}"></span>`;
+        }
+        $('lab-ti-tabel').innerHTML = html;
+        $('lab-ti-voet').innerText = `n=${gevonden >= 0 && gevonden >= labTabelStart && gevonden < labTabelStart + TABEL_RIJEN ? gevonden : labTabelStart}`;
+
+        // Rijen-invoerscherm in de GR-callout, met de formule van het lab
+        const factor = r === 1 ? '' : tiNum(r);
+        const vast = b === 0 ? '' : (b > 0 ? '+' : '-') + tiNum(Math.abs(b));
+        $('gr-invoer').innerHTML = `
+            <div>nMin=0</div>
+            <div><span class="inline-block w-2 h-3 bg-indigo-700 mr-1 align-middle"></span>u(n)=${factor}u(n-1)${vast}</div>
+            <div>u(0)=${tiNum(u0)}</div>
+            <div>u(1)=</div>`;
+    }
+
+    // ==================== TAB 4: PATRONEN ====================
+    // Fig 12.2: hoekkolom van hoogte n, twee armen met trappen n − 1, …, 1 → 1, 4, 9, 16 kubussen.
+    // Fig 12.3: rij i heeft i stippen → 1, 3, 6, 10, 15. Fig 12.4: met kopie een rechthoek n × (n + 1).
+    // Terugblik: rechthoek n × (n + 2) plus één vierkant boven en onder de tweede kolom → 5, 10, 17.
+    const patronen = [
+        { L: 'K', f: n => n * n, nMax: 6, teken: tekenKubussen, eenheid: 'kubussen',
+          verschil: n => `2 · ${n} − 1 = ${2 * n - 1}`, regel: 'Er komt steeds een nieuwe onderste laag bij: de hoekkolom plus twee armen van n − 1 kubussen, samen 2n − 1.',
+          verschillen: 'De verschillen 3, 5, 7, 9, … nemen steeds met 2 toe: een rekenkundige rij.' },
+        { L: 'D', f: n => n * (n + 1) / 2, nMax: 8, teken: tekenDriehoek, eenheid: 'stippen',
+          verschil: n => `${n}`, regel: 'Er komt steeds een nieuwe onderste rij bij met n stippen.',
+          verschillen: 'De verschillen 2, 3, 4, 5, … nemen steeds met 1 toe: een rekenkundige rij.' },
+        { L: 'A', f: n => n * n + 2 * n + 2, nMax: 7, teken: tekenVierkanten, eenheid: 'vierkanten',
+          verschil: n => `2 · ${n} + 1 = ${2 * n + 1}`, regel: 'Er komt een nieuwe rij van n + 2 vierkanten en een nieuwe kolom van n − 1 vierkanten bij, samen 2n + 1.',
+          verschillen: 'De verschillen 5, 7, 9, … nemen steeds met 2 toe: een rekenkundige rij.' },
+    ];
+    let patIdx = 0, patN = 1, patGroei = 1, patPlaying = false, patTimer = 0;
+
+    function setPatroon(i) {
+        patIdx = i;
+        const pt = patronen[i];
+        $('pat-n-slider').max = pt.nMax;
+        patN = Math.min(Math.max(patN, 1), pt.nMax);
+        patGroei = 1;
+        $('pat-verdubbel-wrap').classList.toggle('hidden', i !== 1);
+        if (i !== 1) $('chk-verdubbel').checked = false;
+        setActiveButton('pat-preset-', patronen.length, i);
+        renderPatroon();
+    }
+
+    function setPatN(v) {
+        const n = parseInt(v, 10);
+        if (n !== patN) patGroei = n > patN ? 0 : 1;
+        patN = n;
+        renderPatroon();
+    }
+
+    function togglePatPlay() {
+        patPlaying = !patPlaying;
+        if (patPlaying && patN >= patronen[patIdx].nMax) { patN = 1; patGroei = 1; }
+        patTimer = 0;
+        $('btn-pat-play').innerText = patPlaying ? '⏸ Stop het groeien' : '▶ Laat het patroon groeien';
+    }
+
+    function stepPatroon(dt) {
+        let teken = false;
+        if (patGroei < 1) { patGroei = Math.min(1, patGroei + dt / 0.8); teken = true; }
+        if (patPlaying && patGroei >= 1) {
+            patTimer += dt;
+            if (patTimer > 1.2) {
+                patTimer = 0;
+                if (patN >= patronen[patIdx].nMax) togglePatPlay();
+                else { patN++; patGroei = 0; teken = true; }
+            }
+        }
+        if (teken) renderPatroon();
+    }
+
+    // Kleuren: beginterm (n = 1) emerald, vorig bouwwerk slate, nieuw deel sky.
+    const KLEUR = {
+        begin: { top: '#6ee7b7', links: '#059669', rechts: '#d1fae5', vul: '#10b981' },
+        oud: { top: '#cbd5e1', links: '#94a3b8', rechts: '#f1f5f9', vul: '#64748b' },
+        nieuw: { top: '#7dd3fc', links: '#0284c7', rechts: '#e0f2fe', vul: '#0ea5e9' },
+        kopie: { vul: '#818cf8' },
+    };
+
+    function tekenKubussen(ctx, w, h, n, t) {
+        const c30 = Math.cos(Math.PI / 6);
+        const s = Math.min(56, (w - 60) / (2 * c30 * n + 0.2), (h - 80) / (1.5 * n + 0.6));
+        const hoogte = (1.5 * n + 0.5) * s;
+        const ox = w / 2, oy = (h - 40 - hoogte) / 2 + 10 + n * s;
+        const kubussen = [];
+        for (let z = 0; z < n; z++) kubussen.push({ a: 0, b: 0, z });
+        for (let d = 1; d < n; d++) for (let z = 0; z < n - d; z++) kubussen.push({ a: d, b: 0, z }, { a: 0, b: d, z });
+        // Het vorige bouwwerk (z ≥ 1) zakt tijdens het groeien omhoog op de nieuwe onderste laag
+        kubussen.forEach(k => {
+            k.soort = n === 1 ? 'begin' : k.z === 0 ? 'nieuw' : 'oud';
+            k.Z = k.soort === 'oud' ? k.z - (1 - t) : k.z;
+        });
+        kubussen.sort((p, q) => (p.a + p.b + p.Z) - (q.a + q.b + q.Z) || p.Z - q.Z);
+        const V = (A, B, Z) => [ox + (B - A) * c30 * s, oy + (A + B) * 0.5 * s - Z * s];
+        kubussen.forEach(({ a, b, Z, soort }) => {
+            const k = KLEUR[soort];
+            ctx.globalAlpha = soort === 'nieuw' ? t : 1;
+            polygon(ctx, [V(a + 1, b, Z), V(a + 1, b + 1, Z), V(a + 1, b + 1, Z + 1), V(a + 1, b, Z + 1)], k.links, '#1e293b');
+            polygon(ctx, [V(a, b + 1, Z), V(a + 1, b + 1, Z), V(a + 1, b + 1, Z + 1), V(a, b + 1, Z + 1)], k.rechts, '#1e293b');
+            polygon(ctx, [V(a, b, Z + 1), V(a + 1, b, Z + 1), V(a + 1, b + 1, Z + 1), V(a, b + 1, Z + 1)], k.top, '#1e293b');
+            ctx.globalAlpha = 1;
+        });
+    }
+
+    function tekenDriehoek(ctx, w, h, n, t, verdubbel) {
+        const kolommen = verdubbel ? n + 1 : n;
+        const d = Math.min(44, (w - 80) / Math.max(kolommen, 2), (h - 110) / (Math.max(n, 2) * (verdubbel ? 1 : 0.87)));
+        const r = Math.max(4, d * 0.28);
+        const breed = (kolommen - 1) * d, hoog = (n - 1) * d * (verdubbel ? 1 : 0.87);
+        const x0 = (w - breed) / 2, y0 = (h - 40 - hoog) / 2 + 10;
+        const pos = (i, j) => verdubbel
+            ? [x0 + j * d, y0 + i * d]
+            : [w / 2 + (j - i / 2) * d, y0 + i * d * 0.87];
+        // Zachte driehoek op de achtergrond, zoals in figuur 12.3
+        if (!verdubbel && n > 1) {
+            const [ax, ay] = pos(0, 0), [bx, by] = pos(n - 1, 0), [cx, cy] = pos(n - 1, n - 1);
+            ctx.save();
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = d * 0.9;
+            polygon(ctx, [[ax, ay], [bx, by], [cx, cy]], '#e2e8f0', '#e2e8f0', d * 0.9);
+            ctx.restore();
+        }
+        for (let i = 0; i < n; i++) {
+            for (let j = 0; j <= i; j++) {
+                const soort = n === 1 ? 'begin' : i === n - 1 ? 'nieuw' : 'oud';
+                ctx.globalAlpha = soort === 'nieuw' ? t : 1;
+                const [x, y] = pos(i, j);
+                dot(ctx, x, y, r, KLEUR[soort].vul);
+                ctx.globalAlpha = 1;
+            }
+            if (verdubbel) {
+                for (let j = i + 1; j <= n; j++) {
+                    const [x, y] = pos(i, j);
+                    ctx.strokeStyle = KLEUR.kopie.vul;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(x, y, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            }
+        }
+        if (verdubbel) {
+            ctx.fillStyle = '#334155';
+            ctx.font = '600 13px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`2 · D${subDig(n)} = ${n} · ${n + 1} = ${n * (n + 1)}, dus D${subDig(n)} = ½ · ${n} · ${n + 1} = ${n * (n + 1) / 2}`, w / 2, h - 44);
+        }
+    }
+
+    function tekenVierkanten(ctx, w, h, n, t) {
+        const q = Math.min(40, (w - 80) / (n + 2), (h - 80) / (n + 2));
+        const x0 = (w - (n + 2) * q) / 2, y0 = (h - 40 - (n + 2) * q) / 2 + 10 + q;
+        const vak = (rij, kol, soort, alpha = 1, dy = 0) => {
+            ctx.globalAlpha = alpha;
+            const x = x0 + kol * q, y = y0 + rij * q + dy;
+            const k = KLEUR[soort];
+            ctx.fillStyle = soort === 'oud' ? '#e2e8f0' : soort === 'nieuw' ? '#bae6fd' : '#a7f3d0';
+            ctx.fillRect(x, y, q, q);
+            ctx.strokeStyle = k.vul;
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(x + 0.75, y + 0.75, q - 1.5, q - 1.5);
+            ctx.globalAlpha = 1;
+        };
+        if (n === 1) {
+            vak(-1, 1, 'begin');
+            for (let kol = 0; kol < 3; kol++) vak(0, kol, 'begin');
+            vak(1, 1, 'begin');
+            return;
+        }
+        vak(-1, 1, 'oud');
+        for (let rij = 0; rij < n - 1; rij++) for (let kol = 0; kol <= n; kol++) vak(rij, kol, 'oud');
+        for (let kol = 0; kol < n + 2; kol++) vak(n - 1, kol, 'nieuw', t);
+        for (let rij = 0; rij < n - 1; rij++) vak(rij, n + 1, 'nieuw', t);
+        vak(n - 1, 1, 'oud', 1, t * q); // het onderste losse vierkant schuift een rij omlaag
+    }
+
+    function renderPatroon() {
+        const pt = patronen[patIdx];
+        const canvas = $('canvas-patroon');
+        const { ctx, w, h } = setupCanvas(canvas);
+        const n = patN, t = patGroei;
+        const verdubbel = patIdx === 1 && $('chk-verdubbel').checked;
+        pt.teken(ctx, w, h, n, t, verdubbel);
+
+        // Onderschrift in het canvas
+        ctx.fillStyle = '#334155';
+        ctx.font = '600 15px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`n = ${n}`, w / 2 - 70, h - 14);
+        ctx.fillText(`${pt.L}${subDig(n)} = ${pt.f(n)}`, w / 2 + 60, h - 14);
+
+        $('pat-n-slider').value = n;
+        $('pat-n-label').innerText = `n = ${n}`;
+        const L = pt.L;
+        $('pat-kop-term').innerHTML = `${L}<sub>n</sub>`;
+        $('pat-kop-verschil').innerHTML = `${L}<sub>n</sub> − ${L}<sub>n−1</sub>`;
+        $('pat-tabel').innerHTML = Array.from({ length: pt.nMax }, (_, i) => i + 1).map(k => `
+            <tr class="border-b border-slate-100 ${k === n ? 'bg-amber-50' : ''} ${k > n ? 'text-slate-300' : ''}">
+                <td class="py-1 pr-3 text-amber-700 font-bold">${k}</td>
+                <td class="py-1 pr-3 ${k === 1 ? 'text-emerald-700 font-bold' : ''}">${pt.f(k)}</td>
+                <td class="py-1 ${k > 1 && k <= n ? 'text-sky-700 font-bold' : ''}">${k === 1 ? '<span class="font-sans text-emerald-700">beginterm</span>' : '+ ' + (pt.f(k) - pt.f(k - 1))}</td>
+            </tr>`).join('');
+        $('pat-uitleg').innerHTML = n === 1
+            ? `<div class="font-bold text-emerald-800">n = 1: de beginterm ${L}<sub>1</sub> = ${pt.f(1)}</div><div>Schuif n omhoog om te zien wat er bij elke stap bijkomt.</div>`
+            : `<div class="font-bold text-indigo-900">${L}<sub>${n}</sub> = ${L}<sub>${n - 1}</sub> + <span class="text-sky-700">${pt.f(n) - pt.f(n - 1)}</span> = ${pt.f(n - 1)} + ${pt.f(n) - pt.f(n - 1)} = ${pt.f(n)}</div>
+               <div>${pt.regel}</div>
+               <div class="mono text-sky-800">${L}<sub>${n}</sub> − ${L}<sub>${n - 1}</sub> = ${pt.verschil(n)}</div>
+               <div class="pt-1.5 border-t border-indigo-100">${pt.verschillen}</div>`;
+    }
+
+    // ==================== TAB 5: STAPPENPLAN ====================
+    const stapVoorbeelden = [
+        {   // Voorbeeld Theorie B (p. 30)
+            L: 'K', f: n => n * n, vorm: 'K<sub>n</sub> = n²', yMax: 50, yStep: 10,
+            stap2: ['K<sub>n−1</sub> = (n − 1)²', '= n² − 2n + 1'], vorigTekst: (m) => `${m}² − 2 · ${m} + 1`, vorig: m => m * m - 2 * m + 1,
+            stap3: ['K<sub>n</sub> − K<sub>n−1</sub> = n² − (n² − 2n + 1)', '= n² − n² + 2n − 1', '= 2n − 1'], verschilTekst: m => `2 · ${m} − 1`, verschil: m => 2 * m - 1,
+            rec: 'K<sub>n</sub> = K<sub>n−1</sub> + 2n − 1 met K<sub>1</sub> = 1', begin: 'K<sub>1</sub> = 1² = 1',
+        },
+        {   // Opgave 47c
+            L: 'D', f: n => n * n / 2 + n / 2, vorm: 'D<sub>n</sub> = ½n² + ½n', yMax: 30, yStep: 5,
+            stap2: ['D<sub>n−1</sub> = ½(n − 1)² + ½(n − 1)', '= ½(n² − 2n + 1) + ½n − ½', '= ½n² − n + ½ + ½n − ½', '= ½n² − ½n'], vorigTekst: m => `½ · ${m}² − ½ · ${m}`, vorig: m => m * m / 2 - m / 2,
+            stap3: ['D<sub>n</sub> − D<sub>n−1</sub> = ½n² + ½n − (½n² − ½n)', '= ½n² + ½n − ½n² + ½n', '= n'], verschilTekst: m => `${m}`, verschil: m => m,
+            rec: 'D<sub>n</sub> = D<sub>n−1</sub> + n met D<sub>1</sub> = 1', begin: 'D<sub>1</sub> = ½ · 1² + ½ · 1 = 1',
+        },
+        {   // Terugblik (p. 32)
+            L: 'A', f: n => n * n + 2 * n + 2, vorm: 'A<sub>n</sub> = n² + 2n + 2', yMax: 70, yStep: 10,
+            stap2: ['A<sub>n−1</sub> = (n − 1)² + 2(n − 1) + 2', '= n² − 2n + 1 + 2n − 2 + 2', '= n² + 1'], vorigTekst: m => `${m}² + 1`, vorig: m => m * m + 1,
+            stap3: ['A<sub>n</sub> − A<sub>n−1</sub> = n² + 2n + 2 − (n² + 1)', '= n² + 2n + 2 − n² − 1', '= 2n + 1'], verschilTekst: m => `2 · ${m} + 1`, verschil: m => 2 * m + 1,
+            rec: 'A<sub>n</sub> = A<sub>n−1</sub> + 2n + 1 met A<sub>1</sub> = 5', begin: 'A<sub>1</sub> = 1² + 2 · 1 + 2 = 5',
+        },
+    ];
+    const AANTAL_STAPPEN = 4, STAP_N = 7, CONTROLE_N = 4;
+    let stapIdx = 0, huidigeStap = 1;
+
+    function setStapVoorbeeld(i) {
+        stapIdx = i;
+        setActiveButton('stap-ex-', stapVoorbeelden.length, i);
+        setStap(1);
+    }
+
+    function setStap(s) {
+        huidigeStap = s;
+        for (let i = 1; i <= AANTAL_STAPPEN; i++) {
+            $('stap-btn-' + i).className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        renderStap();
+    }
+
+    function renderStap() {
+        const ex = stapVoorbeelden[stapIdx];
+        const L = ex.L, s = huidigeStap;
+        const ns = Array.from({ length: STAP_N }, (_, i) => i + 1);
+        const g = drawGraph('canvas-stappen', {
+            xMin: 0, xMax: STAP_N + 0.5, yMin: 0, yMax: ex.yMax, xStep: 1, yStep: ex.yStep,
+            xLabel: 'n', yLabel: L,
+            points: ns.map(n => ({ x: n, y: ex.f(n), color: C.indigo, r: 5 })),
+        });
+        const { ctx, mapX, mapY } = g;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(g.box.x0, g.box.y0 - 20, g.box.x1 - g.box.x0 + 20, g.box.y1 - g.box.y0 + 20);
+        ctx.clip();
+        if (s >= 2) {
+            // De vorige term, bij dezelfde n: een stap naar rechts geschoven
+            ns.filter(n => n >= 2).forEach(n => {
+                ctx.save();
+                ctx.setLineDash([3, 3]);
+                ctx.strokeStyle = C.slate;
+                ctx.lineWidth = 1.2;
+                strokeLine(ctx, mapX(n - 1), mapY(ex.f(n - 1)), mapX(n) - 6, mapY(ex.f(n - 1)));
+                ctx.restore();
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(mapX(n), mapY(ex.f(n - 1)), 5.5, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+        }
+        if (s >= 3) {
+            ns.filter(n => n >= 2).forEach(n => {
+                const y0 = mapY(ex.f(n - 1)), y1 = mapY(ex.f(n));
+                ctx.strokeStyle = C.sky;
+                ctx.lineWidth = 4;
+                strokeLine(ctx, mapX(n), y0 - 5, mapX(n), y1 + 5);
+                ctx.fillStyle = C.sky;
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(`+${fmt(ex.f(n) - ex.f(n - 1))}`, mapX(n) + 8, (y0 + y1) / 2 + 4);
+            });
+        }
+        if (s >= 4) {
+            dot(ctx, mapX(1), mapY(ex.f(1)), 8, C.emerald);
+            ctx.fillStyle = C.emerald;
+            ctx.font = '700 12px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${L}${subDig(1)} = ${fmt(ex.f(1))}`, mapX(1) + 10, mapY(ex.f(1)) - 10);
+        }
+        ctx.restore();
+
+        const m = CONTROLE_N;
+        const regels = arr => arr.map(r => `<div>${r}</div>`).join('');
+        const uitleg = [
+            `<div class="font-bold text-indigo-900 text-base">Stap 1: Schrijf de vorm van de recursieve formule op</div>
+             <p>Je zoekt wat er op de puntjes moet staan in</p>
+             <div class="mono text-sm bg-white p-3 rounded-xl border border-indigo-200">${L}<sub>n</sub> = ${L}<sub>n−1</sub> + <span class="text-sky-700">…</span><br>oftewel ${L}<sub>n</sub> − ${L}<sub>n−1</sub> = <span class="text-sky-700">…</span></div>
+             <p class="text-xs text-slate-600">Gegeven is de directe formule <span class="mono font-semibold">${ex.vorm}</span>. De indigo stippen zijn de termen ${L}<sub>1</sub>, ${L}<sub>2</sub>, …</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 2: Druk ${L}<sub>n−1</sub> uit in n</div>
+             <p>Vervang in de directe formule n door (n − 1) en werk de haakjes weg.</p>
+             <div class="mono text-sm bg-white p-3 rounded-xl border border-indigo-200 space-y-0.5">${regels(ex.stap2)}</div>
+             <p class="text-xs text-slate-600">Controle met n = ${m}: ${L}<sub>${m - 1}</sub> = ${fmt(ex.f(m - 1))} en ${ex.vorigTekst(m)} = ${fmt(ex.vorig(m))} ✓. In de grafiek staat de vorige term (open rondje) een stap naar rechts geschoven.</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 3: Bereken ${L}<sub>n</sub> − ${L}<sub>n−1</sub></div>
+             <p>Trek de uitkomst van stap 2 af van de directe formule. Zet hem tussen haakjes!</p>
+             <div class="mono text-sm bg-white p-3 rounded-xl border border-indigo-200 space-y-0.5">${regels(ex.stap3)}</div>
+             <p class="text-xs text-slate-600">Controle met n = ${m}: ${L}<sub>${m}</sub> − ${L}<sub>${m - 1}</sub> = ${fmt(ex.f(m))} − ${fmt(ex.f(m - 1))} = ${fmt(ex.f(m) - ex.f(m - 1))} en ${ex.verschilTekst(m)} = ${fmt(ex.verschil(m))} ✓. De blauwe streepjes zijn de verschillen; ze vormen een rekenkundige rij.</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 4: Schrijf de recursieve formule op, mét beginterm</div>
+             <p>Bereken de beginterm met de directe formule: <span class="mono text-emerald-800 font-semibold">${ex.begin}</span>.</p>
+             <div class="mono text-sm bg-white p-3 rounded-xl border border-emerald-300 font-bold">${ex.rec}</div>
+             <p class="text-xs text-slate-600">Begin bij de groene stip en tel steeds het blauwe verschil op: zo kom je precies op alle indigo stippen uit.</p>`,
+        ];
+        $('stap-uitleg').innerHTML = uitleg[s - 1];
+    }
+
+    // ==================== TAB 6: OEFENOPDRACHTEN ====================
+    const exercises = {
+        q1: {
+            choice: 'C',
+            hint: 'Vertaal het verhaal in stukjes: percentage → factor, vast getal → + of −, en kijk welke n bij 1 augustus 2020 hoort (tab 2).',
+            goed: 'Goed vertaald!',
+            uitwerking: `12% groei betekent 112%, dus factor 1,12 (niet 0,12). Eind juli gaat er 50 m² af, aan het eind van het jaar, dus ná de groei: eerst · 1,12, dan − 50. Op 1 augustus 2020 is n = 0, dus A<sub>0</sub> = 250.
+                <div class="mono font-bold mt-1">A<sub>n</sub> = 1,12 · A<sub>n−1</sub> − 50 met A<sub>0</sub> = 250</div>
+                B haalt de 50 m² weg vóór de groei; D begint te tellen bij n = 1.`,
+        },
+        q2: {
+            fields: { 'q2-1': 0.95, 'q2-2': 80, 'q2-3': 0.6 },
+            tol: 0.001,
+            hint: 'Bereken wat er van 100% overblijft. 5% weg is niet · 0,05. Kijk bij 43b of de eerste kabel L₀ of L₁ is (tab 2, Let op).',
+            uitwerking: `43a: er lekt 5% weg, dus er blijft 95% over: <span class="mono font-bold">V<sub>n</sub> = 0,95 · V<sub>n−1</sub> met V<sub>0</sub> = 250</span>. De directe formule is V<sub>n</sub> = 250 · 0,95<sup>n</sup>.<br>
+                43b: 40% korter betekent dat er 60% van de lengte overblijft: factor 0,6. De eerste kabel is L<sub>1</sub> = 80, dus de recursieve formule is L<sub>n</sub> = 0,6 · L<sub>n−1</sub> met L<sub>1</sub> = 80 en de directe formule <span class="mono font-bold">L<sub>n</sub> = 80 · 0,6<sup>n−1</sup></span>. Controle: L<sub>2</sub> = 80 · 0,6 = 48.`,
+        },
+        q3: {
+            fields: { 'q3-jaar': 2034 },
+            hint: 'Zoek in de GR-tabel de eerste n waarbij er niet genoeg geld meer is, en vertaal n naar een jaartal (tab 3, Let op).',
+            goed: 'Goed: n vertaald naar een jaartal!',
+            uitwerking: `Voer in u(n) = 1,001u(n − 1) − 150 met nMin = 0 en u(0) = 2000. De tabel geeft u<sub>12</sub> ≈ 214,20, u<sub>13</sub> ≈ 64,41 en u<sub>14</sub> ≈ −85,52.<br>
+                Op 1 januari 2033 (n = 13) staat er 1,001 · 214,20 ≈ 214,41 euro: genoeg om 150 op te nemen.
+                Op 1 januari 2034 (n = 14) staat er 1,001 · 64,41 ≈ 64,48 euro: te weinig. Dat zie je ook aan u<sub>14</sub> &lt; 0.<br>
+                Het saldo is voor het eerst ontoereikend in <strong>2020 + 14 = 2034</strong>.`,
+        },
+        q4: {
+            fields: { 'q4-w': 14286 },
+            tol: 1,
+            hint: 'Pas de factor in de formule van het voorbeeld aan (tab 2) en kijk in de GR-tabel waar W(n) niet meer verandert (tab 3).',
+            uitwerking: `Er wordt 35% overgeheveld, dus er blijft 65% over: <span class="mono">W(n) = 0,65 · W(n − 1) + 5000 met W(0) = 20 000</span>.
+                In de tabel zie je dat W(n) daalt en vanaf n = 21 afgerond 14 286 blijft. De hoeveelheid komt dus niet onder <strong>14 286 liter</strong>.
+                Controle: 35% van 14 286 is ongeveer 5000, precies wat er elke dag bijkomt (evenwicht, tab 3).`,
+        },
+        q5: {
+            choice: 'B',
+            hint: 'Bereken hoeveel liter 25% van 20 000 is en vergelijk dat met wat er bijkomt (tab 3, evenwicht).',
+            uitwerking: `Nu is <span class="mono">W(n) = 0,75 · W(n − 1) + 5000 met W(0) = 20 000</span>. Op 2 maart gaat er 25% van 20 000 = 5000 liter uit en komt er 5000 liter bij: weer 20 000.
+                Dat gebeurt elke dag opnieuw, dus de hoeveelheid blijft <strong>precies 20 000 liter</strong>. De beginterm ligt hier precies op het evenwicht 5000 / 0,25 = 20 000.`,
+        },
+        q6: {
+            fields: { 'q6-jaar': 2025 },
+            hint: 'Voer de formule uit opdracht 1 in op de GR, zoek de eerste n met Aₙ < 150 en tel n op bij 2020 (tab 3).',
+            uitwerking: `Voer in u(n) = 1,12u(n − 1) − 50 met nMin = 0 en u(0) = 250. De tabel geeft A<sub>4</sub> ≈ 154,41 en A<sub>5</sub> ≈ 122,94.
+                Dus voor het eerst minder dan 150 m² bij n = 5: op 1 augustus <strong>2025</strong>.`,
+        },
+        q7: {
+            fields: { 'q7-b': 96134.77, 'q7-c': 2033, 'q7-d': 250 },
+            tol: 0.5,
+            hint: 'Stel eerst de recursieve formule op (tab 2) en reken hem door met de GR-tabel; vertaal n naar een jaartal. Bij d: welk bedrag houdt het saldo constant? (tab 3, evenwicht)',
+            uitwerking: `a: 0,2% rente geeft factor 1,002: <span class="mono font-bold">B<sub>n</sub> = 1,002 · B<sub>n−1</sub> − 6000 met B<sub>0</sub> = 125 000</span>.<br>
+                b: 1 januari 2025 hoort bij n = 5. De tabel geeft B<sub>5</sub> ≈ <strong>96 134,77 euro</strong>.<br>
+                c: B<sub>12</sub> ≈ 55 235,92 en B<sub>13</sub> ≈ 49 346,39. Voor het eerst onder 50 000 bij n = 13, dus in <strong>2033</strong>.<br>
+                d: de rente over 125 000 euro is 0,002 · 125 000 = 250 euro per jaar. Neemt Widhi precies <strong>250 euro</strong> op, dan blijft er elk jaar 125 000 euro staan.`,
+        },
+        q8: {
+            fields: { 'q8-a': 78, 'q8-b': 25 },
+            hint: 'a: vul n = 12 in de directe formule in. b: zoek 325 in de GR-tabel van ½n² + ½n, of los ½n² + ½n = 325 op.',
+            uitwerking: `a: D<sub>12</sub> = ½ · 12² + ½ · 12 = 72 + 6 = <strong>78</strong>.<br>
+                b: ½n² + ½n = 325 geeft n² + n − 650 = 0, dus (n − 25)(n + 26) = 0 en n = 25 (n is positief). Met de GR: voer u(n) = 0.5n² + 0.5n in en lees af dat u(25) = 325. Het is het <strong>25<sup>e</sup></strong> driehoeksgetal.`,
+        },
+        q9: {
+            fields: { 'q9-n': 12, 'q9-1': 2, 'q9-2': 2 },
+            hint: 'b: los n² + n = 156 op of zoek 156 in de tabel. c: volg het stappenplan (tab 5): Rₙ₋₁ uitwerken, dan Rₙ − Rₙ₋₁.',
+            uitwerking: `b: n² + n = 156 geeft n² + n − 156 = 0, dus (n − 12)(n + 13) = 0 en n = <strong>12</strong>. Controle: 12 · 13 = 156.<br>
+                c: R<sub>n−1</sub> = (n − 1)² + (n − 1) = n² − 2n + 1 + n − 1 = n² − n.<br>
+                R<sub>n</sub> − R<sub>n−1</sub> = n² + n − (n² − n) = 2n, en R<sub>1</sub> = 1² + 1 = 2.<br>
+                <span class="mono font-bold">R<sub>n</sub> = R<sub>n−1</sub> + 2n met R<sub>1</sub> = 2</span>. In figuur 12.5 zie je dat: er komt een rij én een kolom stippen bij, samen 2n.`,
+        },
+        q10: {
+            fields: { 'q10-1': 3, 'q10-2': 2, 'q10-3': 1 },
+            hint: 'Volg het stappenplan (tab 5): vervang n door n − 1, werk de haakjes weg en trek af met haakjes.',
+            uitwerking: `V<sub>n−1</sub> = 1½(n − 1)² − ½(n − 1) = 1½(n² − 2n + 1) − ½n + ½ = 1½n² − 3n + 1½ − ½n + ½ = 1½n² − 3½n + 2.<br>
+                V<sub>n</sub> − V<sub>n−1</sub> = 1½n² − ½n − (1½n² − 3½n + 2) = 3n − 2, en V<sub>1</sub> = 1½ − ½ = 1.<br>
+                <span class="mono font-bold">V<sub>n</sub> = V<sub>n−1</sub> + 3n − 2 met V<sub>1</sub> = 1</span>. Controle met figuur 12.6: V<sub>2</sub> = 1 + 4 = 5, V<sub>3</sub> = 5 + 7 = 12, V<sub>4</sub> = 12 + 10 = 22.`,
+        },
+        q11: {
+            fields: { 'q11-lagen': 68, 'q11-onder': 2346, 'q11-extra': 2415 },
+            hint: 'Voer Pₙ als directe formule in op het rijen-invoerscherm en zoek 54 740 in de tabel. Welke laag is de onderste, en welke laag komt erbij als de toren hoger wordt?',
+            uitwerking: `Voer in u(n) = n(n + 1)(n + 2)/6. De tabel geeft u(68) = 54 740, dus de toren heeft <strong>68 lagen</strong>.<br>
+                De onderste laag is de 68<sup>e</sup> laag: D<sub>68</sub> = ½ · 68² + ½ · 68 = 2312 + 34 = <strong>2346 glazen</strong>.<br>
+                d: één laag hoger betekent dat er een 69<sup>e</sup> laag bij komt: D<sub>69</sub> = ½ · 69² + ½ · 69 = <strong>2415 glazen</strong>. Controle: P<sub>69</sub> − P<sub>68</sub> = 57 155 − 54 740 = 2415.`,
+        },
+        q12: {
+            check: () => {
+                const r = parseNum($('q12-r').value), b = parseNum($('q12-b').value);
+                const u0 = parseNum($('q12-u0').value), e = parseNum($('q12-e').value);
+                const ok = [['q12-r', approx(r, 0.8, 0.0001)], ['q12-b', approx(b, 4000, 0.01)], ['q12-u0', approx(u0, 12000, 0.01)], ['q12-e', approx(e, 20000, 1)]];
+                ok.forEach(([id, good]) => {
+                    $(id).classList.toggle('border-emerald-400', good);
+                    $(id).classList.toggle('border-rose-400', !good);
+                });
+                return ok.every(([, good]) => good);
+            },
+            hint: 'Er gaat 20% af: welke factor hoort daarbij? Het evenwicht ligt waar 20% van W precies 4000 is (tab 3).',
+            goed: 'Precies op de tank!',
+            uitwerking: `Er wordt 20% overgeheveld, dus er blijft 80% over: <span class="mono font-bold">W(n) = 0,8 · W(n − 1) + 4000 met W(0) = 12 000</span>.
+                Nu begint de tank <em>onder</em> het evenwicht: 20% van 12 000 is 2400, minder dan de 4000 die erbij komt. Dus de hoeveelheid stijgt, steeds langzamer, naar de waarde waarbij 20% precies 4000 is: 0,2 · W = 4000, dus W = <strong>20 000 liter</strong>.`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Figuur 12.3: de eerste vijf driehoeksgetallen (geen assenstelsel)
+    function drawQ8() {
+        const { ctx, w, h } = setupCanvas($('canvas-q8'));
+        const d = 13, r = 4;
+        let x = 22;
+        for (let n = 1; n <= 5; n++) {
+            const breed = (n - 1) * d;
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j <= i; j++) dot(ctx, x + breed / 2 + (j - i / 2) * d, h - 38 - (n - 1 - i) * d * 0.87, r, '#475569');
+            }
+            ctx.fillStyle = '#334155';
+            ctx.font = '600 11px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`D${subDig(n)} = ${n * (n + 1) / 2}`, x + breed / 2, h - 12);
+            x += breed + 46;
+        }
+    }
+
+    // Figuur 12.5: roosterpunten 3 rijen × 4 kolommen; R₁ (2 punten), R₂ (2 × 3), R₃ (3 × 4)
+    function drawQ9() {
+        const { ctx, w, h } = setupCanvas($('canvas-q9'));
+        const d = 46, x0 = (w - 3 * d) / 2, y0 = 22;
+        const P = (kol, rij) => [x0 + kol * d, y0 + rij * d];
+        ctx.fillStyle = '#ede9fe';
+        ctx.fillRect(x0, y0, 3 * d, 2 * d);
+        const rechthoek = (k, r, kleur) => {
+            ctx.strokeStyle = kleur;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x0, y0, k * d, r * d);
+        };
+        rechthoek(3, 2, '#7c3aed');
+        rechthoek(2, 1, '#0284c7');
+        ctx.strokeStyle = C.emerald;
+        ctx.lineWidth = 3;
+        strokeLine(ctx, ...P(0, 0), ...P(1, 0));
+        for (let rij = 0; rij < 3; rij++) for (let kol = 0; kol < 4; kol++) dot(ctx, ...P(kol, rij), 4, '#1e293b');
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = C.emerald; ctx.fillText(`R${subDig(1)} = 2`, x0 + 6, y0 + 15);
+        ctx.fillStyle = C.sky; ctx.fillText(`R${subDig(2)} = 6`, x0 + 0.75 * d, y0 + d + 15);
+        ctx.fillStyle = C.violet; ctx.fillText(`R${subDig(3)} = 12`, x0 + 1.9 * d, y0 + 2 * d + 15);
+    }
+
+    // Figuur 12.6: geneste regelmatige vijfhoeken met dezelfde top; V₁ = 1, V₂ = 5, V₃ = 12, V₄ = 22
+    function drawQ10() {
+        const { ctx, w, h } = setupCanvas($('canvas-q10'));
+        const d = 36, topX = w / 2, topY = 12;
+        const hoeken = [-90, -18, 54, 126, 198].map(g => g * Math.PI / 180);
+        const vijfhoek = k => {  // zijde (k − 1) · d, top op (topX, topY)
+            const R = (k - 1) * d / (2 * Math.sin(Math.PI / 5));
+            return hoeken.map(a => [topX + R * Math.cos(a), topY + R + R * Math.sin(a)]);
+        };
+        polygon(ctx, vijfhoek(4), '#ede9fe', '#7c3aed', 2);
+        polygon(ctx, vijfhoek(3), null, '#0284c7', 2);
+        polygon(ctx, vijfhoek(2), null, '#475569', 2);
+        for (let k = 2; k <= 4; k++) {
+            const v = vijfhoek(k);
+            for (let z = 0; z < 5; z++) {
+                const [ax, ay] = v[z], [bx, by] = v[(z + 1) % 5];
+                for (let j = 0; j < k - 1; j++) dot(ctx, ax + (bx - ax) * j / (k - 1), ay + (by - ay) * j / (k - 1), 3.5, '#1e293b');
+            }
+        }
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = C.emerald; ctx.fillText(`V${subDig(1)} = 1`, topX, topY + 20);
+        ctx.fillStyle = '#475569'; ctx.fillText(`V${subDig(2)} = 5`, topX, vijfhoek(2)[2][1] + 15);
+        ctx.fillStyle = C.sky; ctx.fillText(`V${subDig(3)} = 12`, topX, vijfhoek(3)[2][1] + 15);
+        ctx.fillStyle = C.violet; ctx.fillText(`V${subDig(4)} = 22`, topX, vijfhoek(4)[2][1] + 15);
+    }
+
+    // Einduitdaging: doel W(n) = 0,8 · W(n − 1) + 4000 met W(0) = 12 000 (nadert 20 000)
+    function drawQ12() {
+        const doel = rij(0.8, 4000, 12000, 15);
+        const r = parseNum($('q12-r').value), b = parseNum($('q12-b').value);
+        const u0 = parseNum($('q12-u0').value), e = parseNum($('q12-e').value);
+        const jouw = isFinite(r) && isFinite(b) && isFinite(u0) ? rij(r, b, u0, 15) : [];
+        drawGraph('canvas-q12', {
+            xMin: -0.4, xMax: 15.5, yMin: 0, yMax: 24000, xStep: 1, yStep: 4000,
+            xLabel: 'n', yLabel: 'W', xCaption: 'dagen na 1 april', yTick: v => fmtG(v), pad: { l: 60 },
+            hLines: isFinite(e) ? [{ y: e, color: C.orange, label: `jouw grenswaarde ${fmtG(e)}` }] : [],
+            points: [
+                ...doel.map((y, n) => ({ x: n, y, color: '#cbd5e1', r: 9 })),
+                ...jouw.map((y, n) => ({ x: n, y, color: n === 0 ? C.emerald : C.indigo, r: 4.5 })),
+            ],
+        });
+    }
+
+    function renderOpdrachten() {
+        drawQ8();
+        drawQ9();
+        drawQ10();
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    setBouwSituatie(0);
+    setPfRichting(-1);
+    setLabPreset(0);
+    setPatroon(0);
+    setStapVoorbeeld(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

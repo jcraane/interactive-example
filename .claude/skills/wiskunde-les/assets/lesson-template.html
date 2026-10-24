@@ -16,8 +16,10 @@
         .mono {
             font-family: 'JetBrains Mono', monospace;
         }
-        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent */
-        .tab-btn.active {
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
             background-color: #ffffff;
             color: #4338ca;
             box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);

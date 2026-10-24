@@ -99,12 +99,14 @@ circle, shading).
 
 ### 6. Register and report
 
-Add the `index.html` entry after the existing Wiskunde entries:
+Add the `index.html` entry among the Wiskunde entries in book order: by hoofdstuk, then
+paragraaf, with a Voorkennis lesson before the chapter's x.1. So H12 comes before H13, even when
+H13 was built first.
 
 ```js
 {
   file: 'wiskunde/<naam>.html',
-  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3>',
+  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3; voor de voorkennis: H12 Voorkennis>',
   icon: '<één kleurrijke emoji die het onderwerp vangt; geen zwart symbool als ➗, dat verdwijnt op de donkere kaart>',
   title: '<Onderwerp zoals in het boek>',
   tagline: '<Eén zin: wat je ziet gebeuren of wat verrast, plus wat erin zit (stappenplan, N oefenopdrachten).>',

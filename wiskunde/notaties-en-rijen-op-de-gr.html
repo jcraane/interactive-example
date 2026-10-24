@@ -1,0 +1,2393 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 12: Notaties en rijen op de GR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Les-specifiek: invoervelden óp het gesimuleerde GR-scherm */
+        .lcd-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px dashed rgba(15, 23, 42, 0.45);
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            color: #0f172a;
+            padding: 0 2px;
+            min-width: 0;
+        }
+        .lcd-input:focus {
+            background: rgba(255, 255, 255, 0.6);
+            border-bottom-color: #4f46e5;
+        }
+        .ti-table {
+            border-collapse: collapse;
+        }
+        .ti-table th, .ti-table td {
+            border: 1px solid rgba(51, 65, 85, 0.45);
+            padding: 0 6px;
+            line-height: 1.45;
+        }
+        .ti-table tbody tr {
+            cursor: pointer;
+        }
+        .ti-table td.ti-sel {
+            background: #0f172a;
+            color: #ffffff;
+        }
+        .ti-table tr.ti-hit td.ti-val {
+            box-shadow: inset 4px 0 0 #ea580c;
+        }
+        /* Termen-strook in de verkenner van tab 1 */
+        .tile {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 12</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">Notaties en rijen op de GR</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Beginterm u<sub>0</sub> of u<sub>1</sub>
+            </button>
+            <button onclick="switchTab('tab-formules')" id="btn-tab-formules" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Formules opstellen
+            </button>
+            <button onclick="switchTab('tab-notaties')" id="btn-tab-notaties" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Notaties
+            </button>
+            <button onclick="switchTab('tab-gr')" id="btn-tab-gr" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Rijen op de GR
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BEGINTERM u0 OF u1 (Theorie A) ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Beginterm u<sub>0</sub> of u<sub>1</sub>?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Bij de rij 12, 15, 18, 21, 24, … hoort de recursieve formule <span class="mono">u<sub>n</sub> = u<sub>n − 1</sub> + 3</span> met <span class="mono">u<sub>0</sub> = 12</span>.
+                Kim noteert dezelfde rij met <strong>beginterm u<sub>1</sub> = 12</strong> (opgave 18). Allebei goed: alleen de <strong>nummering</strong> schuift één plek op, en dan is u<sub>n</sub> precies de n-de term.
+                In deze paragraaf leer je welke directe formule daarbij hoort, hoe je een formule opstelt als je alleen twee termen kent, welke <strong>notaties</strong> je tegenkomt en hoe je een rij doorrekent op het <strong>rijen-invoerscherm</strong> van je GR.
+            </p>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">1. Beginterm</div>
+                    <div class="font-bold text-slate-900 mt-1">De eerste term: u<sub>0</sub> of u<sub>1</sub></div>
+                    <p class="text-sm text-slate-600 mt-1">Bij een recursieve formule hoort altijd een beginterm. Je kiest zelf of je bij u<sub>0</sub> of bij u<sub>1</sub> begint te tellen.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold">
+                        u<sub>0</sub> = 12 &nbsp;of&nbsp; u<sub>1</sub> = 12
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">2. Rangnummer</div>
+                    <div class="font-bold text-slate-900 mt-1">De hoeveelste term is u<sub>n</sub>?</div>
+                    <p class="text-sm text-slate-600 mt-1">Met beginterm u<sub>1</sub> is u<sub>n</sub> de n-de term. Met beginterm u<sub>0</sub> is u<sub>n</sub> de (n + 1)-de term.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">
+                        8e term: u<sub>8</sub> (bij u<sub>1</sub>) · u<sub>7</sub> (bij u<sub>0</sub>)
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. Rekenkundige rij</div>
+                    <div class="font-bold text-slate-900 mt-1">Verschil v, beginterm u<sub>1</sub></div>
+                    <p class="text-sm text-slate-600 mt-1">Van u<sub>1</sub> naar u<sub>n</sub> zijn n − 1 stappen van + v.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold space-y-0.5">
+                        <div>u<sub>n</sub> = u<sub>n − 1</sub> + v</div>
+                        <div>u<sub>n</sub> = u<sub>1</sub> + v · (n − 1)</div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">4. Meetkundige rij</div>
+                    <div class="font-bold text-slate-900 mt-1">Factor r, beginterm u<sub>1</sub></div>
+                    <p class="text-sm text-slate-600 mt-1">Van u<sub>1</sub> naar u<sub>n</sub> zijn n − 1 stappen van · r.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold space-y-0.5">
+                        <div>u<sub>n</sub> = r · u<sub>n − 1</sub></div>
+                        <div>u<sub>n</sub> = u<sub>1</sub> · r<sup>n − 1</sup></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: dezelfde rij, andere nummering -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Verkenner: dezelfde rij, andere nummering</h3>
+                    <p class="text-sm text-slate-500">Wissel tussen beginterm u<sub>0</sub> en u<sub>1</sub>. De termen blijven gelijk, maar elk punt schuift één plek op. Daarom staat er (n − 1) in de formule.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0">Theorie A: 25, 29, 33, …</button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1">Theorie A: 120, 180, 270, …</button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2">Voorbeeld a: 80, 75, 70, …</button>
+                    <button onclick="setBasisPreset(3)" id="basis-preset-3">Voorbeeld b: 80, 40, 20, …</button>
+                    <button onclick="setBasisPreset(4)" id="basis-preset-4">Opgave 18: 12, 15, 18, …</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 space-y-3">
+                    <div id="basis-strip" class="flex gap-2 overflow-x-auto pb-1"></div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-basis" width="720" height="330" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span> beginterm</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> termen</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> gekozen term · rangnummer (1e, 2e, …)</span>
+                            <span class="flex items-center gap-1.5"><span id="legend-stap" class="w-4 h-0.5 bg-sky-600 inline-block"></span> één stap</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <div class="text-xs font-bold text-emerald-800 mb-2">Beginterm</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-start-0" onclick="setStart(0)">u<sub>0</sub> (zoals §12.1)</button>
+                            <button id="btn-start-1" onclick="setStart(1)">u<sub>1</sub> (zoals Kim)</button>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                        <label class="text-xs font-semibold text-amber-900 flex justify-between">
+                            <span>De hoeveelste term?</span>
+                            <span id="basis-k-label" class="mono font-bold">4e term</span>
+                        </label>
+                        <input id="basis-k" type="range" min="1" max="7" step="1" value="4" class="w-full mt-1" oninput="setBasisK(this.value)" />
+                    </div>
+
+                    <label id="ghost-wrap" class="flex items-center gap-2 cursor-pointer text-sm p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <input type="checkbox" id="chk-ghost" onchange="renderBasis()" />
+                        <span class="w-3 h-3 rounded-full border-2 border-dashed border-emerald-600 inline-block"></span>
+                        <span class="font-medium">Toon de term vóór u<sub>1</sub></span>
+                    </label>
+
+                    <div id="basis-formule" class="px-4 py-3 rounded-2xl bg-slate-900 text-white mono text-sm font-bold shadow-inner space-y-1"></div>
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-2 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (§12.1, opgave 32 en 36)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Met beginterm u<sub>0</sub> is de achtste term u<sub>7</sub></h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Tel je vanaf u<sub>0</sub>, dan is u<sub>0</sub> de 1e term, u<sub>1</sub> de 2e term, … en de achtste term dus u<sub>7</sub>.
+                    Kijk daarom eerst welke beginterm de opgave geeft voordat je antwoord geeft op "de hoeveelste term".
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <div class="text-xs font-bold uppercase tracking-wider text-indigo-600">Voorbeeld uit het boek (p. 20)</div>
+                <p class="text-xs text-slate-600 mt-1">Geef de directe formule. Neem als eerste term u<sub>1</sub>.</p>
+                <div class="mt-2 space-y-1.5 text-sm">
+                    <div><span class="text-slate-500">a</span> 80, 75, 70, 65, 60, … → rr met <span class="text-emerald-700 font-semibold">u<sub>1</sub> = 80</span> en <span class="text-sky-700 font-semibold">v = −5</span>, dus <span class="mono font-semibold whitespace-nowrap">u<sub>n</sub> = 80 − 5 · (n − 1)</span></div>
+                    <div><span class="text-slate-500">b</span> 80, 40, 20, 10, 5, … → mr met <span class="text-emerald-700 font-semibold">u<sub>1</sub> = 80</span> en <span class="text-rose-700 font-semibold">r = 0,5</span>, dus <span class="mono font-semibold whitespace-nowrap">u<sub>n</sub> = 80 · 0,5<sup>n − 1</sup></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: FORMULES OPSTELLEN (Theorie B) ==================== -->
+    <section id="tab-formules" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: formule opstellen bij twee gegeven termen</h2>
+                    <p class="text-sm text-slate-600">Van een rij ken je alleen twee termen. Daar past een rekenkundige én een meetkundige rij bij. De bogen laten zien hoeveel stappen er tussen de termen zitten.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="setStapVoorbeeld(0)" id="stap-ex-0">Theorie B: u<sub>2</sub> = 12, u<sub>5</sub> = 324</button>
+                    <button onclick="setStapVoorbeeld(1)" id="stap-ex-1">Voorbeeld: u<sub>2</sub> = 1800, u<sub>5</sub> = 14 400</button>
+                    <button onclick="setStapVoorbeeld(2)" id="stap-ex-2">Terugblik: u<sub>3</sub> = 12 800, u<sub>5</sub> = 8192</button>
+                    <button onclick="setStapVoorbeeld(3)" id="stap-ex-3">Opgave 24b: u<sub>3</sub> = 54, u<sub>10</sub> = 118 098</button>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 mb-4 pt-3 border-t border-slate-100">
+                <span class="text-sm font-bold text-slate-600 mr-1">Neem aan dat u<sub>n</sub> een … rij is:</span>
+                <button id="stap-type-rr" onclick="setStapType('rr')">rekenkundige (+ v)</button>
+                <button id="stap-type-mr" onclick="setStapType('mr')">meetkundige (· r)</button>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                <button onclick="setStap(1)" id="stap-btn-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">Kies de vorm</div>
+                </button>
+                <button onclick="setStap(2)" id="stap-btn-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">Bereken v of r</div>
+                </button>
+                <button onclick="setStap(3)" id="stap-btn-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Reken terug naar u<sub>0</sub></div>
+                </button>
+                <button onclick="setStap(4)" id="stap-btn-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">Formule en controle</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-stappen" width="660" height="360" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> gegeven termen</span>
+                        <span class="flex items-center gap-1.5"><span id="stap-legend-dot" class="w-4 h-0.5 bg-sky-600 inline-block"></span> <span id="stap-legend-txt">stappen van + v</span></span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span> <span>beginterm u<sub>0</sub></span></span>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <label id="stap-u1-wrap" class="hidden flex items-center gap-2 cursor-pointer text-sm p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <input type="checkbox" id="chk-stap-u1" onchange="renderStap()" />
+                        <span class="font-medium text-emerald-900">Neem u<sub>1</sub> als beginterm (opgave 23)</span>
+                    </label>
+                    <div class="flex justify-between">
+                        <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
+                            ← Vorige stap
+                        </button>
+                        <button onclick="setStap(Math.min(AANTAL_STAPPEN, huidigeStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+                            Volgende stap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Voorbeeld b, opgave 25)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Twee termen passen altijd. Een derde term is de echte test.</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Door twee punten kun je altijd een rekenkundige en (bijna altijd) een meetkundige rij leggen. Is er een derde term gegeven, vul dan het rangnummer in je formule in.
+                    Komt er iets anders uit, dan is u<sub>n</sub> géén rij van die soort. In het voorbeeld geeft de formule u<sub>7</sub> = 57 600, maar gegeven is u<sub>7</sub> = 46 656.
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <div class="text-xs font-bold tracking-wider text-emerald-700">u<sub>0</sub> of u<sub>1</sub>? (opgave 23)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Bij formules opstellen neemt het boek u<sub>0</sub></h4>
+                <p class="text-xs text-slate-600 leading-relaxed mt-1">
+                    Met u<sub>1</sub> als beginterm krijg je dezelfde rij, alleen staat er dan (n − 1) in de formule.
+                    Met u<sub>0</sub> is de vorm eenvoudiger: u<sub>n</sub> = u<sub>0</sub> + v · n of u<sub>n</sub> = u<sub>0</sub> · r<sup>n</sup>, en het rangnummer van een gegeven term is meteen het aantal stappen vanaf u<sub>0</sub>.
+                    Zet in stap 4 het vinkje aan om beide formules naast elkaar te zien.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: NOTATIES (Theorie C) ==================== -->
+    <section id="tab-notaties" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Verschillende notaties, dezelfde rij</h2>
+                    <p class="text-sm text-slate-600 mt-1">Een andere letter (A<sub>n</sub>), haakjes (u(n)) of vooruitkijken (u<sub>n + 1</sub> = …): de rij blijft hetzelfde. Kies rechts een notatie en kijk in de tabel of alle termen gelijk blijven.</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 mb-4">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Rijen uit het boek:</span>
+                <button onclick="setNotPreset(0)" id="not-preset-0">Theorie C: u<sub>1</sub> = 100</button>
+                <button onclick="setNotPreset(1)" id="not-preset-1">Theorie C: B<sub>0</sub> = 50</button>
+                <button onclick="setNotPreset(2)" id="not-preset-2">Opgave 30a: + 2 · n</button>
+                <button onclick="setNotPreset(3)" id="not-preset-3">Terugblik: − 500 · n</button>
+                <button onclick="setNotPreset(4)" id="not-preset-4">Opgave 31b: a(n + 1)</button>
+            </div>
+
+            <div class="px-5 py-4 rounded-2xl bg-slate-900 text-white shadow-inner space-y-2">
+                <div class="text-xs text-slate-400">Uit het boek: <span id="not-orig" class="mono text-slate-200 font-semibold"></span></div>
+                <div class="text-xs text-slate-400">Jouw notatie:</div>
+                <div id="not-nieuw" class="mono text-lg md:text-xl font-bold"></div>
+                <div id="not-direct" class="hidden text-xs text-slate-300 pt-2 border-t border-slate-700"></div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-7 space-y-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-notaties" width="640" height="300" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded-full border-2 border-slate-400 inline-block"></span> rij uit het boek</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> rij volgens jouw notatie</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs mono border border-slate-200 rounded-xl overflow-hidden">
+                            <thead class="bg-slate-100 text-slate-600">
+                                <tr><th class="px-3 py-1.5 text-left text-amber-700">n</th><th class="px-3 py-1.5 text-right">uit het boek</th><th class="px-3 py-1.5 text-right">jouw notatie</th><th class="px-3 py-1.5 text-center">gelijk?</th></tr>
+                            </thead>
+                            <tbody id="not-tabel"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-slate-600 mb-1.5">Letter</div>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button id="not-L-0" onclick="setNotL(0)">u</button>
+                            <button id="not-L-1" onclick="setNotL(1)">A</button>
+                            <button id="not-L-2" onclick="setNotL(2)">B</button>
+                            <button id="not-L-3" onclick="setNotL(3)">a</button>
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-slate-600 mb-1.5">Schrijfwijze</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="not-style-0" onclick="setNotStyle('index')">indexje: u<sub>n</sub></button>
+                            <button id="not-style-1" onclick="setNotStyle('haakjes')">haakjes: u(n)</button>
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="text-xs font-bold text-amber-900 mb-1.5">Welke term staat links?</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="not-dir-0" onclick="setNotDir('terug')">u<sub>n</sub> = … u<sub>n − 1</sub></button>
+                            <button id="not-dir-1" onclick="setNotDir('vooruit')">u<sub>n + 1</sub> = … u<sub>n</sub></button>
+                        </div>
+                        <p class="text-[11px] text-amber-800 mt-2">Links staat de nieuwe term. Bij u<sub>n + 1</sub> = … heeft de nieuwe term rangnummer n + 1.</p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200 space-y-2 text-sm">
+                        <div class="text-xs font-bold text-rose-800">Klassieke fouten (zet aan en kijk in de tabel)</div>
+                        <label id="fout1-wrap" class="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-fout1" class="mt-1" onchange="renderNotaties()" />
+                            <span>De losse n <strong>niet</strong> aanpassen, bijv. − 500 · n laten staan bij u<sub>n + 1</sub></span>
+                        </label>
+                        <label class="flex items-start gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-fout2" class="mt-1" onchange="renderNotaties()" />
+                            <span>De beginterm ook verschuiven, bijv. u<sub>1</sub> = 100 wordt u<sub>0</sub> = 100</span>
+                        </label>
+                    </div>
+                    <div id="not-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 30a, 31a en de Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Bij u<sub>n + 1</sub> verandert élke n in n + 1</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    De rij <span class="mono">u<sub>n</sub> = 1,03 · u<sub>n − 1</sub> − 500 · n</span> met u<sub>0</sub> = 15 000 wordt
+                    <span class="mono">u<sub>n + 1</sub> = 1,03 · u<sub>n</sub> − 500 · (n + 1)</span> met u<sub>0</sub> = 15 000.
+                    De losse n hoort bij de nieuwe term. Staat links u<sub>n + 1</sub>, dan wordt − 500 · n dus − 500 · (n + 1). De beginterm verandert niet.
+                </p>
+            </div>
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+                <div class="text-xs font-bold uppercase tracking-wider text-indigo-600">Theorie C op een rij</div>
+                <div class="mt-2 space-y-1 text-sm mono text-slate-700">
+                    <div>u<sub>n</sub> = u<sub>n − 1</sub> + 15 met u<sub>1</sub> = 100</div>
+                    <div>A<sub>n</sub> = A<sub>n − 1</sub> + 15 met A<sub>1</sub> = 100</div>
+                    <div>u(n) = u(n − 1) + 15 met u(1) = 100</div>
+                    <div>A(n) = A(n − 1) + 15 met A(1) = 100</div>
+                </div>
+                <p class="text-xs text-slate-500 mt-2">De haakjesnotatie u(n) kom je ook op je GR tegen: daar heet de rij altijd u(n), v(n) of w(n).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: RIJEN OP DE GR (Theorie D) ==================== -->
+    <section id="tab-gr" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Het rijen-invoerscherm van de GR</h2>
+            <p class="text-sm text-slate-600 mt-1 leading-relaxed">
+                Een recursieve formule kun je op het basisscherm doorrekenen, maar voor een vraag als "voor welke n ligt K<sub>n</sub> tussen 500 en 600?" wil je een <strong>tabel</strong>.
+                Die krijg je door de rij in te voeren op het rijen-invoerscherm. Hieronder kun je dat oefenen: typ op het linker scherm precies wat je ook op je GR typt, en lees rechts de tabel af.
+                De schermen hieronder zijn Nederlandstalig, net als in het boek. Staat jouw GR in het Engels, dan zie je SEQ in plaats van RIJ, PRESS + FOR ΔTbl in plaats van DRUK OP + VOOR ΔTbl en bovenin NORMAL FLOAT AUTO REAL.
+            </p>
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setGrPreset(0)" id="gr-preset-0">Voorbeeld: K<sub>0</sub> = 1000</button>
+                <button onclick="setGrPreset(1)" id="gr-preset-1">Opgave 33: L(0) = 1000</button>
+                <button onclick="setGrPreset(2)" id="gr-preset-2">Opgave 36: + 2n</button>
+                <button onclick="setGrPreset(3)" id="gr-preset-3">Terugblik: twee begintermen</button>
+                <button onclick="setGrPreset(4)" id="gr-preset-4">Terugblik: directe formule</button>
+                <button onclick="setGrPreset(5)" id="gr-preset-5">Leeg: zelf invoeren</button>
+            </div>
+            <div id="gr-boekformule" class="mt-3 text-sm text-slate-700"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <!-- Simulator -->
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="font-bold">🧮 TI-84 Plus CE: rij invoeren en tabel</div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <!-- Y=-scherm in rijenmodus -->
+                    <div>
+                        <div class="text-[11px] text-slate-400 mb-1">Scherm <span class="key">Y=</span> (typ hier)</div>
+                        <div class="gr-screen text-slate-900 rounded-xl p-2.5 border-4 border-slate-700 mono text-[13px]">
+                            <div class="text-[9.5px] border-b border-slate-400/50 pb-1 mb-1 font-bold whitespace-nowrap overflow-hidden" id="ti-status-y">NORM DRIJF AUTO REËEL RAD WN</div>
+                            <div class="text-[11px] flex gap-3"><span>Plot1</span><span>Plot2</span><span>Plot3</span></div>
+                            <div class="text-[11px] flex flex-wrap gap-x-1.5 items-center">
+                                <span>TYPE:</span>
+                                <button id="ti-type-0" onclick="setGrType(0)">RIJ(n)</button>
+                                <button id="ti-type-1" onclick="setGrType(1)">RIJ(n+1)</button>
+                                <span id="ti-type-2" class="opacity-50">RIJ(n+2)</span>
+                            </div>
+                            <div class="border-t border-slate-400/50 mt-1 pt-1 space-y-0.5">
+                                <div class="flex items-center"><span><i>n</i>Min=</span><input id="ti-nmin" class="lcd-input w-12" value="0" oninput="tiUpdate(true)" aria-label="nMin" /></div>
+                                <div class="flex items-center"><span class="w-1.5 h-3.5 bg-indigo-700 mr-1 shrink-0"></span><span id="ti-lbl-un" class="shrink-0">u(n)=</span><input id="ti-un" class="lcd-input flex-1 w-full" value="" oninput="tiUpdate(false)" aria-label="formule u(n)" spellcheck="false" autocomplete="off" /></div>
+                                <div class="flex items-center pl-2.5"><span id="ti-lbl-u0" class="shrink-0 text-emerald-800 font-bold">u(0)=</span><input id="ti-u0" class="lcd-input w-28" value="" oninput="tiUpdate(false)" aria-label="beginterm" /></div>
+                                <div class="flex items-center pl-2.5"><span id="ti-lbl-u1" class="shrink-0">u(1)=</span><input id="ti-u1" class="lcd-input w-28" value="" oninput="tiUpdate(false)" aria-label="tweede beginterm" /></div>
+                                <div class="flex items-center opacity-50"><span class="w-1.5 h-3.5 bg-rose-600 mr-1"></span>v(n)=</div>
+                                <div class="pl-2.5 opacity-50" id="ti-lbl-v0">v(0)=</div>
+                            </div>
+                        </div>
+                        <div id="ti-fout" class="hidden mt-2 text-xs text-rose-300 leading-snug"></div>
+                    </div>
+
+                    <!-- Tabelscherm -->
+                    <div>
+                        <div class="text-[11px] text-slate-400 mb-1">Scherm <span class="key">2nd</span> <span class="key">GRAPH</span> (TABLE), klik een rij</div>
+                        <div class="gr-screen text-slate-900 rounded-xl p-2.5 border-4 border-slate-700 mono text-[12px]">
+                            <div class="text-[9.5px] font-bold whitespace-nowrap overflow-hidden" id="ti-status-t">NORM DRIJF AUTO REËEL RAD WN</div>
+                            <div class="text-[9.5px] border-b border-slate-400/50 pb-1 mb-1 font-bold" id="ti-status-t2">DRUK OP + VOOR ΔTbl</div>
+                            <table class="ti-table w-full">
+                                <thead><tr><th class="w-[30%] text-center"><i>n</i></th><th class="text-center" id="ti-th-u">u(n)</th><th class="w-[18%]"></th></tr></thead>
+                                <tbody id="ti-tbody"></tbody>
+                            </table>
+                            <div id="ti-bottom" class="mt-1 pt-0.5 border-t border-slate-400/50 truncate">n=0</div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <button onclick="tiScroll(-1)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold">▲</button>
+                            <button onclick="tiScroll(1)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold">▼</button>
+                            <button onclick="tiScroll(8)" class="px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold">▼▼</button>
+                            <span class="text-[11px] text-slate-400 mono" id="ti-tblstart">TblStart=0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grenzen + grafiek + uitleg -->
+            <div class="lg:col-span-5 space-y-4">
+                <div class="p-3.5 rounded-xl bg-orange-50 border border-orange-200">
+                    <div class="text-xs font-bold text-orange-800 mb-1.5">Grenzen uit de vraag (laat een vak leeg als er maar één grens is)</div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="ti-lo" class="font-semibold text-slate-700">groter dan</label>
+                            <input id="ti-lo" type="text" class="w-full mt-1 px-2.5 py-1.5 border border-orange-200 rounded-lg mono" oninput="tiUpdate(false)" />
+                        </div>
+                        <div>
+                            <label for="ti-hi" class="font-semibold text-slate-700">kleiner dan</label>
+                            <input id="ti-hi" type="text" class="w-full mt-1 px-2.5 py-1.5 border border-orange-200 rounded-lg mono" oninput="tiUpdate(false)" />
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                    <canvas id="canvas-gr" width="460" height="250" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-3 justify-center mt-1 text-[11px] text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span> termen in de tabel</span>
+                        <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block"></span> voldoet aan de grenzen</span>
+                    </div>
+                </div>
+                <div id="ti-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+            </div>
+        </div>
+
+        <!-- GR-callout met toetsen -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: een rij invoeren en een tabel maken</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400">Theorie D</div>
+                </div>
+                <ol class="list-decimal pl-5 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">MODE</span>, ga met de pijltjes naar de regel met de grafiektypes, kies <span class="mono text-white">RIJ</span> (Engelstalige GR: <span class="mono text-white">SEQ</span>) en druk <span class="key">ENTER</span>. Terug met <span class="key">2nd</span> <span class="key">MODE</span> (QUIT).</li>
+                    <li>Druk <span class="key">Y=</span>. Zet <span class="mono text-white"><i>n</i>Min</span> op het rangnummer van de beginterm: K<sub>0</sub> = 1000 geeft <span class="mono text-white"><i>n</i>Min=0</span>.</li>
+                    <li>Typ achter <span class="mono text-white">u(n)=</span> de formule <span class="mono text-white">1.05u(n−1)−100</span>. De <span class="mono">u</span> is <span class="key">2nd</span> <span class="key">7</span>, de <span class="mono">n</span> is <span class="key">X,T,θ,n</span>, de komma is een punt.</li>
+                    <li>Typ bij <span class="mono text-white">u(0)=</span> de beginterm <span class="mono text-white">1000</span>. Een tweede beginterm (zoals bij Fibonacci) komt bij <span class="mono text-white">u(1)=</span>.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">WINDOW</span> (TBLSET): <span class="mono text-white">TblStart=0</span> en <span class="mono text-white">ΔTbl=1</span>.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">GRAPH</span> (TABLE). Scroll met de pijltjes; onderaan zie je de volledige waarde van de cel waar je cursor staat.</li>
+                    <li>Klaar? Zet in <span class="key">MODE</span> op diezelfde regel weer de eerste keuze, de functiemodus (Engelstalige GR: <span class="mono text-white">FUNCTION</span>), anders tekent je GR straks geen gewone grafieken meer.</li>
+                </ol>
+                <div class="mt-4 p-3 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-300">
+                    <span class="font-bold text-white">In je uitwerking</span> schrijf je op wat je invoert, bijvoorbeeld:
+                    <span class="mono text-white">Voer in u(n) = 1,05u(n − 1) − 100 met nMin = 0 en u(0) = 1000.</span>
+                </div>
+            </div>
+            <div class="lg:col-span-5 space-y-4">
+                <div class="p-4 rounded-xl bg-amber-50 border-2 border-amber-300 text-sm text-slate-700 space-y-2">
+                    <span class="text-xs font-bold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Waar gaat het vaak mis?</span>
+                    <p class="text-xs leading-relaxed"><strong>nMin klopt niet met de beginterm.</strong> Je GR zet nMin standaard op 1. Is de beginterm K<sub>0</sub>, zet nMin dan op 0. Is de beginterm P<sub>1</sub>, laat nMin op 1 staan. Anders lees je elke term één plek verschoven af.</p>
+                    <p class="text-xs leading-relaxed"><strong>De formule staat als P<sub>n + 1</sub> = 1,25 · P<sub>n</sub> − 100.</strong> Schrijf hem om naar u(n) = 1.25u(n−1)−100, of kies bovenin TYPE <span class="mono">RIJ(n+1)</span> en typ u(n+1)=1.25u(n)−100.</p>
+                    <p class="text-xs leading-relaxed"><strong>De tabel begint niet bij nMin.</strong> Controleer TblStart in TBLSET.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-white border border-slate-200 shadow-sm text-xs text-slate-600 space-y-1.5">
+                    <div class="font-bold text-slate-800 text-sm">Zonder rijen-invoerscherm (zoals in §12.1)</div>
+                    <p>Typ <span class="mono">1000</span> <span class="key">ENTER</span>, dan <span class="mono">1.05*Antw−100</span> <span class="key">ENTER</span> <span class="key">ENTER</span> <span class="key">ENTER</span> … (Antw = <span class="key">2nd</span> <span class="key">(−)</span>; Engelstalige GR: Ans).
+                    Dat werkt voor een paar termen, maar je moet zelf bijhouden bij welke n je bent. Bij een formule met een losse n, zoals u<sub>n</sub> = 1,03 · u<sub>n − 1</sub> − 500 · n, lukt het niet: dan heb je het rijen-invoerscherm nodig.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen, breuken als 1/4 of ¼ en negatieve getallen met een minteken.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 12 opgaven uit §12.2 die samen alle theorie behandelen. De andere opgaven maak je in je schrift. Bij een genummerd vakje <span class="mono" data-f="#1"></span> typ je alleen het getal dat erin hoort.
+                Voor de GR-opgaven kun je je eigen GR gebruiken of de simulator in tab 4.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: opgave 20a en c -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave 20a en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Directe formule met beginterm u<sub>1</sub></h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Geef bij de rijen de directe formule. Neem als eerste term u<sub>1</sub>.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm space-y-2">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><span>a. 24, 30, 37½, 46⅞, …</span><span class="text-slate-400">→</span><span data-r="u_n = #1 · #2^[n − 1]"></span></div>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><span>c. 13,5; 12,8; 12,1; 11,4; …</span><span class="text-slate-400">→</span><span data-r="u_n = #3 − #4 · (n − 1)"></span></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-xs mt-3">
+                        <div><label for="q1-1" class="font-semibold text-slate-700">a: vakje 1</label><input id="q1-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q1-2" class="font-semibold text-slate-700">a: vakje 2</label><input id="q1-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q1-3" class="font-semibold text-slate-700">c: vakje 3</label><input id="q1-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q1-4" class="font-semibold text-slate-700">c: vakje 4</label><input id="q1-4" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave 20b en d, herleid zoals in opgave 19 -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 20b en d, herleid als in opgave 19</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Formule zonder (n − 1)</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Neem eerst u<sub>1</sub> als eerste term en herleid de formule dan zoals in opgave 19, zodat er geen (n − 1) meer in staat.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm space-y-2">
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><span>b. 63, 70, 77, 84, …</span><span class="text-slate-400">→</span><span data-r="u_n = #1 + #2 · n"></span></div>
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><span>d. 1024, 256, 64, 16, …</span><span class="text-slate-400">→</span><span data-r="u_n = #3 · #4^[n]"></span></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-xs mt-3">
+                        <div><label for="q2-1" class="font-semibold text-slate-700">b: vakje 1</label><input id="q2-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q2-2" class="font-semibold text-slate-700">b: vakje 2</label><input id="q2-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q2-3" class="font-semibold text-slate-700">d: vakje 3</label><input id="q2-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q2-4" class="font-semibold text-slate-700">d: vakje 4</label><input id="q2-4" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave 24a -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 24a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Rekenkundige rij uit twee termen</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Van een rekenkundige rij u<sub>n</sub> is gegeven u<sub>5</sub> = 130 en u<sub>15</sub> = 90. Stel van u<sub>n</sub> de directe formule op, met beginterm u<sub>0</sub>.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-r="u_n = #1 − #2 · n"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                        <div><label for="q3-1" class="font-semibold text-slate-700">vakje 1</label><input id="q3-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q3-2" class="font-semibold text-slate-700">vakje 2</label><input id="q3-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 26b -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 26b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Meetkundige rij uit twee termen</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Van een rij is u<sub>3</sub> = 16 en u<sub>8</sub> = 16 384. Neem aan dat u<sub>n</sub> een meetkundige rij is. Stel de directe formule op, met beginterm u<sub>0</sub>.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-r="u_n = #1 · #2^[n]"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                        <div><label for="q4-1" class="font-semibold text-slate-700">vakje 1 (exact, mag als breuk)</label><input id="q4-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q4-2" class="font-semibold text-slate-700">vakje 2</label><input id="q4-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave 25 (meerkeuze) -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave 25</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke soort rij kan het zijn?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Van een rij u<sub>n</sub> is gegeven u<sub>3</sub> = 576, u<sub>5</sub> = 1024 en u<sub>8</sub> = 1696. Bij welke soort rij kunnen deze drie termen horen?</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q5" value="A" /> Alleen bij een meetkundige rij</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q5" value="B" /> Alleen bij een rekenkundige rij</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q5" value="C" /> Bij allebei</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q5" value="D" /> Bij geen van beide</label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave 29b en c -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 29b en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Directe formule in een andere notatie</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Gegeven is de rij met recursieve formule u<sub>n</sub> = u<sub>n − 1</sub> + 15 met u<sub>1</sub> = 100. Geef van deze rij een directe formule in de gevraagde notatie.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm space-y-2">
+                        <div><span class="text-slate-400">b.</span> <span data-r="A(n) = #1 + #2 · n"></span></div>
+                        <div><span class="text-slate-400">c.</span> <span data-r="A_[n + 1] = #3 + #4 · n"></span></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-xs mt-3">
+                        <div><label for="q6-1" class="font-semibold text-slate-700">b: vakje 1</label><input id="q6-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q6-2" class="font-semibold text-slate-700">b: vakje 2</label><input id="q6-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q6-3" class="font-semibold text-slate-700">c: vakje 3</label><input id="q6-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q6-4" class="font-semibold text-slate-700">c: vakje 4</label><input id="q6-4" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave 31a (meerkeuze, valkuil) -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave 31a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Wat wordt de notatie met u(n + 1)?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Gegeven is de rij u<sub>n</sub> = u<sub>n − 1</sub> + 5 · n met u<sub>0</sub> = 100. Welke formule is dezelfde rij in de notatie u(n + 1) = …?</p>
+                    <div class="space-y-2 text-xs mono">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="A" /> u(n + 1) = u(n) + 5 · n met u(0) = 100</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="B" /> u(n + 1) = u(n) + 5 · (n + 1) met u(0) = 100</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="C" /> u(n + 1) = u(n) + 5 · (n + 1) met u(1) = 100</label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="D" /> u(n + 1) = u(n − 1) + 5 · n met u(0) = 100</label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave 32 (GR, valkuil achtste term) -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 32</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De achtste term en de eerste boven 500</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Gegeven is de recursieve formule u<sub>n</sub> = 1,5 · u<sub>n − 1</sub> − 4 met u<sub>0</sub> = 10.</p>
+                    <p class="text-xs text-slate-600 mb-1">a. Bereken de achtste term. Rond af op één decimaal.</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Wat is de eerste term die groter is dan 500? Geef aan welke term u<sub>n</sub> het is en wat hij is.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div><label for="q8-1" class="font-semibold text-slate-700">a: achtste term (1 decimaal)</label><input id="q8-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q8-2" class="font-semibold text-slate-700">b: het is u<sub>n</sub> met n =</label><input id="q8-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q8-3" class="font-semibold text-slate-700">b: waarde (1 decimaal)</label><input id="q8-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: opgave 34 (GR, valkuil nMin) -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 34</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een rij met beginterm P<sub>1</sub></h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Gegeven is de recursieve formule P<sub>n + 1</sub> = 1,25 · P<sub>n</sub> − 100 met P<sub>1</sub> = 500.</p>
+                    <p class="text-xs text-slate-600 mb-1">a. Voor welke waarden van n ligt P<sub>n</sub> tussen 1000 en 1500?</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Vanaf welke waarde van n is P<sub>n</sub> &gt; 5000?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div><label for="q9-1" class="font-semibold text-slate-700">a: van n =</label><input id="q9-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q9-2" class="font-semibold text-slate-700">a: tot en met n =</label><input id="q9-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q9-3" class="font-semibold text-slate-700">b: vanaf n =</label><input id="q9-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: opgave 38b (figuur 12.1) -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave 38b (figuur 12.1)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een toren van kubussen</h3>
+                    <canvas id="canvas-q10" width="420" height="170" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">In figuur 12.1 bestaat laag 1 uit 10 kubussen, laag 2 uit 8, laag 3 uit 5 en laag 4 uit 1: A<sub>n</sub> = A<sub>n − 1</sub> − n met A<sub>1</sub> = 10.
+                        Voor een andere toren geldt A<sub>n</sub> = A<sub>n − 1</sub> − n met A<sub>1</sub> = 100. Uit hoeveel lagen bestaat deze toren? Hoeveel kubussen heeft de bovenste laag?</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div><label for="q10-1" class="font-semibold text-slate-700">aantal lagen</label><input id="q10-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q10-2" class="font-semibold text-slate-700">kubussen in de bovenste laag</label><input id="q10-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: opgave 39b en c (Fibonacci) -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Opgave 39b en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De rij van Fibonacci</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Bij de rij 1, 1, 2, 3, 5, 8, 13, 21, 34, … hoort de recursieve formule f<sub>n</sub> = f<sub>n − 1</sub> + f<sub>n − 2</sub> met f<sub>1</sub> = 1 en f<sub>2</sub> = 1.</p>
+                    <p class="text-xs text-slate-600 mb-1">b. Bereken f<sub>15</sub> en f<sub>20</sub>.</p>
+                    <p class="text-xs text-slate-600 mb-2">c. Vanaf de hoeveelste term is f<sub>n</sub> &gt; 10<sup>6</sup>?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div><label for="q11-1" class="font-semibold text-slate-700">b: f<sub>15</sub> =</label><input id="q11-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q11-2" class="font-semibold text-slate-700">b: f<sub>20</sub> =</label><input id="q11-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                        <div><label for="q11-3" class="font-semibold text-slate-700">c: vanaf de … -de term</label><input id="q11-3" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" /></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: einduitdaging (matcher) -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging (variant op opgave 24)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw rij door de twee gegeven termen gaan</h3>
+                    <p class="text-xs text-slate-600 mt-1">Van een meetkundige rij is gegeven u<sub>3</sub> = 2000 en u<sub>6</sub> = 1024. Kies de beginterm u<sub>1</sub> en de factor r zo dat jouw punten precies in de twee ringen vallen.</p>
+                    <canvas id="canvas-q12" width="760" height="240" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-2 gap-2 text-xs max-w-md">
+                        <div>
+                            <label for="q12-u1" class="font-semibold text-emerald-700">beginterm u<sub>1</sub>:</label>
+                            <input id="q12-u1" type="text" value="1000" oninput="drawQ12()" class="w-full mt-1 px-2.5 py-1.5 border border-emerald-200 rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q12-r" class="font-semibold text-rose-700">factor r:</label>
+                            <input id="q12-r" type="text" value="1" oninput="drawQ12()" class="w-full mt-1 px-2.5 py-1.5 border border-rose-200 rounded-lg mono" />
+                        </div>
+                    </div>
+                    <div id="q12-formule" class="mt-2 text-xs mono text-slate-700"></div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== LES-SPECIFIEKE HULPFUNCTIES ====================
+    // Rijen schrijf je met een indexje: u_n, u_[n − 1]. fmr() = fm() + indexjes.
+    function fmr(src) {
+        return fm(src)
+            .replace(/_\[([^\]]*)\]/g, '<sub>$1</sub>')
+            .replace(/_([A-Za-z0-9])/g, '<sub>$1</sub>');
+    }
+
+    /** Index in HTML (u<sub>n − 1</sub>) en op een canvas (uₙ₋₁, met Unicode-subscripts). */
+    const uS = (L, idx) => `${L}<sub>${idx}</sub>`;
+    const SUBS = { 0: '₀', 1: '₁', 2: '₂', 3: '₃', 4: '₄', 5: '₅', 6: '₆', 7: '₇', 8: '₈', 9: '₉', n: 'ₙ', '+': '₊', '−': '₋', '-': '₋' };
+    const uC = (L, idx) => L + String(idx).replace(/\s/g, '').split('').map(ch => SUBS[ch] ?? ch).join('');
+
+    /** Zoals fmt, maar grote getallen in boeknotatie: 14 400, 118 098 (spatie vanaf 10 000). */
+    function fmtG(v, digits = 2) {
+        const s = fmt(v, digits);
+        if (Math.abs(v) < 10000) return s;
+        return s.replace(/^(−?)(\d+)/, (m, sign, int) => sign + int.replace(/\B(?=(\d{3})+(?!\d))/g, ' '));
+    }
+
+    /** Breuken zoals in het boek: 1⅓, ¼, 37½ (anders fmtG). */
+    function fmtFrac(v) {
+        const a = Math.abs(v), whole = Math.floor(a + 1e-9), rest = a - whole;
+        const map = [[1 / 2, '½'], [1 / 3, '⅓'], [2 / 3, '⅔'], [1 / 4, '¼'], [3 / 4, '¾']];
+        for (const [f, ch] of map) {
+            if (Math.abs(rest - f) < 1e-9) return (v < 0 ? '−' : '') + (whole ? whole : '') + ch;
+        }
+        return fmtG(v);
+    }
+
+    /** Ronde as-indeling voor de y-as: neemt 0 altijd mee. */
+    function niceAxis(vals, target = 6) {
+        const fin = vals.filter(isFinite);
+        let lo = Math.min(0, ...fin), hi = Math.max(0, ...fin);
+        if (hi - lo < 1e-9) hi = lo + 1;
+        const raw = (hi - lo) / target, mag = 10 ** Math.floor(Math.log10(raw));
+        const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw - 1e-12);
+        const span = hi - lo;
+        const max = hi > 0 ? Math.ceil((hi + 0.12 * span) / step - 1e-9) * step : 0;
+        const min = lo < 0 ? Math.floor((lo - 0.06 * span) / step + 1e-9) * step : 0;
+        return { min, max, step };
+    }
+
+    /** Boogje met pijlpunt van punt 1 naar punt 2 (pixels), met een label op de top. */
+    function arcArrow(ctx, x1, y1, x2, y2, color, label, bend = -28) {
+        const lift = bend < 0 ? 8 : -8;
+        const ya = y1 - lift, yb = y2 - lift;
+        const cx = (x1 + x2) / 2, cy = bend < 0 ? Math.min(ya, yb) + bend : Math.max(ya, yb) + bend;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(x1, ya);
+        ctx.quadraticCurveTo(cx, cy, x2, yb);
+        ctx.stroke();
+        const ang = Math.atan2(yb - cy, x2 - cx);
+        ctx.beginPath();
+        ctx.moveTo(x2, yb);
+        ctx.lineTo(x2 - 8 * Math.cos(ang - 0.45), yb - 8 * Math.sin(ang - 0.45));
+        ctx.lineTo(x2 - 8 * Math.cos(ang + 0.45), yb - 8 * Math.sin(ang + 0.45));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+        if (label) canvasLabel(ctx, label, cx, 0.25 * ya + 0.5 * cy + 0.25 * yb + (bend < 0 ? -5 : 14), color, 'center');
+    }
+
+    /** Canvaslabel met een lichte achtergrond, zodat het leesbaar blijft boven lijnen en raster. */
+    function canvasLabel(ctx, text, x, y, color, align = 'left') {
+        ctx.save();
+        ctx.font = '700 11px Inter, sans-serif';
+        const w = ctx.measureText(text).width;
+        const x0 = align === 'left' ? x : align === 'right' ? x - w : x - w / 2;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillRect(x0 - 3, y - 11, w + 6, 15);
+        ctx.fillStyle = color;
+        ctx.textAlign = align;
+        ctx.fillText(text, x, y);
+        ctx.restore();
+    }
+
+    /** Ring (open cirkel) op een canvas, voor doel- en vergelijkingspunten. */
+    function ring(ctx, x, y, r, color, width = 2.5, dash = []) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.setLineDash(dash);
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    const esc = t => String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-formules': () => renderStap(),
+        'tab-notaties': () => renderNotaties(),
+        'tab-gr': () => tiUpdate(false),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BEGINTERM u0 OF u1 ====================
+    // Presets = de rijen uit Theorie A, het voorbeeld en opgave 18 (boekp. 19–20).
+    const basisPresets = [
+        // Theorie A: rr 25, 29, 33, 37, … → v = 4
+        { type: 'rr', s: 25, d: 4, yMax: 60, yStep: 10 },
+        // Theorie A: mr 120, 180, 270, 405, … → r = 1,5
+        { type: 'mr', s: 120, d: 1.5, yMax: 1400, yStep: 200 },
+        // Voorbeeld a: 80, 75, 70, 65, 60, … → v = −5
+        { type: 'rr', s: 80, d: -5, yMax: 90, yStep: 10 },
+        // Voorbeeld b: 80, 40, 20, 10, 5, … → r = 0,5
+        { type: 'mr', s: 80, d: 0.5, yMax: 170, yStep: 20 },
+        // Opgave 18: 12, 15, 18, 21, 24, … → v = 3
+        { type: 'rr', s: 12, d: 3, yMax: 35, yStep: 5 },
+    ];
+    const N_TERMEN = 7;
+    let basisIdx = 0, basisStart = 0, basisShift = 0, basisK = 4, lastTs = null;
+
+    const basisTerm = (pr, i) => pr.type === 'rr' ? pr.s + pr.d * i : pr.s * pr.d ** i;
+    const stapTxt = pr => pr.type === 'rr' ? `${pr.d < 0 ? '−' : '+'} ${fmt(Math.abs(pr.d))}` : `· ${fmt(pr.d)}`;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function setStart(s) {
+        basisStart = s;
+        $('btn-start-0').className = 'py-2 px-2 rounded-lg text-xs font-bold transition ' + (s === 0 ? 'bg-emerald-600 text-white' : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100');
+        $('btn-start-1').className = 'py-2 px-2 rounded-lg text-xs font-bold transition ' + (s === 1 ? 'bg-emerald-600 text-white' : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-100');
+        $('chk-ghost').disabled = s === 0;
+        $('ghost-wrap').classList.toggle('opacity-50', s === 0);
+        renderBasis();
+    }
+
+    function setBasisK(v) {
+        basisK = parseInt(v, 10);
+        renderBasis();
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const start = basisStart;
+        const ghost = start === 1 && $('chk-ghost').checked;
+        const kleurStap = pr.type === 'rr' ? C.sky : C.rose;
+        $('legend-stap').className = `w-4 h-0.5 inline-block ${pr.type === 'rr' ? 'bg-sky-600' : 'bg-rose-600'}`;
+
+        // Grafiek: punten op plek i + verschuiving (0 bij u₀, 1 bij u₁; tussenin tijdens de animatie)
+        const pts = [];
+        for (let i = 0; i < N_TERMEN; i++) {
+            const isK = i === basisK - 1;
+            pts.push({
+                x: i + basisShift, y: basisTerm(pr, i),
+                color: i === 0 ? C.emerald : isK ? C.amber : C.indigo,
+                r: isK || i === 0 ? 7 : 5.5,
+            });
+        }
+        const g = drawGraph('canvas-basis', {
+            xMin: -0.6, xMax: 8.6, yMin: 0, yMax: pr.yMax, xStep: 1, yStep: pr.yStep,
+            xLabel: 'n', yLabel: 'uₙ', pad: { l: 50, b: 50 }, yTick: v => fmtG(v), points: pts,
+        });
+        const { ctx, mapX, mapY, box } = g;
+
+        // Stappen van de beginterm naar de gekozen term
+        for (let i = 0; i < basisK - 1; i++) {
+            arcArrow(ctx, mapX(i + basisShift), mapY(basisTerm(pr, i)), mapX(i + 1 + basisShift), mapY(basisTerm(pr, i + 1)),
+                kleurStap, stapTxt(pr), -24);
+        }
+        // Spookterm vóór u₁
+        if (ghost && basisShift > 0.98) {
+            const gv = basisTerm(pr, -1);
+            ring(ctx, mapX(0), mapY(gv), 7, C.emerald, 2.5, [4, 3]);
+            canvasLabel(ctx, `${uC('u', 0)} = ${fmtG(gv)}`, mapX(0) + 10, Math.min(mapY(gv) + 20, box.y1 - 6), C.emerald);
+        }
+        // Labels bij beginterm en gekozen term
+        canvasLabel(ctx, `${uC('u', start)} = ${fmtG(pr.s)}`, mapX(basisShift) + 10, Math.min(mapY(pr.s) + 20, box.y1 - 6), C.emerald);
+        if (basisK > 1) {
+            const vk = basisTerm(pr, basisK - 1);
+            canvasLabel(ctx, `${uC('u', basisK - 1 + start)} = ${fmtG(vk)}`, mapX(basisK - 1 + basisShift) + 10, Math.min(mapY(vk) + 20, box.y1 - 6), C.amber);
+        }
+        // Rangnummers onder de punten: 1e, 2e, … (in amber)
+        ctx.font = '700 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = C.amber;
+        for (let i = 0; i < N_TERMEN; i++) ctx.fillText(`${i + 1}e`, mapX(i + basisShift), box.y1 + 34);
+        ctx.textAlign = 'right';
+        ctx.fillText('term:', box.x0 - 7, box.y1 + 34);
+
+        // Termen-strook
+        let strip = '';
+        if (ghost) {
+            strip += `<div class="tile shrink-0 w-[4.6rem] rounded-xl border-2 border-dashed border-emerald-400 bg-white p-2 text-center">
+                <div class="mono font-bold text-emerald-700">${fmtG(basisTerm(pr, -1))}</div>
+                <div class="mono text-xs text-emerald-700">${uS('u', 0)}</div>
+                <div class="text-[10px] text-slate-400 font-semibold">ervoor</div></div>`;
+        }
+        for (let i = 0; i < N_TERMEN; i++) {
+            const isK = i === basisK - 1;
+            strip += `<div class="tile shrink-0 w-[4.6rem] rounded-xl border p-2 text-center ${isK ? 'border-amber-400 bg-amber-50 ring-2 ring-amber-300' : 'border-slate-200 bg-slate-50'}">
+                <div class="mono font-bold text-slate-900">${fmtG(basisTerm(pr, i))}</div>
+                <div class="mono text-xs ${i === 0 ? 'text-emerald-700 font-bold' : 'text-indigo-700'}">${uS('u', i + start)}</div>
+                <div class="text-[10px] text-amber-700 font-semibold">${i + 1}e term</div></div>`;
+        }
+        strip += '<div class="shrink-0 self-center text-slate-400 font-bold px-1">…</div>';
+        $('basis-strip').innerHTML = strip;
+
+        // Formules (donkere pil): recursief en direct, conceptkleuren
+        const b = `<span class="text-emerald-300">${fmtG(pr.s)}</span>`;
+        const n = start === 0 ? '<span class="text-amber-300">n</span>' : '<span class="text-amber-300">(n − 1)</span>';
+        let rec, dir;
+        if (pr.type === 'rr') {
+            const v = `<span class="text-sky-300">${fmt(Math.abs(pr.d))}</span>`;
+            const op = pr.d < 0 ? '−' : '+';
+            rec = `${uS('u', 'n')} = ${uS('u', 'n − 1')} ${op} ${v} met ${uS('u', start)} = ${b}`;
+            dir = `${uS('u', 'n')} = ${b} ${op} ${v} · ${n}`;
+        } else {
+            const r = `<span class="text-rose-300">${fmt(pr.d)}</span>`;
+            rec = `${uS('u', 'n')} = ${r} · ${uS('u', 'n − 1')} met ${uS('u', start)} = ${b}`;
+            dir = `${uS('u', 'n')} = ${b} · ${r}<sup class="text-amber-300">${start === 0 ? 'n' : 'n − 1'}</sup>`;
+        }
+        $('basis-formule').innerHTML = `<div class="text-[11px] text-slate-400 font-medium">recursief</div><div>${rec}</div>
+            <div class="text-[11px] text-slate-400 font-medium pt-1">direct</div><div class="text-base">${dir}</div>`;
+
+        // Uitleg met de getallen van de gekozen term
+        const k = basisK, idx = k - 1 + start, stappen = k - 1, vk = basisTerm(pr, k - 1);
+        const nTxt = start === 0 ? `${idx}` : `(${idx} − 1)`;
+        let reken;
+        if (pr.type === 'rr') {
+            const op = pr.d < 0 ? '−' : '+';
+            reken = start === 0
+                ? `${uS('u', idx)} = ${fmtG(pr.s)} ${op} ${fmt(Math.abs(pr.d))} · ${idx} = ${fmtG(vk)}`
+                : `${uS('u', idx)} = ${fmtG(pr.s)} ${op} ${fmt(Math.abs(pr.d))} · ${nTxt} = ${fmtG(pr.s)} ${op} ${fmt(Math.abs(pr.d))} · ${stappen} = ${fmtG(vk)}`;
+        } else {
+            reken = start === 0
+                ? `${uS('u', idx)} = ${fmtG(pr.s)} · ${fmt(pr.d)}<sup>${idx}</sup> = ${fmtG(vk)}`
+                : `${uS('u', idx)} = ${fmtG(pr.s)} · ${fmt(pr.d)}<sup>${idx} − 1</sup> = ${fmtG(pr.s)} · ${fmt(pr.d)}<sup>${stappen}</sup> = ${fmtG(vk)}`;
+        }
+        let html = `
+            <div class="font-bold text-indigo-900">De ${k}e term</div>
+            <div>Met beginterm ${uS('u', start)} heet de ${k}e term <strong class="mono">${uS('u', idx)}</strong>${start === 1 ? ': het indexje is gelijk aan het rangnummer.' : ` (en niet ${uS('u', k)}).`}</div>
+            <div class="mono bg-white p-2 rounded-lg border border-indigo-100">${reken}</div>
+            <div>Van de beginterm naar de ${k}e term zijn <strong>${stappen}</strong> ${stappen === 1 ? 'stap' : 'stappen'} van ${stapTxt(pr)}. Met u<sub>0</sub> is dat aantal gelijk aan n, met u<sub>1</sub> aan n − 1.</div>`;
+        if (ghost) {
+            const gv = basisTerm(pr, -1);
+            html += pr.type === 'rr'
+                ? `<div class="pt-2 border-t border-indigo-100"><strong class="text-emerald-700">Term vóór u<sub>1</sub>:</strong> ${fmtG(pr.s)} ${pr.d < 0 ? '+' : '−'} ${fmt(Math.abs(pr.d))} = ${fmtG(gv)}. Werk je de haakjes weg, dan krijg je
+                   <span class="mono">${uS('u', 'n')} = ${fmtG(pr.s)} ${pr.d < 0 ? '−' : '+'} ${fmt(Math.abs(pr.d))}n ${pr.d < 0 ? '+' : '−'} ${fmt(Math.abs(pr.d))} = ${fmtG(gv)} ${pr.d < 0 ? '−' : '+'} ${fmt(Math.abs(pr.d))} · n</span>: je rekent dan vanaf die term.</div>`
+                : `<div class="pt-2 border-t border-indigo-100"><strong class="text-emerald-700">Term vóór u<sub>1</sub>:</strong> ${fmtG(pr.s)} : ${fmt(pr.d)} = ${fmtG(gv)}. Omdat ${fmt(pr.d)}<sup>n − 1</sup> = ${fmt(pr.d)}<sup>n</sup> : ${fmt(pr.d)}, is
+                   <span class="mono">${uS('u', 'n')} = ${fmtG(pr.s)} · ${fmt(pr.d)}<sup>n − 1</sup> = ${fmtG(gv)} · ${fmt(pr.d)}<sup>n</sup></span>.</div>`;
+        }
+        $('basis-uitleg').innerHTML = html;
+        $('basis-k-label').innerText = `${k}e term`;
+    }
+
+    // Animatie: de punten schuiven één plek op als je tussen u₀ en u₁ wisselt (alleen als tab 1 zichtbaar is).
+    function animateLoop(ts) {
+        if (lastTs !== null && !$('tab-basis').classList.contains('hidden') && Math.abs(basisShift - basisStart) > 1e-3) {
+            const dt = (ts - lastTs) / 400;
+            basisShift = basisStart > basisShift ? Math.min(basisStart, basisShift + dt) : Math.max(basisStart, basisShift - dt);
+            renderBasis();
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: STAPPENPLAN FORMULE OPSTELLEN ====================
+    // Theorie B (= opgave 22), het voorbeeld met controle-term, de Terugblik en opgave 24b.
+    const stapVoorbeelden = [
+        { p: 2, up: 12, q: 5, uq: 324, type: 'rr' },                    // Theorie B: v = 104, u₀ = −196; r = 3, u₀ = 1⅓
+        { p: 2, up: 1800, q: 5, uq: 14400, type: 'mr', c: 7, uc: 46656 }, // Voorbeeld: r = 2, u₀ = 450, u₇ = 57 600 ≠ 46 656
+        { p: 3, up: 12800, q: 5, uq: 8192, type: 'rr' },                // Terugblik: v = −2304, u₀ = 19 712; r = 0,8, u₀ = 25 000
+        { p: 3, up: 54, q: 10, uq: 118098, type: 'mr' },                // Opgave 24b: r⁷ = 2187, r = 3, u₀ = 2
+    ];
+    const AANTAL_STAPPEN = 4;
+    let stapIdx = 0, huidigeStap = 1, stapType = 'rr';
+
+    function setStapVoorbeeld(i) {
+        stapIdx = i;
+        setActiveButton('stap-ex-', stapVoorbeelden.length, i);
+        setStapType(stapVoorbeelden[i].type);
+    }
+
+    function setStapType(t) {
+        stapType = t;
+        $('stap-type-rr').className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition ' + (t === 'rr' ? 'bg-sky-600 text-white' : 'bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100');
+        $('stap-type-mr').className = 'px-3 py-1.5 rounded-lg text-xs font-bold transition ' + (t === 'mr' ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100');
+        $('stap-legend-dot').className = `w-4 h-0.5 inline-block ${t === 'rr' ? 'bg-sky-600' : 'bg-rose-600'}`;
+        $('stap-legend-txt').innerText = t === 'rr' ? 'stappen van + v' : 'stappen van · r';
+        setStap(1);
+    }
+
+    function setStap(s) {
+        huidigeStap = s;
+        for (let i = 1; i <= AANTAL_STAPPEN; i++) {
+            $('stap-btn-' + i).className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        renderStap();
+    }
+
+    /** Rekent de rij uit twee termen uit: v of r, u₀ en de functie f(n). */
+    function stapReken(ex, type) {
+        const k = ex.q - ex.p;
+        if (type === 'rr') {
+            const v = (ex.uq - ex.up) / k;
+            const u0 = ex.up - ex.p * v;
+            return { k, v, u0, f: n => u0 + v * n, ok: true };
+        }
+        const ratio = ex.uq / ex.up;
+        if (ratio < 0 && k % 2 === 0) return { k, ok: false, ratio };
+        let r = Math.sign(ratio) * Math.abs(ratio) ** (1 / k);
+        if (Math.abs(r - Math.round(r * 1e6) / 1e6) < 1e-9) r = Math.round(r * 1e6) / 1e6;
+        const u0 = ex.up / r ** ex.p;
+        return { k, r, ratio, u0, f: n => u0 * r ** n, ok: true };
+    }
+
+    function renderStap() {
+        const ex = stapVoorbeelden[stapIdx];
+        const R = stapReken(ex, stapType);
+        const rr = stapType === 'rr';
+        const kleur = rr ? C.sky : C.rose;
+        const maxN = Math.max(ex.q, ex.c || 0) + (stapType === 'mr' ? 0 : 1);
+        const s = huidigeStap;
+        $('stap-u1-wrap').classList.toggle('hidden', s < 4 || !R.ok);
+
+        // Vaste y-as per voorbeeld + soort rij: alle waarden die ooit in beeld komen
+        const vals = [ex.up, ex.uq];
+        if (ex.c) vals.push(ex.uc);
+        if (R.ok) for (let n = 0; n <= maxN; n++) vals.push(R.f(n));
+        const ax = niceAxis(vals);
+        const g = drawGraph('canvas-stappen', {
+            xMin: -0.6, xMax: maxN + 0.6, yMin: ax.min, yMax: ax.max, xStep: 1, yStep: ax.step,
+            xLabel: 'n', yLabel: 'uₙ', pad: { l: 64, r: 26, t: 34 }, yTick: v => fmtG(v),
+        });
+        const { ctx, mapX, mapY } = g;
+        const dot = (n, v, color, r) => { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(mapX(n), mapY(v), r, 0, Math.PI * 2); ctx.fill(); };
+        const tekst = (t, x, y, color, align = 'left') => canvasLabel(ctx, t, x, Math.min(y, g.box.y1 - 6), color, align);
+        const spacing = mapX(1) - mapX(0);
+
+        if (R.ok && s >= 4) for (let n = 0; n <= maxN; n++) dot(n, R.f(n), '#a5b4fc', 4.5);
+        if (R.ok && s >= 2) {
+            for (let n = ex.p; n < ex.q; n++) {
+                const lab = rr ? `${R.v < 0 ? '−' : '+'} ${fmtG(Math.abs(R.v))}` : `· ${fmt(R.r, 4)}`;
+                arcArrow(ctx, mapX(n), mapY(R.f(n)), mapX(n + 1), mapY(R.f(n + 1)), kleur, (n === ex.p || spacing > 75) ? lab : '', -26);
+                if (n > ex.p) dot(n, R.f(n), kleur, 3.5);
+            }
+        }
+        if (R.ok && s >= 3) {
+            for (let n = ex.p; n > 0; n--) {
+                const lab = rr ? `${R.v < 0 ? '+' : '−'} ${fmtG(Math.abs(R.v))}` : `: ${fmt(R.r, 4)}`;
+                arcArrow(ctx, mapX(n), mapY(R.f(n)), mapX(n - 1), mapY(R.f(n - 1)), C.emerald, (n === ex.p || spacing > 75) ? lab : '', -26);
+                if (n - 1 > 0) dot(n - 1, R.f(n - 1), C.emerald, 3.5);
+            }
+            dot(0, R.u0, C.emerald, 7);
+            tekst(`${uC('u', 0)} = ${fmtFrac(R.u0)}`, mapX(0) + 10, mapY(R.u0) + 20, C.emerald);
+        }
+        // De twee gegeven termen
+        [[ex.p, ex.up], [ex.q, ex.uq]].forEach(([n, v]) => {
+            dot(n, v, C.indigo, 6.5);
+            tekst(`${uC('u', n)} = ${fmtG(v)}`, mapX(n) + (n === ex.q ? -10 : 10), mapY(v) + 20, C.indigo, n === ex.q ? 'right' : 'left');
+        });
+        // Controle met een derde term
+        if (R.ok && s >= 4 && ex.c) {
+            const fc = R.f(ex.c), klopt = Math.abs(fc - ex.uc) < 0.5;
+            ring(ctx, mapX(ex.c), mapY(ex.uc), 8, '#334155', 2.5, [4, 3]);
+            tekst(`gegeven ${uC('u', ex.c)} = ${fmtG(ex.uc)}`, mapX(ex.c) - 12, mapY(ex.uc) + 4, '#334155', 'right');
+            dot(ex.c, fc, klopt ? C.emerald : C.rose, 6.5);
+            tekst(`formule: ${fmtG(fc)} ${klopt ? '✓' : '✗'}`, mapX(ex.c) - 12, mapY(fc) + 4, klopt ? C.emerald : C.rose, 'right');
+        }
+
+        // Uitleg per stap, met de getallen van het gekozen voorbeeld
+        const up = uS('u', ex.p), uq = uS('u', ex.q);
+        const kop = t => `<div class="font-bold text-indigo-900 text-base">${t}</div>`;
+        const blok = t => `<div class="mono text-xs bg-white p-3 rounded-xl border border-indigo-200 leading-relaxed">${t}</div>`;
+        let html = '';
+        if (s === 1) {
+            html = kop('Stap 1: Kies de vorm van de directe formule') +
+                `<p>Neem aan dat u<sub>n</sub> een <strong class="${rr ? 'text-sky-700' : 'text-rose-700'}">${rr ? 'rekenkundige' : 'meetkundige'} rij</strong> is. Met beginterm u<sub>0</sub> is de directe formule van de vorm</p>` +
+                blok(rr ? `u<sub>n</sub> = <span class="text-emerald-700">u<sub>0</sub></span> + <span class="text-sky-700">v</span> · n` : `u<sub>n</sub> = <span class="text-emerald-700">u<sub>0</sub></span> · <span class="text-rose-700">r</span><sup>n</sup>`) +
+                `<p>Je kent ${up} = ${fmtG(ex.up)} en ${uq} = ${fmtG(ex.uq)}. Onbekend zijn nog ${rr ? 'v' : 'r'} en u<sub>0</sub>.</p>`;
+        } else if (s === 2) {
+            html = kop(`Stap 2: Bereken ${rr ? 'het verschil v' : 'de factor r'}`) +
+                `<p>Van ${up} naar ${uq} zijn ${ex.q} − ${ex.p} = <strong>${R.k}</strong> stappen van ${rr ? '+ v' : '· r'}.</p>`;
+            if (rr) {
+                html += blok(`v = ${fm(`{${fmtG(ex.uq)} − ${fmtG(ex.up)}|${ex.q} − ${ex.p}}`)} = ${fm(`{${fmtG(ex.uq - ex.up)}|${R.k}}`)} = <strong class="text-sky-700">${fmtG(R.v)}</strong>`);
+            } else if (!R.ok) {
+                html += blok(`r<sup>${R.k}</sup> = ${fmtG(R.ratio)} kan niet: een even macht is nooit negatief.`);
+            } else {
+                html += blok(`r<sup>${R.k}</sup> = ${fm(`{${uC('u', ex.q)}|${uC('u', ex.p)}}`)} = ${fm(`{${fmtG(ex.uq)}|${fmtG(ex.up)}}`)} = ${fmtG(R.ratio, 4)}, dus r = ${fmtG(R.ratio, 4)}<sup>${fm(`{1|${R.k}}`)}</sup> = <strong class="text-rose-700">${fmt(R.r, 4)}</strong>`);
+                if (R.k % 2 === 0) html += `<p class="text-xs text-slate-600">Ook r = −${fmt(R.r, 4)} voldoet aan r<sup>${R.k}</sup> = ${fmtG(R.ratio, 4)}. Het boek rekent verder met de positieve r.</p>`;
+                html += `<p class="text-xs text-slate-600">Op de GR: <span class="mono">${fmtG(R.ratio, 4).replace(',', '.').replace(/ /g, '')}^(1/${R.k})</span>.</p>`;
+            }
+        } else if (s === 3) {
+            html = kop('Stap 3: Reken terug naar u<sub>0</sub>');
+            if (!R.ok) html += '<p>Er bestaat geen meetkundige rij door deze twee termen.</p>';
+            else if (rr) {
+                html += `<p>Vul ${up} = ${fmtG(ex.up)} in de vorm in:</p>` +
+                    blok(`u<sub>0</sub> + ${fmtG(R.v)} · ${ex.p} = ${fmtG(ex.up)}<br>u<sub>0</sub> = ${fmtG(ex.up)} ${R.v * ex.p < 0 ? '+' : '−'} ${fmtG(Math.abs(R.v * ex.p))} = <strong class="text-emerald-700">${fmtG(R.u0)}</strong>`) +
+                    `<p>De groene bogen: ${ex.p} ${ex.p === 1 ? 'stap' : 'stappen'} terug van ${up} naar u<sub>0</sub>.</p>`;
+            } else {
+                html += `<p>Vul ${up} = ${fmtG(ex.up)} in de vorm in:</p>` +
+                    blok(`u<sub>0</sub> · ${fmt(R.r, 4)}<sup>${ex.p}</sup> = ${fmtG(ex.up)}<br>u<sub>0</sub> = ${fm(`{${fmtG(ex.up)}|${fmtG(R.r ** ex.p, 4)}}`)} = <strong class="text-emerald-700">${fmtFrac(R.u0)}</strong>`) +
+                    `<p>De groene bogen: ${ex.p} ${ex.p === 1 ? 'stap' : 'stappen'} terug, dus ${ex.p} keer delen door ${fmt(R.r, 4)}.</p>`;
+            }
+        } else {
+            html = kop('Stap 4: Directe formule en controle');
+            if (!R.ok) html += '<p>Er bestaat geen meetkundige rij door deze twee termen.</p>';
+            else {
+                const formule = rr
+                    ? `u<sub>n</sub> = ${fmtG(R.u0)} ${R.v < 0 ? '−' : '+'} ${fmtG(Math.abs(R.v))} · n`
+                    : `u<sub>n</sub> = ${fmtFrac(R.u0)} · ${fmt(R.r, 4)}<sup>n</sup>`;
+                html += blok(`<strong>${formule}</strong>`);
+                html += rr
+                    ? `<p class="text-xs">Controle: u<sub>${ex.q}</sub> = ${fmtG(R.u0)} ${R.v < 0 ? '−' : '+'} ${fmtG(Math.abs(R.v))} · ${ex.q} = ${fmtG(R.f(ex.q))} ✓</p>`
+                    : `<p class="text-xs">Controle: u<sub>${ex.q}</sub> = ${fmtFrac(R.u0)} · ${fmt(R.r, 4)}<sup>${ex.q}</sup> = ${fmtG(R.f(ex.q))} ✓</p>`;
+                if (ex.c) {
+                    const fc = R.f(ex.c), klopt = Math.abs(fc - ex.uc) < 0.5;
+                    html += `<p class="text-xs p-2 rounded-lg ${klopt ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'}">Gegeven is ook u<sub>${ex.c}</sub> = ${fmtG(ex.uc)}. De formule geeft u<sub>${ex.c}</sub> = ${fmtG(fc)}.
+                        ${klopt ? 'Dat klopt.' : `${fmtG(fc)} ≠ ${fmtG(ex.uc)}, dus u<sub>n</sub> is geen ${rr ? 'rekenkundige' : 'meetkundige'} rij.`}</p>`;
+                }
+                if ($('chk-stap-u1').checked) {
+                    const u1 = R.f(1);
+                    html += `<div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs space-y-1">
+                        <div><strong class="text-emerald-800">Met beginterm u<sub>1</sub>:</strong> u<sub>1</sub> = ${rr ? `${fmtG(R.u0)} ${R.v < 0 ? '−' : '+'} ${fmtG(Math.abs(R.v))}` : `${fmtFrac(R.u0)} · ${fmt(R.r, 4)}`} = ${fmtFrac(u1)}</div>
+                        <div class="mono">${rr ? `u<sub>n</sub> = ${fmtG(u1)} ${R.v < 0 ? '−' : '+'} ${fmtG(Math.abs(R.v))} · (n − 1)` : `u<sub>n</sub> = ${fmtFrac(u1)} · ${fmt(R.r, 4)}<sup>n − 1</sup>`}</div>
+                        <div>Werk je dit uit, dan krijg je weer de formule hierboven: het is dezelfde rij.</div></div>`;
+                }
+            }
+        }
+        $('stap-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 3: NOTATIES ====================
+    // Recursie in de vorm: nieuwe term = a · vorige + b + c · (rangnummer van de nieuwe term).
+    const notatiePresets = [
+        { L: 'u', a: 1, b: 15, c: 0, n0: 1, s0: 100, style: 'index', dir: 'terug' },                  // Theorie C / opgave 28
+        { L: 'B', a: 1, b: 18, c: 0, n0: 0, s0: 50, style: 'index', dir: 'terug', direct: true },     // Theorie C: B₀ = 50
+        { L: 'u', a: 1, b: 0, c: 2, n0: 0, s0: 32, style: 'index', dir: 'terug' },                    // Opgave 30a
+        { L: 'u', a: 1.03, b: 0, c: -500, n0: 0, s0: 15000, style: 'index', dir: 'terug' },           // Terugblik
+        { L: 'a', a: 4, b: -3, c: 0, n0: 0, s0: 12, style: 'haakjes', dir: 'vooruit' },               // Opgave 31b
+    ];
+    const LETTERS = ['u', 'A', 'B', 'a'];
+    let notIdx = 0, notL = 'u', notStyle = 'index', notDir = 'terug';
+
+    function setNotPreset(i) {
+        notIdx = i;
+        const pr = notatiePresets[i];
+        notL = pr.L; notStyle = pr.style; notDir = pr.dir;
+        $('chk-fout1').checked = false;
+        $('chk-fout2').checked = false;
+        setActiveButton('not-preset-', notatiePresets.length, i);
+        renderNotaties();
+    }
+    function setNotL(i) { notL = LETTERS[i]; renderNotaties(); }
+    function setNotStyle(s) { notStyle = s; renderNotaties(); }
+    function setNotDir(d) { notDir = d; renderNotaties(); }
+
+    /** Beginterm-index na de klassieke fout "beginterm verschuift mee". */
+    const n0Fout = pr => pr.n0 >= 1 ? pr.n0 - 1 : pr.n0 + 1;
+
+    function notFormule(L, style, dir, pr, fout1, fout2, kleur) {
+        const T = idx => style === 'index' ? uS(L, idx) : `${L}(${idx})`;
+        const left = dir === 'terug' ? T('n') : T('n + 1');
+        const prev = dir === 'terug' ? T('n − 1') : T('n');
+        const coef = pr.a === 1 ? '' : `${fmt(pr.a)} · `;
+        const cst = pr.b ? ` ${pr.b < 0 ? '−' : '+'} ${fmtG(Math.abs(pr.b))}` : '';
+        let nExpr = dir === 'terug' ? 'n' : 'n + 1';
+        const fout1Actief = fout1 && pr.c && dir !== pr.dir;
+        if (fout1Actief) nExpr = pr.dir === 'terug' ? 'n' : 'n + 1';
+        const nCls = !kleur ? '' : fout1Actief ? 'text-rose-400 underline decoration-wavy' : 'text-amber-300';
+        const nTerm = pr.c ? ` ${pr.c < 0 ? '−' : '+'} <span class="${nCls}">${fmt(Math.abs(pr.c))} · ${nExpr === 'n' ? 'n' : '(' + nExpr + ')'}</span>` : '';
+        const n0 = fout2 ? n0Fout(pr) : pr.n0;
+        const bCls = !kleur ? '' : fout2 ? 'text-rose-400 underline decoration-wavy' : 'text-emerald-300';
+        return `${left} = ${coef}${prev}${cst}${nTerm} met <span class="${bCls}">${T(String(n0))} = ${fmtG(pr.s0)}</span>`;
+    }
+
+    /** Termen van de rij volgens een notatie (met of zonder klassieke fout). */
+    function notReeks(pr, dir, fout1, fout2) {
+        const n0 = fout2 ? n0Fout(pr) : pr.n0;
+        const t = { [n0]: pr.s0 };
+        const fout1Actief = fout1 && pr.c && dir !== pr.dir;
+        for (let m = n0 + 1; m <= n0 + 9; m++) {
+            let nVal = m;
+            if (fout1Actief) nVal = dir === 'vooruit' ? m - 1 : m + 1;
+            t[m] = pr.a * t[m - 1] + pr.b + pr.c * nVal;
+        }
+        return t;
+    }
+
+    function renderNotaties() {
+        const pr = notatiePresets[notIdx];
+        const fout1 = $('chk-fout1').checked, fout2 = $('chk-fout2').checked;
+        // Knoppen
+        LETTERS.forEach((L, i) => { $('not-L-' + i).className = 'py-1.5 rounded-lg text-sm font-bold mono transition ' + (L === notL ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'); });
+        $('not-style-0').className = 'py-1.5 rounded-lg text-xs font-bold mono transition ' + (notStyle === 'index' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100');
+        $('not-style-1').className = 'py-1.5 rounded-lg text-xs font-bold mono transition ' + (notStyle === 'haakjes' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100');
+        $('not-dir-0').className = 'py-1.5 rounded-lg text-xs font-bold mono transition ' + (notDir === 'terug' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200 hover:bg-amber-100');
+        $('not-dir-1').className = 'py-1.5 rounded-lg text-xs font-bold mono transition ' + (notDir === 'vooruit' ? 'bg-amber-600 text-white' : 'bg-white text-amber-900 border border-amber-200 hover:bg-amber-100');
+        const T = idx => notStyle === 'index' ? uS(notL, idx) : `${notL}(${idx})`;
+        $('not-dir-0').innerHTML = `${T('n')} = … ${T('n − 1')}`;
+        $('not-dir-1').innerHTML = `${T('n + 1')} = … ${T('n')}`;
+        $('fout1-wrap').classList.toggle('opacity-50', !pr.c);
+        $('chk-fout1').disabled = !pr.c;
+
+        // Formules
+        $('not-orig').innerHTML = notFormule(pr.L, pr.style, pr.dir, pr, false, false, false);
+        $('not-nieuw').innerHTML = notFormule(notL, notStyle, notDir, pr, fout1, fout2, true);
+        if (pr.direct) {
+            // B(n) = 50 + 18 · n (beginterm B₀): vooruit wordt n overal n + 1
+            const nx = notDir === 'terug' ? 'n' : '(n + 1)';
+            $('not-direct').innerHTML = `Directe formule in jouw notatie: <span class="mono text-white font-semibold">${notDir === 'terug' ? T('n') : T('n + 1')} = ${fmtG(pr.s0)} + ${fmtG(pr.b)} · ${nx}</span>
+                <span class="text-slate-400">(${notDir === 'terug' ? 'zoals in het boek' : `vervang elke n door n + 1; uitgewerkt ${fmtG(pr.s0 + pr.b)} + ${fmtG(pr.b)} · n`})</span>`;
+            $('not-direct').classList.remove('hidden');
+        } else {
+            $('not-direct').classList.add('hidden');
+        }
+
+        // Tabel: origineel vs jouw notatie
+        const orig = notReeks(pr, pr.dir, false, false);
+        const nieuw = notReeks(pr, notDir, fout1, fout2);
+        let rows = '', allesGelijk = true;
+        const nMax = pr.n0 + 6;
+        for (let m = pr.n0; m <= nMax; m++) {
+            const a = orig[m], b = nieuw[m];
+            const gelijk = b !== undefined && Math.abs(a - b) < 1e-6;
+            if (!gelijk) allesGelijk = false;
+            rows += `<tr class="border-t border-slate-100 ${gelijk ? '' : 'bg-rose-50'}"><td class="px-3 py-1 font-bold text-amber-700">${m}</td>
+                <td class="px-3 py-1 text-right">${fmtG(a)}</td><td class="px-3 py-1 text-right ${gelijk ? 'text-indigo-700' : 'text-rose-700 font-bold'}">${b === undefined ? '–' : fmtG(b)}</td>
+                <td class="px-3 py-1 text-center">${gelijk ? '<span class="text-emerald-600 font-bold">✓</span>' : '<span class="text-rose-600 font-bold">✗</span>'}</td></tr>`;
+        }
+        $('not-tabel').innerHTML = rows;
+
+        // Grafiek: ringen = boek, stippen = jouw notatie
+        const vals = [];
+        for (let m = pr.n0; m <= nMax; m++) { vals.push(orig[m]); if (nieuw[m] !== undefined) vals.push(nieuw[m]); }
+        const ax = niceAxis(vals);
+        const g = drawGraph('canvas-notaties', {
+            xMin: -0.6, xMax: nMax + 0.6, yMin: ax.min, yMax: ax.max, xStep: 1, yStep: ax.step,
+            xLabel: 'n', yLabel: notStyle === 'index' ? uC(notL, 'n') : `${notL}(n)`, pad: { l: 62 }, yTick: v => fmtG(v),
+        });
+        for (let m = pr.n0; m <= nMax; m++) {
+            ring(g.ctx, g.mapX(m), g.mapY(orig[m]), 9, '#94a3b8', 2.5);
+            if (nieuw[m] !== undefined) {
+                const gelijk = Math.abs(orig[m] - nieuw[m]) < 1e-6;
+                g.ctx.fillStyle = gelijk ? C.indigo : C.rose;
+                g.ctx.beginPath();
+                g.ctx.arc(g.mapX(m), g.mapY(nieuw[m]), 5, 0, Math.PI * 2);
+                g.ctx.fill();
+            }
+        }
+
+        // Uitleg
+        let html;
+        if (allesGelijk) {
+            html = `<div class="font-bold text-emerald-700">✓ Alle termen zijn gelijk</div>
+                <div>Het is dezelfde rij, alleen anders opgeschreven. ${notDir !== pr.dir && pr.c ? 'De losse n is netjes mee veranderd.' : ''}</div>`;
+        } else {
+            html = '<div class="font-bold text-rose-700">✗ Dit is een andere rij geworden</div>';
+            if (fout1 && pr.c && notDir !== pr.dir) {
+                html += `<div>De losse n hoort bij de nieuwe term. Links staat nu ${T('n + 1')}, dus ${fmt(Math.abs(pr.c))} · n moet ${fmt(Math.abs(pr.c))} · (n + 1) worden. Vanaf de tweede term klopt de tabel niet meer.</div>`;
+            }
+            if (fout2) {
+                html += `<div>De beginterm hoort bij hetzelfde rangnummer te blijven: ${T(String(pr.n0))} = ${fmtG(pr.s0)}. Door de verschuiving staat elke term één plek verkeerd.</div>`;
+            }
+        }
+        if (!fout1 && !fout2 && pr.c && notDir === pr.dir) {
+            html += `<div class="text-amber-800">Kies rechts "${notStyle === 'index' ? uS(notL, 'n + 1') : notL + '(n + 1)'} = …" en zet daarna fout 1 aan: dan zie je waarom de losse n ook verandert.</div>`;
+        }
+        $('not-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 4: RIJEN OP DE GR (TI-84 Plus CE-simulator) ====================
+    // Formule-lezer voor wat je achter u(n)= typt, zoals op de GR: 1.05u(n-1)-100, 2n²-3n+4, u(n-1)+u(n-2).
+    function seqParse(src) {
+        const s = String(src).replace(/[−–]/g, '-').replace(/,/g, '.').replace(/[·×]/g, '*').replace(/\s+/g, '');
+        let i = 0;
+        const fout = msg => { throw new Error(msg); };
+        function expr() {
+            let node = term();
+            while (s[i] === '+' || s[i] === '-') { const op = s[i++]; node = { op, a: node, b: term() }; }
+            return node;
+        }
+        function term() {
+            let node = signed();
+            for (;;) {
+                const c = s[i];
+                if (c === '*' || c === '/') { i++; node = { op: c, a: node, b: signed() }; }
+                else if (c !== undefined && /[\d.nu(]/.test(c)) node = { op: '*', a: node, b: power() }; // 2n, 1.05u(n−1)
+                else break;
+            }
+            return node;
+        }
+        function signed() {
+            if (s[i] === '-') { i++; return { op: 'neg', a: signed() }; }
+            return power();
+        }
+        function power() {
+            let base = primary();
+            for (;;) {
+                if (s[i] === '^') { i++; base = { op: '^', a: base, b: signed() }; }
+                else if (s[i] === '²') { i++; base = { op: '^', a: base, b: { num: 2 } }; }
+                else if (s[i] === '³') { i++; base = { op: '^', a: base, b: { num: 3 } }; }
+                else break;
+            }
+            return base;
+        }
+        function primary() {
+            const c = s[i];
+            if (c === undefined) fout('de formule houdt te vroeg op');
+            const m = s.slice(i).match(/^(\d+\.?\d*|\.\d+)/);
+            if (m) { i += m[0].length; return { num: parseFloat(m[0]) }; }
+            if (c === 'n') { i++; return { n: true }; }
+            if (c === 'u') {
+                i++;
+                if (s[i] !== '(') fout('na u hoort een haakje: u(n−1)');
+                i++;
+                const e = expr();
+                if (s[i] === ')') i++; else if (i < s.length) fout('haakje sluiten ontbreekt');
+                return { u: e };
+            }
+            if (c === '(') {
+                i++;
+                const e = expr();
+                if (s[i] === ')') i++; else if (i < s.length) fout('haakje sluiten ontbreekt');
+                return e;
+            }
+            fout(`het teken "${c}" kent de GR hier niet`);
+        }
+        if (s === '') fout('er staat nog geen formule');
+        const tree = expr();
+        if (i < s.length) fout(`onverwacht teken "${s[i]}"`);
+        const usesU = JSON.stringify(tree).includes('"u"');
+        return { tree, usesU, komma: String(src).includes(',') };
+    }
+
+    function seqEval(node, n, look) {
+        if ('num' in node) return node.num;
+        if (node.n) return n;
+        if (node.u) return look(seqEval(node.u, n, look));
+        const a = seqEval(node.a, n, look);
+        if (node.op === 'neg') return -a;
+        const b = seqEval(node.b, n, look);
+        switch (node.op) {
+            case '+': return a + b;
+            case '-': return a - b;
+            case '*': return a * b;
+            case '/': return a / b;
+            case '^': return a ** b;
+        }
+        return NaN;
+    }
+
+    const grPresets = [
+        // Voorbeeld p. 24: Kₙ = 1,05 · Kₙ₋₁ − 100, K₀ = 1000 → a: n = 7 en 8 tussen 500 en 600; b: K < 0 vanaf n = 15
+        { type: 0, nMin: '0', un: '1.05u(n-1)-100', u0: '1000', u1: '', lo: '500', hi: '600',
+          boek: 'K_n = 1,05 · K_[n − 1] − 100 met K_0 = 1000', vraag: 'a. Voor welke n ligt K_n tussen 500 en 600? b. Vanaf welke n is K_n < 0? (zet dan "kleiner dan" op 0)' },
+        // Opgave 33: L(n) = 0,96 · L(n − 1) + 200, L(0) = 1000
+        { type: 0, nMin: '0', un: '0.96u(n-1)+200', u0: '1000', u1: '', lo: '2000', hi: '2500',
+          boek: 'L(n) = 0,96 · L(n − 1) + 200 met L(0) = 1000', vraag: 'a. Voor welke n ligt L(n) tussen 2000 en 2500? b. Vanaf welke n is L(n) > 3000?' },
+        // Opgave 36: uₙ = 1,5 · uₙ₋₁ + 2n, u₀ = 10
+        { type: 0, nMin: '0', un: '1.5u(n-1)+2n', u0: '10', u1: '', lo: '10000', hi: '',
+          boek: 'u_n = 1,5 · u_[n − 1] + 2n met u_0 = 10', vraag: 'b. Vanaf de hoeveelste term is u_n > 10 000?' },
+        // Terugblik: uₙ = 2 · uₙ₋₁ − 3 · uₙ₋₂ met u₀ = 5 en u₁ = 10
+        { type: 0, nMin: '0', un: '2u(n-1)-3u(n-2)', u0: '5', u1: '10', lo: '', hi: '',
+          boek: 'u_n = 2 · u_[n − 1] − 3 · u_[n − 2] met u_0 = 5 en u_1 = 10', vraag: 'Twee begintermen: u(0) én u(1) invullen.' },
+        // Terugblik: directe formule uₙ = 2n² − 3n + 4
+        { type: 0, nMin: '0', un: '2n²-3n+4', u0: '', u1: '', lo: '', hi: '',
+          boek: 'u_n = 2n² − 3n + 4', vraag: 'Een directe formule heeft geen beginterm nodig: u(0) blijft leeg.' },
+        // Leeg
+        { type: 0, nMin: '1', un: '', u0: '', u1: '', lo: '', hi: '', boek: '', vraag: 'Je GR zet nMin standaard op 1. Typ zelf een rij in, bijvoorbeeld uit een opgave.' },
+    ];
+    // De GR-schermen zijn Nederlandstalig, zoals in het boek (afspraak voor heel H12).
+    const gr = { type: 0, top: 0, sel: null, data: null };
+
+    function setGrPreset(i) {
+        const pr = grPresets[i];
+        setActiveButton('gr-preset-', grPresets.length, i);
+        $('ti-nmin').value = pr.nMin;
+        $('ti-un').value = pr.un;
+        $('ti-u0').value = pr.u0;
+        $('ti-u1').value = pr.u1;
+        $('ti-lo').value = pr.lo;
+        $('ti-hi').value = pr.hi;
+        $('gr-boekformule').innerHTML = pr.boek
+            ? `<span class="text-xs font-bold text-slate-500 uppercase tracking-wider">In het boek:</span> <span class="mono font-semibold">${fmr(pr.boek)}</span> <span class="text-slate-500">· ${fmr(pr.vraag)}</span>`
+            : `<span class="text-slate-500">${pr.vraag}</span>`;
+        gr.type = pr.type;
+        setGrType(pr.type, true);
+        tiUpdate(true);
+    }
+
+    function setGrType(t, stil) {
+        gr.type = t;
+        $('ti-type-0').className = 'px-1 rounded ' + (t === 0 ? 'bg-slate-900 text-white' : 'hover:bg-white/60');
+        $('ti-type-1').className = 'px-1 rounded ' + (t === 1 ? 'bg-slate-900 text-white' : 'hover:bg-white/60');
+        if (!stil) tiUpdate(false);
+    }
+
+    /** Getal zoals in een TI-tabelcel: hooguit 6 tekens, punt als decimaalteken (842.38, 1.35E6). */
+    function tiCell(v) {
+        if (!isFinite(v)) return 'ERROR';
+        if (v === 0) return '0';
+        const neg = v < 0, a = Math.abs(v), room = neg ? 5 : 6;
+        if (a >= 10 ** room || a < 1e-3) {
+            const e = Math.floor(Math.log10(a));
+            for (let k = 3; k >= 0; k--) {
+                const s = (a / 10 ** e).toFixed(k).replace(/\.?0+$/, '') + 'E' + e;
+                if (s.length <= room + 1 || k === 0) return (neg ? '-' : '') + s;
+            }
+        }
+        const intDigits = a < 1 ? 1 : Math.floor(Math.log10(a)) + 1;
+        const dec = Math.max(0, room - intDigits - 1);
+        let s = a.toFixed(dec);
+        if (s.includes('.')) s = s.replace(/\.?0+$/, '');
+        return (neg ? '-' : '') + s;
+    }
+    /** Volledige waarde onderaan het tabelscherm (tot 10 cijfers). */
+    function tiFull(v) {
+        if (!isFinite(v)) return 'ERROR';
+        if (Math.abs(v) >= 1e10) return v.toExponential(6).replace(/\.?0+e/, 'e').replace('e+', 'E').replace('e', 'E');
+        return String(Number(v.toPrecision(10)));
+    }
+
+    /** Rekent de rij uit zoals de GR dat doet; geeft { nMin, vals, fout, ... }. */
+    function tiCompute() {
+        const res = { nMin: 0, vals: {}, fout: null, waarschuwing: null, nMax: 0 };
+        const nMin = Number($('ti-nmin').value.trim());
+        if (!Number.isInteger(nMin) || nMin < 0) { res.fout = 'nMin moet een geheel getal zijn (0 of hoger).'; return res; }
+        res.nMin = nMin;
+        res.nMax = nMin + 400;
+        if ($('ti-un').value.trim() === '') { res.fout = 'Typ achter u(n)= een formule, zoals je dat op je GR doet.'; return res; }
+        let P;
+        try { P = seqParse($('ti-un').value); } catch (e) { res.fout = `Syntaxfout: ${e.message}.`; return res; }
+        if (P.komma) res.waarschuwing = 'Op de GR is een kommagetal een punt: typ 1.05, niet 1,05.';
+        const leesStart = id => {
+            const raw = $(id).value.trim();
+            if (raw === '') return null;
+            const v = parseNum(raw);
+            if (!isFinite(v)) throw new Error('ongeldige beginterm');
+            return v;
+        };
+        let init0, init1;
+        try { init0 = leesStart('ti-u0'); init1 = leesStart('ti-u1'); } catch (e) { res.fout = 'Syntaxfout: een beginterm is geen getal.'; return res; }
+        const t = res.vals;
+        const shift = gr.type === 1 ? 1 : 0; // RIJ(n+1): formule voor u(n+1), dus n = m − 1
+        for (let m = nMin; m <= res.nMax; m++) {
+            let v;
+            try {
+                if (!P.usesU) v = seqEval(P.tree, m - shift, () => NaN);
+                else if (m === nMin) {
+                    if (init0 === null) throw new Error(`vul u(${nMin}) in: zonder beginterm kan de GR een recursieve formule niet doorrekenen`);
+                    v = init0;
+                } else if (m === nMin + 1 && init1 !== null) v = init1;
+                else {
+                    v = seqEval(P.tree, m - shift, idx => {
+                        const k = Math.round(idx);
+                        if (Math.abs(idx - k) > 1e-9 || k < nMin || k >= m) {
+                            throw new Error(k === nMin - 1 && m === nMin + 1
+                                ? `deze formule kijkt twee termen terug: vul ook u(${nMin + 1}) in`
+                                : gr.type === 1 && k >= m ? 'bij TYPE RIJ(n+1) gebruik je u(n), niet u(n+1)' : `de GR kent u(${k}) niet`);
+                        }
+                        return t[k];
+                    });
+                }
+            } catch (e) {
+                if (!res.fout) res.fout = e.message.charAt(0).toUpperCase() + e.message.slice(1) + '.';
+                v = NaN;
+            }
+            if (!isFinite(v) || Math.abs(v) > 1e99) {
+                for (let j = m; j <= res.nMax; j++) t[j] = NaN;
+                break;
+            }
+            t[m] = v;
+        }
+        return res;
+    }
+
+    /** Lijst van rangnummers als tekst: "7 en 8", "8 t/m 11", "12, 14 en 16". */
+    function nLijst(ns) {
+        const runs = [];
+        ns.forEach(n => {
+            const last = runs[runs.length - 1];
+            if (last && n === last[1] + 1) last[1] = n; else runs.push([n, n]);
+        });
+        const parts = [];
+        runs.forEach(([a, b]) => {
+            if (b - a >= 2) parts.push(`${a} t/m ${b}`);
+            else for (let n = a; n <= b; n++) parts.push(String(n));
+        });
+        return parts.length === 1 ? parts[0] : parts.slice(0, -1).join(', ') + ' en ' + parts[parts.length - 1];
+    }
+
+    function tiScroll(d) {
+        if (!gr.data) return;
+        gr.top = Math.max(gr.data.nMin, gr.top + d);
+        tiRender();
+    }
+    function tiSelect(n) {
+        gr.sel = gr.sel === n ? null : n;
+        tiRender();
+    }
+
+    function tiUpdate(reset) {
+        gr.data = tiCompute();
+        if (reset || gr.top < gr.data.nMin) { gr.top = gr.data.nMin; gr.sel = null; }
+        tiRender();
+    }
+
+    function tiRender() {
+        const D = gr.data;
+        const nMin = D.nMin;
+        const typeLbl = gr.type === 1 ? 'u(n+1)=' : 'u(n)=';
+        $('ti-lbl-un').innerText = typeLbl;
+        $('ti-lbl-u0').innerText = `u(${nMin})=`;
+        $('ti-lbl-u1').innerText = `u(${nMin + 1})=`;
+        $('ti-lbl-v0').innerText = `v(${nMin})=`;
+        $('ti-tblstart').innerText = `TblStart=${gr.top}`;
+        const foutBox = $('ti-fout');
+        const melding = [D.fout, D.waarschuwing].filter(Boolean).join(' ');
+        foutBox.innerText = melding;
+        foutBox.classList.toggle('hidden', !melding);
+
+        const lo = parseNum($('ti-lo').value), hi = parseNum($('ti-hi').value);
+        const heeftLo = isFinite(lo), heeftHi = isFinite(hi);
+        const voldoet = v => isFinite(v) && (heeftLo || heeftHi) && (!heeftLo || v > lo) && (!heeftHi || v < hi);
+
+        // Tabel (9 rijen)
+        let rows = '';
+        for (let n = gr.top; n < gr.top + 9; n++) {
+            const v = D.vals[n];
+            const hit = voldoet(v);
+            rows += `<tr class="${hit ? 'ti-hit' : ''}" onclick="tiSelect(${n})"><td class="text-center">${n}</td>
+                <td class="ti-val ${gr.sel === n ? 'ti-sel' : ''}">${v === undefined ? (D.fout ? 'ERROR' : '') : tiCell(v)}</td><td></td></tr>`;
+        }
+        $('ti-tbody').innerHTML = rows;
+        $('ti-bottom').innerText = gr.sel === null ? `n=${gr.top}` : `u(n)=${tiFull(D.vals[gr.sel])}`;
+
+        // Grafiek van 20 termen vanaf de bovenste tabelrij
+        const n0 = gr.top, n1 = gr.top + 19;
+        const vals = [];
+        for (let n = n0; n <= n1; n++) if (isFinite(D.vals[n])) vals.push(D.vals[n]);
+        if (heeftLo) vals.push(lo);
+        if (heeftHi) vals.push(hi);
+        const ax = niceAxis(vals.length ? vals : [0, 1], 5);
+        const g = drawGraph('canvas-gr', {
+            xMin: n0 - 0.6, xMax: n1 + 0.6, yMin: ax.min, yMax: ax.max, xStep: n1 - n0 > 12 ? 2 : 1, yStep: ax.step,
+            xLabel: 'n', yLabel: 'u', pad: { l: 58, r: 18 }, yTick: v => fmtG(v),
+            hLines: [
+                ...(heeftLo ? [{ y: lo, color: C.orange, width: 1.5 }] : []),
+                ...(heeftHi ? [{ y: hi, color: C.orange, width: 1.5 }] : []),
+            ],
+            points: Array.from({ length: n1 - n0 + 1 }, (_, i) => n0 + i)
+                .filter(n => isFinite(D.vals[n]))
+                .map(n => ({ x: n, y: D.vals[n], color: voldoet(D.vals[n]) ? C.orange : C.indigo, r: gr.sel === n ? 6.5 : 4 })),
+        });
+        // Grenslabels: de bovengrens erboven, de ondergrens eronder, zodat ze niet over elkaar vallen
+        if (heeftHi) canvasLabel(g.ctx, `< ${fmtG(hi)}`, g.box.x0 + 6, Math.max(g.box.y0 + 12, g.mapY(hi) - 5), C.orange);
+        if (heeftLo) canvasLabel(g.ctx, `> ${fmtG(lo)}`, g.box.x0 + 6, Math.min(g.box.y1 - 4, g.mapY(lo) + 15), C.orange);
+        if (gr.sel !== null && isFinite(D.vals[gr.sel]) && gr.sel >= n0 && gr.sel <= n1) ring(g.ctx, g.mapX(gr.sel), g.mapY(D.vals[gr.sel]), 9, '#0f172a', 2);
+
+        // Uitleg: wat lees je af?
+        const alle = [];
+        for (let n = nMin; n <= D.nMax; n++) if (isFinite(D.vals[n])) alle.push(n);
+        const termNr = n => n - nMin + 1;
+        let html = '';
+        if (D.fout && !alle.length) {
+            html = `<div class="font-bold text-rose-700">De GR kan deze rij nog niet doorrekenen</div><div>${esc(D.fout)}</div>`;
+        } else if (!heeftLo && !heeftHi) {
+            html = `<div class="font-bold text-indigo-900">Lees af in de tabel</div>
+                <div>Klik een rij in de tabel: onderaan het scherm zie je dan de volledige waarde, net als op je GR.</div>
+                <div>Vul rechtsboven een grens in ("groter dan", "kleiner dan" of allebei) om te zien welke termen voldoen.</div>`;
+        } else {
+            const hits = alle.filter(n => voldoet(D.vals[n]));
+            const grensTxt = heeftLo && heeftHi ? `tussen ${fmtG(lo)} en ${fmtG(hi)}` : heeftLo ? `groter dan ${fmtG(lo)}` : `kleiner dan ${fmtG(hi)}`;
+            if (!hits.length) {
+                html = `<div class="font-bold text-indigo-900">Geen term ${grensTxt}</div><div>Tot en met n = ${alle[alle.length - 1]} voldoet geen enkele term. Controleer de grenzen en je invoer.</div>`;
+            } else if (heeftLo && heeftHi) {
+                const zichtbaar = hits.slice(0, 40);
+                html = `<div class="font-bold text-orange-700">u(n) ligt ${grensTxt} voor n = ${nLijst(zichtbaar)}${hits.length > 40 ? ' …' : ''}</div>`;
+                const eerste = hits[0], laatste = zichtbaar[zichtbaar.length - 1];
+                const voor = eerste - 1 >= nMin ? `u(${eerste - 1}) ≈ ${fmtG(D.vals[eerste - 1])}, ` : '';
+                const na = isFinite(D.vals[laatste + 1]) ? `, u(${laatste + 1}) ≈ ${fmtG(D.vals[laatste + 1])}` : '';
+                const midden = laatste === eerste ? '' : laatste === eerste + 1 ? `, u(${laatste}) ≈ ${fmtG(D.vals[laatste])}` : ` … u(${laatste}) ≈ ${fmtG(D.vals[laatste])}`;
+                html += `<div class="mono">${voor}u(${eerste}) ≈ ${fmtG(D.vals[eerste])}${midden}${na}</div>
+                    <div>Noem in je antwoord ook de termen net buiten de grenzen, zoals in het voorbeeld van het boek.</div>`;
+            } else {
+                const eerste = hits[0];
+                const blijft = alle.filter(n => n > eerste).every(n => voldoet(D.vals[n]));
+                html = `<div class="font-bold text-orange-700">Voor het eerst ${grensTxt} bij n = ${eerste}</div>
+                    <div class="mono">${eerste - 1 >= nMin ? `u(${eerste - 1}) ≈ ${fmtG(D.vals[eerste - 1])} en ` : ''}u(${eerste}) ≈ ${fmtG(D.vals[eerste])}</div>
+                    <div>${blijft ? `Daarna blijft het zo, dus <strong>vanaf n = ${eerste}</strong>.` : 'Let op: daarna voldoen niet alle termen; kijk verder in de tabel.'}</div>`;
+                if (nMin !== 1) html += `<div class="text-amber-800">De rij begint bij u(${nMin}), dus u(${eerste}) is de <strong>${termNr(eerste)}e term</strong>. Vraagt het boek "vanaf de hoeveelste term", dan is dat het antwoord.</div>`;
+            }
+            html += '<div class="text-slate-500">De oranje markering is een hulp in deze les; je echte GR kleurt niets.</div>';
+        }
+        $('ti-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    const exercises = {
+        q1: {
+            // 20a: 30/24 = 37,5/30 = 1,25 → 24 · 1,25ⁿ⁻¹ ; 20c: 12,8 − 13,5 = −0,7 → 13,5 − 0,7(n − 1)
+            fields: { 'q1-1': 24, 'q1-2': 1.25, 'q1-3': 13.5, 'q1-4': 0.7 },
+            hint: 'Kijk of het verschil of de factor tussen opvolgende termen gelijk blijft, en gebruik de formule met beginterm u₁ (tab 1).',
+            goed: 'Goed: beide rijen beginnen bij u₁.',
+            uitwerking: `a. 30 : 24 = 1,25 en 37½ : 30 = 1,25: een meetkundige rij met u<sub>1</sub> = 24 en r = 1,25, dus <span class="mono">u<sub>n</sub> = 24 · 1,25<sup>n − 1</sup></span>.<br>
+                c. 12,8 − 13,5 = −0,7 en 12,1 − 12,8 = −0,7: een rekenkundige rij met u<sub>1</sub> = 13,5 en v = −0,7, dus <span class="mono">u<sub>n</sub> = 13,5 − 0,7 · (n − 1)</span>.`,
+        },
+        q2: {
+            // 20b: 63 + 7(n − 1) = 56 + 7n ; 20d: 1024 · 0,25ⁿ⁻¹ = 4096 · 0,25ⁿ
+            fields: { 'q2-1': 56, 'q2-2': 7, 'q2-3': 4096, 'q2-4': 0.25 },
+            hint: 'Schrijf eerst de formule met (n − 1). Werk dan de haakjes weg, of reken één stap terug naar de term vóór u₁ (tab 1, vinkje "toon de term vóór u₁").',
+            goed: 'Goed herleid!',
+            uitwerking: `b. Rekenkundig met u<sub>1</sub> = 63 en v = 7: <span class="mono">u<sub>n</sub> = 63 + 7 · (n − 1) = 63 + 7n − 7 = 56 + 7 · n</span>. Het getal 56 is de term vóór 63.<br>
+                d. Meetkundig met u<sub>1</sub> = 1024 en r = 0,25: <span class="mono">u<sub>n</sub> = 1024 · 0,25<sup>n − 1</sup> = 1024 : 0,25 · 0,25<sup>n</sup> = 4096 · 0,25<sup>n</sup></span>.`,
+        },
+        q3: {
+            // v = (90 − 130) / (15 − 5) = −4 ; u₀ = 130 + 4 · 5 = 150
+            fields: { 'q3-1': 150, 'q3-2': 4 },
+            hint: 'Volg het stappenplan in tab 2: eerst v uit de twee termen, dan terugrekenen naar u₀.',
+            uitwerking: `Van u<sub>5</sub> naar u<sub>15</sub> zijn 10 stappen: <span class="mono">v = ${fm('{90 − 130|15 − 5} = {−40|10}')} = −4</span>.<br>
+                <span class="mono">u<sub>0</sub> − 4 · 5 = 130</span>, dus <span class="mono">u<sub>0</sub> = 150</span>. De directe formule is <span class="mono">u<sub>n</sub> = 150 − 4 · n</span>.`,
+        },
+        q4: {
+            // r⁵ = 16 384 / 16 = 1024 → r = 4 ; u₀ = 16 / 4³ = ¼
+            fields: { 'q4-1': 0.25, 'q4-2': 4 },
+            tol: 0.001,
+            hint: 'Tel hoeveel stappen van · r er tussen u₃ en u₈ zitten, en volg dan het stappenplan in tab 2.',
+            uitwerking: `Van u<sub>3</sub> naar u<sub>8</sub> zijn 5 stappen: <span class="mono">r<sup>5</sup> = ${fm('{16 384|16}')} = 1024</span>, dus <span class="mono">r = 1024<sup>${fm('{1|5}')}</sup> = 4</span>.<br>
+                <span class="mono">u<sub>0</sub> · 4<sup>3</sup> = 16</span>, dus <span class="mono">u<sub>0</sub> = ${fm('{16|64}')} = ¼</span>. De directe formule is <span class="mono">u<sub>n</sub> = ¼ · 4<sup>n</sup></span>.`,
+        },
+        q5: {
+            // mr: r² = 1024/576 = 16/9 → r = ±4/3 → u₈ = ±2427,3 ≠ 1696 ; rr: v = 224 → u₈ = 1024 + 3 · 224 = 1696 ✓
+            choice: 'B',
+            hint: 'Stel met u₃ en u₅ de rij op en controleer of u₈ dan klopt. Doe dat voor beide soorten rijen (tab 2, stap 4).',
+            uitwerking: `<strong>Meetkundig:</strong> <span class="mono">r<sup>2</sup> = ${fm('{1024|576}')} = ${fm('{16|9}')}</span>, dus r = ${fm('{4|3}')} (of −${fm('{4|3}')}). Dan is <span class="mono">u<sub>8</sub> = 1024 · (${fm('{4|3}')})<sup>3</sup> ≈ 2427</span> (of −2427), en dat is niet 1696.<br>
+                <strong>Rekenkundig:</strong> <span class="mono">v = ${fm('{1024 − 576|5 − 3}')} = 224</span>. Dan is <span class="mono">u<sub>8</sub> = 1024 + 3 · 224 = 1696</span> ✓. De termen horen dus alleen bij een rekenkundige rij.`,
+        },
+        q6: {
+            // Aₙ = 100 + 15(n − 1) = 85 + 15n ; Aₙ₊₁ = 100 + 15n
+            fields: { 'q6-1': 85, 'q6-2': 15, 'q6-3': 100, 'q6-4': 15 },
+            hint: 'Schrijf eerst Aₙ = … met (n − 1). Voor A(n) werk je de haakjes weg; voor Aₙ₊₁ vervang je elke n door n + 1 (tab 3).',
+            uitwerking: `De directe formule is <span class="mono">A<sub>n</sub> = 100 + 15 · (n − 1)</span>.<br>
+                b. Haakjes wegwerken: <span class="mono">A(n) = 100 + 15n − 15 = 85 + 15 · n</span>.<br>
+                c. Vervang n door n + 1: <span class="mono">A<sub>n + 1</sub> = 100 + 15 · (n + 1 − 1) = 100 + 15 · n</span>.`,
+        },
+        q7: {
+            // 100, 105, 115, 130, 150 in beide notaties (zie node-check)
+            choice: 'B',
+            hint: 'Vervang in de hele formule n door n + 1, ook de losse n. De beginterm verandert niet (tab 3).',
+            uitwerking: `Vervang elke n door n + 1: u<sub>n</sub> wordt u(n + 1), u<sub>n − 1</sub> wordt u(n) en 5 · n wordt 5 · (n + 1). De beginterm blijft u(0) = 100:
+                <span class="mono">u(n + 1) = u(n) + 5 · (n + 1)</span> met u(0) = 100.<br>
+                Controle: beide formules geven 100, 105, 115, 130, 150, … Met 5 · n (keuze A) krijg je 100, 100, 105, 115, …: een andere rij.`,
+        },
+        q8: {
+            // u₀ = 10 is de 1e term → 8e term = u₇ ≈ 42,17 ; u₁₃ ≈ 397,24 en u₁₄ ≈ 591,86
+            fields: { 'q8-1': 42.17, 'q8-2': 14, 'q8-3': 591.86 },
+            tol: 0.05,
+            hint: 'Met beginterm u₀ is u₀ de eerste term. Maak een tabel op het rijen-invoerscherm (tab 4).',
+            uitwerking: `Voer in <span class="mono">u(n) = 1.5u(n−1)−4</span> met nMin = 0 en u(0) = 10.<br>
+                a. u<sub>0</sub> is de 1e term, dus de achtste term is <span class="mono">u<sub>7</sub> ≈ 42,2</span>.<br>
+                b. De tabel geeft <span class="mono">u<sub>13</sub> ≈ 397,2</span> en <span class="mono">u<sub>14</sub> ≈ 591,9</span>. De eerste term groter dan 500 is u<sub>14</sub> ≈ 591,9 (de 15e term).`,
+        },
+        q9: {
+            // P₉ ≈ 996,05; P₁₀ ≈ 1145,06; P₁₁ ≈ 1331,32; P₁₂ ≈ 1564,15 ; P₁₈ ≈ 4840,89; P₁₉ ≈ 5951,11
+            fields: { 'q9-1': 10, 'q9-2': 11, 'q9-3': 19 },
+            tol: 0,
+            hint: 'De beginterm is P₁: kies nMin = 1 (tab 4, "Waar gaat het vaak mis?"). Lees dan de grenzen af in de tabel.',
+            uitwerking: `Voer in <span class="mono">u(n) = 1.25u(n−1)−100</span> met nMin = 1 en u(1) = 500 (of TYPE RIJ(n+1) met u(n+1) = 1.25u(n)−100).<br>
+                a. <span class="mono">P<sub>9</sub> ≈ 996,1</span>, <span class="mono">P<sub>10</sub> ≈ 1145,1</span>, <span class="mono">P<sub>11</sub> ≈ 1331,3</span> en <span class="mono">P<sub>12</sub> ≈ 1564,2</span>, dus voor n = 10 en n = 11.<br>
+                b. <span class="mono">P<sub>18</sub> ≈ 4840,9</span> en <span class="mono">P<sub>19</sub> ≈ 5951,1</span>, dus vanaf n = 19. Met nMin = 0 zou je alles één te laag aflezen.`,
+        },
+        q10: {
+            // A₁ = 100, A₂ = 98, A₃ = 95, …, A₁₃ = 10, A₁₄ = −4
+            fields: { 'q10-1': 13, 'q10-2': 10 },
+            tol: 0,
+            hint: 'Voer de rij in met nMin = 1 (de n zit ook in de formule) en zoek de laatste laag met een positief aantal kubussen (tab 4).',
+            uitwerking: `Voer in <span class="mono">u(n) = u(n−1)−n</span> met nMin = 1 en u(1) = 100. Je krijgt 100, 98, 95, 91, 86, … ,
+                <span class="mono">A<sub>12</sub> = 23</span>, <span class="mono">A<sub>13</sub> = 10</span>, <span class="mono">A<sub>14</sub> = −4</span>.
+                Een laag met een negatief aantal kubussen kan niet. De toren heeft dus 13 lagen en de bovenste laag heeft 10 kubussen.`,
+        },
+        q11: {
+            // f₁₅ = 610, f₂₀ = 6765, f₃₀ = 832 040, f₃₁ = 1 346 269
+            fields: { 'q11-1': 610, 'q11-2': 6765, 'q11-3': 31 },
+            tol: 0,
+            hint: 'Deze rij heeft twee begintermen. Zet nMin op 1 en vul bij u(1) én u(2) een 1 in (tab 4, preset "twee begintermen").',
+            uitwerking: `Voer in <span class="mono">u(n) = u(n−1)+u(n−2)</span> met nMin = 1, u(1) = 1 en u(2) = 1.<br>
+                b. <span class="mono">f<sub>15</sub> = 610</span> en <span class="mono">f<sub>20</sub> = 6765</span>.<br>
+                c. <span class="mono">f<sub>30</sub> = 832 040</span> en <span class="mono">f<sub>31</sub> = 1 346 269</span>, dus vanaf de 31e term is f<sub>n</sub> &gt; 10<sup>6</sup>.`,
+        },
+        q12: {
+            // r³ = 1024 / 2000 = 0,512 → r = 0,8 ; u₁ = 2000 / 0,8² = 3125
+            check: () => {
+                const u1 = parseNum($('q12-u1').value), r = parseNum($('q12-r').value);
+                return approx(u1 * r ** 2, 2000, 10) && approx(u1 * r ** 5, 1024, 5);
+            },
+            hint: 'Tussen u₃ en u₆ zitten 3 stappen van · r. Reken daarna 2 stappen terug naar u₁ (tab 2).',
+            goed: 'Precies raak!',
+            uitwerking: `<span class="mono">r<sup>3</sup> = ${fm('{u_6|u_3}').replace(/_(\d)/g, '<sub>$1</sub>')} = ${fm('{1024|2000}')} = 0,512</span>, dus <span class="mono">r = 0,512<sup>${fm('{1|3}')}</sup> = 0,8</span>.<br>
+                Van u<sub>1</sub> naar u<sub>3</sub> zijn 2 stappen: <span class="mono">u<sub>1</sub> · 0,8<sup>2</sup> = 2000</span>, dus <span class="mono">u<sub>1</sub> = ${fm('{2000|0,64}')} = 3125</span>.
+                De rij is <span class="mono">u<sub>n</sub> = 3125 · 0,8<sup>n − 1</sup></span>: 3125, 2500, 2000, 1600, 1280, 1024, …`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Figuur 12.1: toren met laag 1 = 10, laag 2 = 8, laag 3 = 5, laag 4 = 1 kubus (vooraanzicht, gecentreerd).
+    function drawToren() {
+        const { ctx, w, h } = setupCanvas($('canvas-q10'));
+        const lagen = [10, 8, 5, 1], s = 26, x0 = w / 2 - 5 * s - 20, yBodem = h - 26;
+        lagen.forEach((aantal, i) => {
+            const y = yBodem - (i + 1) * s;
+            const xs = x0 + (10 - aantal) / 2 * s;
+            for (let j = 0; j < aantal; j++) {
+                const x = xs + j * s;
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 1.4;
+                // bovenvlak (licht schuin), dan de voorkant
+                ctx.beginPath();
+                ctx.moveTo(x, y); ctx.lineTo(x + 5, y - 5); ctx.lineTo(x + s + 5, y - 5); ctx.lineTo(x + s, y); ctx.closePath();
+                ctx.fillStyle = '#e2e8f0'; ctx.fill(); ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(x, y, s, s);
+                ctx.strokeRect(x, y, s, s);
+            }
+            ctx.fillStyle = C.amber;
+            ctx.font = '700 12px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(String(i + 1), x0 + 10 * s + 40, y + s / 2 + 4);
+        });
+        ctx.fillStyle = '#64748b';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('laag', x0 + 10 * s + 30, yBodem - 4 * s - 14);
+        ctx.font = 'italic 600 11px Inter, sans-serif';
+        ctx.fillText('figuur 12.1', x0, h - 8);
+    }
+
+    // Einduitdaging: de rij van de leerling (beginterm u₁) tegen de doelringen u₃ = 2000 en u₆ = 1024.
+    function drawQ12() {
+        const u1 = parseNum($('q12-u1').value), r = parseNum($('q12-r').value);
+        const g = drawGraph('canvas-q12', {
+            xMin: -0.6, xMax: 8.6, yMin: 0, yMax: 4000, xStep: 1, yStep: 500, xLabel: 'n', yLabel: 'uₙ', pad: { l: 52 }, yTick: v => fmtG(v),
+        });
+        const { ctx, mapX, mapY } = g;
+        [[3, 2000], [6, 1024]].forEach(([n, v]) => {
+            ring(ctx, mapX(n), mapY(v), 11, '#334155', 2.5, [5, 4]);
+            canvasLabel(ctx, `${uC('u', n)} = ${fmtG(v)}`, mapX(n) + 14, mapY(v) - 12, '#334155');
+        });
+        if (isFinite(u1) && isFinite(r)) {
+            for (let n = 1; n <= 8; n++) {
+                const v = u1 * r ** (n - 1);
+                if (!isFinite(v) || v < -1e6 || v > 1e6) continue;
+                ctx.fillStyle = n === 1 ? C.emerald : C.indigo;
+                ctx.beginPath();
+                ctx.arc(mapX(n), mapY(Math.max(-200, Math.min(4300, v))), 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            $('q12-formule').innerHTML = `Jouw rij: u<sub>n</sub> = <span class="text-emerald-700 font-bold">${fmtG(u1)}</span> · <span class="text-rose-700 font-bold">${fmt(r, 4)}</span><sup>n − 1</sup> → u<sub>3</sub> = ${fmtG(u1 * r ** 2)}, u<sub>6</sub> = ${fmtG(u1 * r ** 5)}`;
+        } else {
+            $('q12-formule').innerText = 'Vul een getal in bij u₁ en bij r.';
+        }
+    }
+
+    function renderOpdrachten() {
+        drawToren();
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('[data-r]').forEach(el => { el.innerHTML = fmr(el.dataset.r); });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setStart(0);
+    setBasisPreset(0);
+    setStapVoorbeeld(0);
+    setNotPreset(0);
+    setGrPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

@@ -13,10 +13,32 @@ gaps. Menu *numbers* shift between OS versions; when unsure, name the menu item
   functions are two keys: `<span class="key">2nd</span> <span class="key">TRACE</span>`, then the
   name in parentheses: "(CALC)".
 - Menu choices are written as they appear on screen: `<span class="key">5:intersect</span>`.
-- Screen text (menus, `Y1=`, results) is English on the calculator. Keep it English; the
-  explanation around it is Dutch.
+- Screen text (menus, `Y1=`, status bar, results) follows the language of the book's screens; see
+  "Screen language" below. The explanation around it is always Dutch.
 - Show a `gr-screen` with what the learner should *see* when it went right, so they can compare.
 - The x-variable is typed with `X,T,θ,n`; never tell them to type the letter X via ALPHA.
+
+## Screen language
+
+A CE can be set to English or Dutch. Copy whatever the book's screenshots show, because the
+learner compares the lesson with the book. Getal & Ruimte H12 (Rijen) shows a Dutch-language CE;
+the H13 lessons use English.
+
+- **Dutch screens:** use the Dutch text and name the English term once per tab, in the form
+  "Antw (Engelstalige GR: Ans)". Each tab must make sense on its own, so a second tab may repeat it.
+- **Key labels stay English** in both cases, because that is what is printed on the keys and above
+  them: `2nd` `WINDOW` (TBLSET), `2nd` `GRAPH` (TABLE), `MODE`.
+- **Don't guess Dutch menu text** the book doesn't show. Describe the item instead ("de regel met
+  de grafiektypes", "de functiemodus (Engelstalige GR: FUNCTION)").
+
+| Engels | Nederlands (zoals in G&R H12) |
+|---|---|
+| `NORMAL FLOAT AUTO REAL RADIAN MP` | `NORM DRIJF AUTO REËEL RAD WN` (let op de Ë, en WN in plaats van MP) |
+| `Ans` | `Antw` |
+| `SEQ` (MODE) | `RIJ` |
+| `TYPE: SEQ(n) SEQ(n+1) SEQ(n+2)` | `TYPE: RIJ(n) RIJ(n+1) RIJ(n+2)` |
+| `PRESS + FOR ΔTbl` | `DRUK OP + VOOR ΔTbl` |
+| `PRESS ENTER TO EDIT` | `DRUK OP ENTER VOOR BEWERKEN` (cursor op een kolomkop) |
 
 ## Settings
 
@@ -27,8 +49,9 @@ gaps. Menu *numbers* shift between OS versions; when unsure, name the menu item
 | Functiemodus (standaard) | `MODE` → `FUNCTION` (bij rijen: `SEQ`) |
 | Terug naar startscherm | `2nd` `MODE` (QUIT) |
 
-Status bar on a CE shows the mode: `NORMAL FLOAT AUTO REAL RADIAN MP`. A lesson that depends on
-the angle unit should show this bar in the `gr-screen`.
+Status bar on a CE shows the mode: `NORMAL FLOAT AUTO REAL RADIAN MP` (Dutch:
+`NORM DRIJF AUTO REËEL RAD WN`). A lesson that depends on the angle unit should show this bar in
+the `gr-screen`.
 
 ## Typing
 
@@ -43,7 +66,7 @@ the angle unit should show this bar in the `gr-screen`.
 | Breuk (stapel) | `ALPHA` `Y=` (F1) → `1:n/d` | |
 | Uitkomst als breuk | `MATH` → `1:▶Frac` → `ENTER` | |
 | log met grondtal | `MATH` → `logBASE(` (of `ALPHA` `WINDOW` (F2) → `logBASE(`) | |
-| Vorig antwoord | `2nd` `(−)` (ANS) | |
+| Vorig antwoord | `2nd` `(−)` (ANS) | Op een Nederlandstalige GR staat er `Antw` op het scherm |
 
 ## Graphs
 
@@ -113,6 +136,42 @@ is a classic mistake and worth a "Let op".
 
 ## Sequences (rijen)
 
-`MODE` → `SEQ`, then `Y=` shows `u(n)=`, `u(nMin)=`. `n` via `X,T,θ,n`; `u` via `2nd` `7`.
-Return to `FUNCTION` mode afterwards. Forgetting this breaks the next chapter's graphs, so the
-callout should say so.
+Screen text below is English; for a Dutch-language book use the table in "Screen language"
+(SEQ → RIJ, Ans → Antw).
+
+### Without sequence mode
+
+| Doel | Toetsen | Valkuil |
+|---|---|---|
+| Recursief doorrekenen op het basisscherm | beginterm → `ENTER`, dan de formule met `2nd` `(−)` (ANS) op de plaats van uₙ₋₁ (bv. `1.05*Ans−100`) → `ENTER`, `ENTER`, … | Na k keer `ENTER` sta je bij u_k: dat is de (k + 1)e term. Begint de invoer met + − × ÷, dan zet de GR zelf `Ans` ervoor |
+| Directe formule in een tabel | `Y=` → formule met `X,T,θ,n` voor n → `2nd` `WINDOW` (TBLSET) `TblStart=0`, `ΔTbl=1` → `2nd` `GRAPH` (TABLE) | X is het rangnummer n, niet de telling: bij beginterm u₀ hoort X = 9 bij de tiende term |
+
+### Sequence mode
+
+| Doel | Toetsen |
+|---|---|
+| Rijenmodus aan | `MODE` → regel `FUNCTION PARAMETRIC POLAR SEQ` → `SEQ` → `ENTER` → `2nd` `MODE` (QUIT) |
+| Rij invoeren | `Y=` toont `TYPE: SEQ(n) SEQ(n+1) SEQ(n+2)`, `nMin=`, `u(n)=`, `u(nMin)=`. De labels tonen het echte getal: bij `nMin=0` staat er `u(0)=` en `u(1)=` |
+| u, v, w typen | `2nd` `7` / `8` / `9`; n met `X,T,θ,n` |
+| Beginterm u₀ of u₁ | `nMin=0` met `u(0)=…`, of `nMin=1` met `u(1)=…` |
+| Recursieve formule | `u(n)=1.05u(n−1)−100`, `u(0)=1000` |
+| Formule als Pₙ₊₁ = … | TYPE `SEQ(n+1)` → `u(n+1)=1.25u(n)−100`, of herschrijf tot `u(n)=1.25u(n−1)−100` |
+| Twee begintermen (Fibonacci) | `u(n)=u(n−1)+u(n−2)` met de tweede beginterm bij `u(nMin+1)=` |
+| Directe formule | `u(n)=2n²−3n+4`, beginterm leeg laten |
+| Tabel | `2nd` `WINDOW` (TBLSET) → `TblStart` = nMin, `ΔTbl=1` → `2nd` `GRAPH` (TABLE); kolommen `n` en `u(n)` |
+| Somrij Sₙ | `u(n)=…` en `v(n)=v(n−1)+u(n)` met `v(nMin)=u(nMin)`; de tabel toont `n`, `u(n)`, `v(n)` |
+| Som vanaf n = a | `nMin=a`, `v(a)=u(a)`, `TblStart=a` (of S_b − S_{a−1} uit één tabel vanaf 0) |
+| Terug naar functies | `MODE` → `FUNCTION` → `ENTER` |
+
+Classic mistakes worth a "Let op":
+- `nMin` stays on its last value (1 after a reset). With beginterm u₀, set it to 0 first.
+- A recursive `u(n)` with an empty `u(nMin)` gives an error in the table.
+- `u` typed via `ALPHA` is a variable, not the sequence: always `2nd` `7`.
+- A table cell shows at most 6 characters (`17226.9` → `17227`). Put the cursor on the cell to see
+  the full value at the bottom of the screen.
+- "De hoeveelste term" is n + 1 when the beginterm is u₀; "vanaf welke n" is the rangnummer itself.
+- Return to `FUNCTION` mode afterwards. Forgetting this breaks the next chapter's graphs, so the
+  callout should say so.
+
+Book convention (G&R): in the uitwerking the learner writes down what they enter, e.g. "Voer in
+u(n) = 1,05u(n − 1) − 100 met nMin = 0 en u(0) = 1000".

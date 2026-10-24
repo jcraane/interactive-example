@@ -381,6 +381,51 @@
       category: 'Kennisbank',
     },
     {
+      file: 'wiskunde/lineaire-en-exponentiele-groei.html',
+      paragraaf: 'H12 Voorkennis',
+      icon: '📈',
+      title: 'Lineaire en exponentiële groei',
+      tagline: 'Plus of keer? Zie aan een tabel of de groei lineair of exponentieel is, reken een groeifactor per 3 uur om naar per uur en stel de formule op. Met stappenplan, GR-hulp en 7 oefenopdrachten.',
+      accent: '#e11d48',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/rekenkundige-en-meetkundige-rijen.html',
+      paragraaf: '12.1',
+      icon: '🪜',
+      title: 'Rekenkundige en meetkundige rijen',
+      tagline: 'Druk op [enter] en zie een rij term voor term groeien, of spring met de directe formule meteen naar u₄₀ — en ontdek waarom u₉ de tiende term is. Met verschil- en factorlab, stappenplan "de hoeveelste term?", GR-hulp en 12 oefenopdrachten.',
+      accent: '#0ea5e9',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/notaties-en-rijen-op-de-gr.html',
+      paragraaf: '12.2',
+      icon: '🔢',
+      title: 'Notaties en rijen op de GR',
+      tagline: 'Beginterm u₀ of u₁, een formule uit twee termen, uₙ₊₁ en u(n): wissel van notatie en zie dat de rij gelijk blijft, en typ de rij in een nagebouwd TI-84-rijenscherm met tabel. Met stappenplan, GR-hulp en 12 oefenopdrachten.',
+      accent: '#f59e0b',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/toepassingen-van-rijen.html',
+      paragraaf: '12.3',
+      icon: '🏦',
+      title: 'Toepassingen van rijen',
+      tagline: 'Rente erbij, geld eraf: stel recursieve formules op uit een verhaal, reken ze door met de GR-tabel en zie waar de rij in evenwicht komt — plus patronen van kubussen en stippen. Met stappenplan, GR-hulp en 12 oefenopdrachten.',
+      accent: '#10b981',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/somrijen.html',
+      paragraaf: '12.4',
+      icon: '🌷',
+      title: 'Somrijen',
+      tagline: 'Tel rij voor rij de tulpen op en zie elke som ontstaan als de vorige som plus één nieuwe term: sigmanotatie, de somrij Sₙ = Sₙ₋₁ + uₙ en het rijen-invoerscherm van de GR. Met stappenplan, GR-hulp en 12 oefenopdrachten.',
+      accent: '#8b5cf6',
+      category: 'Wiskunde',
+    },
+    {
       file: 'wiskunde/periodieke_verschijnselen.html',
       paragraaf: '13.1',
       icon: '🎡',
@@ -458,14 +503,15 @@
       icon.className = 'icon';
       icon.textContent = ex.icon;
 
-      // Bovenrij: icoon, en rechts het paragraafnummer als het voorbeeld er een heeft (Wiskunde)
+      // Bovenrij: icoon, en rechts het paragraafnummer als het voorbeeld er een heeft (Wiskunde).
+      // Een nummer krijgt een §-teken ('13.3' → '§ 13.3'); een label als 'H12 Voorkennis' blijft zoals het is.
       const top = document.createElement('div');
       top.className = 'card-top';
       top.appendChild(icon);
       if (ex.paragraaf) {
         const para = document.createElement('span');
         para.className = 'para';
-        para.textContent = '§ ' + ex.paragraaf;
+        para.textContent = /^\d/.test(ex.paragraaf) ? '§ ' + ex.paragraaf : ex.paragraaf;
         top.appendChild(para);
       }
 

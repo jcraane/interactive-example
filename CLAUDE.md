@@ -40,7 +40,8 @@ All examples are in **Dutch** (`lang="nl"`).
   Cards are generated from an `examples` array in the inline script; add a new example by
   appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`
   and `paragraaf`). `paragraaf` (e.g. `'13.3'`) shows as a "§ 13.3" pill next to the card's icon;
-  every Wiskunde lesson sets it so the student sees at once which book section it covers.
+  every Wiskunde lesson sets it so the student sees at once which book section it covers. A value
+  that doesn't start with a digit is shown as-is, without the §-sign (`'H12 Voorkennis'`).
   Cards are grouped into sections by `category` (first-seen order); `categoryMeta` holds each
   section's label icon + tag. Omit `category` to fall under the default "Animaties" section.
 - `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
@@ -112,6 +113,51 @@ All examples are in **Dutch** (`lang="nl"`).
   combineren stappenplan whose route dots line up on the combined formula, and 12 auto-checked book
   exercises (fill-in boxes in a given form) ending in a matcher on opgave A53c. Book-style fractions
   and roots come from a small `fm()` markup helper (`{teller|noemer}`, `√[…]`, `^[…]`, `#1`).
+- **H12 Rijen** (Getal & Ruimte, five lessons). They share concept colours (beginterm u₀/b emerald,
+  rekenkundige rij / verschil v / lineair sky, meetkundige rij / factor r / exponentieel rose,
+  rangnummer n amber, somrij / Σ violet) and show the simulated TI-84 Plus CE screens in Dutch, as
+  the book does (`NORM DRIJF AUTO REËEL RAD WN`, `Antw`, `RIJ(n)`, `DRUK OP + VOOR ΔTbl`), naming
+  the English term once.
+- `wiskunde/lineaire-en-exponentiele-groei.html` — **Wiskunde** (`category: 'Wiskunde'`,
+  `paragraaf: 'H12 Voorkennis'`), the Voorkennis of H12 (Theorie A "Tabellen bij groei") and the
+  run-up to §12.1. A deliberately compact lesson: three theory tabs plus exactly the 7 book
+  exercises. The thread is "plus of keer": an editable book-table explorer that animates each step's
+  difference and quotient and judges the table linear, exponential or neither (including the
+  n = 2, 5, 9 table with unequal steps); a "hak de stap in stukjes" explorer that turns +12 / ×1,5
+  per 3 uur into per-uur values (g = 1,5^⅓, g⁷ = 600/716) with a "1,5 : 3" classic-mistake toggle;
+  a 4-step formula stappenplan on the three Theorie A examples; and opgaven 1–7, ending in a matcher
+  where a line and an exponential curve both pass through (3, 320) and (7, 20).
+- `wiskunde/rekenkundige-en-meetkundige-rijen.html` — **Wiskunde**, §12.1. The thread is "u₀ is de
+  eerste term": a regelmaat explorer on opgave 1 (term strip with u-index, ordinal count,
+  difference/quotient badges, hidden next term), a recursief-vs-direct explorer where [enter] steps a
+  simulated TI-84 basisscherm (Antw) while a slider jumps straight to uₙ, Formule-Labs for rr
+  (n treden van v, lineair verband) and mr (×r, exponentieel verband, rr comparison), a 5-step
+  "de hoeveelste term?" stappenplan that separates "de hoeveelste term" (n + 1) from "vanaf welke
+  n", and 12 auto-checked book exercises ending in a rr/mr matcher on the dots of opgave 14B.
+- `wiskunde/notaties-en-rijen-op-de-gr.html` — **Wiskunde**, §12.2: beginterm u₀ of u₁, formules
+  opstellen bij twee gegeven termen, notaties (Aₙ, u(n), uₙ₊₁) and the rijen-invoerscherm. The thread
+  is "andere nummering of notatie, dezelfde rij": a u₀/u₁ explorer whose dots slide one place while
+  (n − 1) appears in the formula, a 4-step stappenplan from two terms to the direct formule (checked
+  against a third term), a notation translator with the "losse n wordt n + 1" mistake, and a TI-84
+  Plus CE sequence-mode simulator with a small formula parser (type `1.05u(n-1)-100`, nMin, two
+  initial values, RIJ(n+1)) feeding a table and a bounds-highlighting graph; 12 auto-checked book
+  exercises end in a matcher.
+- `wiskunde/toepassingen-van-rijen.html` — **Wiskunde**, §12.3: recursive formulas that mix a
+  percentage factor with a fixed amount (uₙ = r · uₙ₋₁ + b) and patterns whose recursive formula is
+  derived from the direct one. A bar explorer builds each term as ·factor then ±amount (opgave 41,
+  the tank), a formula builder checks factor/amount/beginterm against the story with per-mistake
+  feedback, a Rij-Lab shows the equilibrium line (orange), "constant houden" and a "first n where
+  uₙ < …" search with a simulated TI-84 table, a pattern explorer (fig 12.2 cubes, triangular numbers
+  with the fig 12.4 doubling), a 4-step direct → recursive stappenplan, and 12 auto-checked book
+  exercises ending in a tank matcher.
+- `wiskunde/somrijen.html` — **Wiskunde**, §12.4: the sigma notation and the somrij. The thread is
+  "elke som is de vorige som plus één nieuwe term": a row-by-row counting animation (figuur 12.7
+  tulpen, vak K, bierkratten), a sigma explorer that writes Σ out term by term with the book's
+  underbraces, a stacking explorer for Sₙ = Sₙ₋₁ + uₙ with a live TI-84 screen (v(n)=v(n−1)+u(n),
+  table, v(nMin) error toggle), an Sₙ-graph explorer for Σ from a to b (S_b − S_{a−1} vs. nMin = a)
+  and "vanaf welke n", a 5-step stappenplan, and 12 auto-checked book exercises ending in a somrij
+  matcher. A lesson-level `fs()` helper (markup: `data-fs`) extends `fm()` with `Σ[k = 0|5]`
+  (bounds above and below the Σ) and subscripts (`u_k`, `u_[n − 1]`).
 
 Examples are independent — there is no shared library or cross-file dependency.
 
