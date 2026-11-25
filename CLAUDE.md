@@ -26,8 +26,10 @@ concept (CORS, HTTP, …) — both still single self-contained files in the same
 A file picks its bucket on the landing page via the optional `category` field (see below);
 no `category` means it lands in "Animaties". The known categories live in `categoryMeta`
 (`Animaties`, `Techniek`, `Kennisbank`, `Wiskunde`); add a new key there to introduce another section.
-**Wiskunde** examples are school-math lessons (explanation + practice) and live in the
-`wiskunde/` subfolder; their `file` entry in `index.html` includes that path. They are built
+**Wiskunde** examples are school-math lessons (explanation + practice). They live in one
+subfolder per niveau: `wiskunde/vwo6/` (all current lessons) and `wiskunde/mavo4/` (coming). The
+folder name is the niveau in lower case without spaces, and their `file` entry in `index.html`
+includes that path. Lessons therefore link back with `../../index.html`. They are built
 from a textbook chapter with the `wiskunde-les` project skill (`.claude/skills/wiskunde-les/`),
 which holds the shared template and house style. They use the Tailwind Play CDN — an accepted
 exception to the no-dependency rule for this folder, for now.
@@ -38,12 +40,17 @@ All examples are in **Dutch** (`lang="nl"`).
 
 - `index.html` — the landing page linking every example, with a one-line Dutch teaser each.
   Cards are generated from an `examples` array in the inline script; add a new example by
-  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`
-  and `paragraaf`). `paragraaf` (e.g. `'13.3'`) shows as a "§ 13.3" pill next to the card's icon;
+  appending one entry (`file`, `icon`, `title`, `tagline`, `accent`, and optional `category`,
+  `niveau`, `hoofdstuk` and `paragraaf`). `paragraaf` (e.g. `'13.3'`) shows as a "§ 13.3" pill next to the card's icon;
   every Wiskunde lesson sets it so the student sees at once which book section it covers. A value
-  that doesn't start with a digit is shown as-is, without the §-sign (`'H12 Voorkennis'`).
+  that doesn't start with a digit is shown as-is, without the §-sign (`'Voorkennis'`).
   Cards are grouped into sections by `category` (first-seen order); `categoryMeta` holds each
   section's label icon + tag. Omit `category` to fall under the default "Animaties" section.
+  Within a section, entries with a `niveau` (`'VWO 6'`, `'MAVO 4'`) get one block per niveau,
+  and within it one grid per `hoofdstuk` (`'H12 Rijen'`), both in first-seen order. So keep a
+  niveau's entries together in book order, and use the exact same `hoofdstuk` string for every
+  lesson of a chapter. Each niveau block has an anchor equal to its folder name (`index.html#mavo4`),
+  and once there is more than one niveau, "Ga naar:" links to the blocks appear under the section heading.
 - `exponential-growth.html` — exponential growth, as a bacteria-in-a-jar simulation: time
   slider, auto-play with teaching breakpoints, live growth curve (SVG), canvas particle animation.
 - `three-door-problem.html` — the Monty Hall problem ("Het driedeurenprobleem").
@@ -95,7 +102,7 @@ All examples are in **Dutch** (`lang="nl"`).
   three probabilities always sum to 1. Includes a set-sequence visualizer (drawing the orderings
   each combination counts) and an "x boven y" / nCr mini-widget with the cancel-down trick, the
   factorial formula, and a styled TI-84 Plus keystroke callout.
-- `wiskunde/toepassingen-van-sinusoiden.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.2 of
+- `wiskunde/vwo6/toepassingen-van-sinusoiden.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.2 of
   Getal & Ruimte H13 and the follow-up to the §13.1 lesson: from graph or data to the formula
   y = a + b sin(c(x − d)) and calculating with it. The thread is "één periode = vier kwarten": an
   animated quarter-period explorer, a formula stappenplan where the student picks d and sees a
@@ -103,7 +110,7 @@ All examples are in **Dutch** (`lang="nl"`).
   GR, value, intersect, dy/dx, max slope, domain wrap) with a live TI-84 Plus CE screen, a year-model
   explorer for Theorie C (Napels, zeewater: data → a, b, c, d, dagnummers, time above a threshold),
   and 11 auto-checked book exercises ending in a graph matcher on figuur 13.15.
-- `wiskunde/formules-herschrijven.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.3 of
+- `wiskunde/vwo6/formules-herschrijven.html` — **Wiskunde** (`category: 'Wiskunde'`), §13.3 of
   Getal & Ruimte H13 "Allerlei formules" (the same chapter as the two sinusoid lessons): breuken
   herleiden, variabelen vrijmaken and formules combineren. The chapter has no figures, so the thread
   is "herleiden verandert de vorm, niet de waarde": an invul-controle explorer (pick a rewrite and see
@@ -118,8 +125,8 @@ All examples are in **Dutch** (`lang="nl"`).
   rangnummer n amber, somrij / Σ violet) and show the simulated TI-84 Plus CE screens in Dutch, as
   the book does (`NORM DRIJF AUTO REËEL RAD WN`, `Antw`, `RIJ(n)`, `DRUK OP + VOOR ΔTbl`), naming
   the English term once.
-- `wiskunde/lineaire-en-exponentiele-groei.html` — **Wiskunde** (`category: 'Wiskunde'`,
-  `paragraaf: 'H12 Voorkennis'`), the Voorkennis of H12 (Theorie A "Tabellen bij groei") and the
+- `wiskunde/vwo6/lineaire-en-exponentiele-groei.html` — **Wiskunde** (`category: 'Wiskunde'`,
+  `niveau: 'VWO 6'`, `paragraaf: 'Voorkennis'`), the Voorkennis of H12 (Theorie A "Tabellen bij groei") and the
   run-up to §12.1. A deliberately compact lesson: three theory tabs plus exactly the 7 book
   exercises. The thread is "plus of keer": an editable book-table explorer that animates each step's
   difference and quotient and judges the table linear, exponential or neither (including the
@@ -127,14 +134,14 @@ All examples are in **Dutch** (`lang="nl"`).
   per 3 uur into per-uur values (g = 1,5^⅓, g⁷ = 600/716) with a "1,5 : 3" classic-mistake toggle;
   a 4-step formula stappenplan on the three Theorie A examples; and opgaven 1–7, ending in a matcher
   where a line and an exponential curve both pass through (3, 320) and (7, 20).
-- `wiskunde/rekenkundige-en-meetkundige-rijen.html` — **Wiskunde**, §12.1. The thread is "u₀ is de
+- `wiskunde/vwo6/rekenkundige-en-meetkundige-rijen.html` — **Wiskunde**, §12.1. The thread is "u₀ is de
   eerste term": a regelmaat explorer on opgave 1 (term strip with u-index, ordinal count,
   difference/quotient badges, hidden next term), a recursief-vs-direct explorer where [enter] steps a
   simulated TI-84 basisscherm (Antw) while a slider jumps straight to uₙ, Formule-Labs for rr
   (n treden van v, lineair verband) and mr (×r, exponentieel verband, rr comparison), a 5-step
   "de hoeveelste term?" stappenplan that separates "de hoeveelste term" (n + 1) from "vanaf welke
   n", and 12 auto-checked book exercises ending in a rr/mr matcher on the dots of opgave 14B.
-- `wiskunde/notaties-en-rijen-op-de-gr.html` — **Wiskunde**, §12.2: beginterm u₀ of u₁, formules
+- `wiskunde/vwo6/notaties-en-rijen-op-de-gr.html` — **Wiskunde**, §12.2: beginterm u₀ of u₁, formules
   opstellen bij twee gegeven termen, notaties (Aₙ, u(n), uₙ₊₁) and the rijen-invoerscherm. The thread
   is "andere nummering of notatie, dezelfde rij": a u₀/u₁ explorer whose dots slide one place while
   (n − 1) appears in the formula, a 4-step stappenplan from two terms to the direct formule (checked
@@ -142,7 +149,7 @@ All examples are in **Dutch** (`lang="nl"`).
   Plus CE sequence-mode simulator with a small formula parser (type `1.05u(n-1)-100`, nMin, two
   initial values, RIJ(n+1)) feeding a table and a bounds-highlighting graph; 12 auto-checked book
   exercises end in a matcher.
-- `wiskunde/toepassingen-van-rijen.html` — **Wiskunde**, §12.3: recursive formulas that mix a
+- `wiskunde/vwo6/toepassingen-van-rijen.html` — **Wiskunde**, §12.3: recursive formulas that mix a
   percentage factor with a fixed amount (uₙ = r · uₙ₋₁ + b) and patterns whose recursive formula is
   derived from the direct one. A bar explorer builds each term as ·factor then ±amount (opgave 41,
   the tank), a formula builder checks factor/amount/beginterm against the story with per-mistake
@@ -150,7 +157,7 @@ All examples are in **Dutch** (`lang="nl"`).
   uₙ < …" search with a simulated TI-84 table, a pattern explorer (fig 12.2 cubes, triangular numbers
   with the fig 12.4 doubling), a 4-step direct → recursive stappenplan, and 12 auto-checked book
   exercises ending in a tank matcher.
-- `wiskunde/somrijen.html` — **Wiskunde**, §12.4: the sigma notation and the somrij. The thread is
+- `wiskunde/vwo6/somrijen.html` — **Wiskunde**, §12.4: the sigma notation and the somrij. The thread is
   "elke som is de vorige som plus één nieuwe term": a row-by-row counting animation (figuur 12.7
   tulpen, vak K, bierkratten), a sigma explorer that writes Σ out term by term with the book's
   underbraces, a stacking explorer for Sₙ = Sₙ₋₁ + uₙ with a live TI-84 screen (v(n)=v(n−1)+u(n),
@@ -183,7 +190,7 @@ Examples are independent — there is no shared library or cross-file dependency
 
 ## Adding a new example
 
-1. Create one new `<concept-name>.html` (kebab-case) at the repo root (Wiskunde topics go in `wiskunde/`).
+1. Create one new `<concept-name>.html` (kebab-case) at the repo root (Wiskunde lessons go in `wiskunde/<niveau>/`, e.g. `wiskunde/mavo4/`).
 2. Inline everything; depend on nothing local. Make it open-and-run.
 3. Pick one concept and make the interaction *demonstrate* it — not just illustrate it.
 4. Open with a short Dutch intro card (see Conventions); set `lang="nl"` and keep all

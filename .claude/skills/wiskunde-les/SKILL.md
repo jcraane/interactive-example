@@ -1,6 +1,6 @@
 ---
 name: wiskunde-les
-description: Turn a chapter or paragraph of a Dutch secondary-school math textbook (usually a PDF from Getal & Ruimte, Moderne Wiskunde or similar) into an interactive, single-file Dutch HTML lesson in this repo's `wiskunde/` folder, in the house style of `wiskunde/periodieke_verschijnselen.html`. The lesson has tabbed theory with live canvas explorers, a parameter lab, a step-by-step werkschema, TI-84 Plus CE keystroke callouts and auto-checked book exercises with a score. The skill also registers the lesson on the landing page under "Wiskunde". Use it whenever someone in this project hands over a wiskunde PDF, hoofdstuk, paragraaf, textbook pages or photos of them, or asks to "uitleggen", "een les maken van", "interactief maken" or add a new math topic, even without mentioning this skill, the template or HTML.
+description: Turn a chapter or paragraph of a Dutch secondary-school math textbook (usually a PDF from Getal & Ruimte, Moderne Wiskunde or similar) into an interactive, single-file Dutch HTML lesson in this repo's `wiskunde/<niveau>/` folder (`vwo6`, `mavo4`), in the house style of `wiskunde/vwo6/periodieke_verschijnselen.html`. The lesson has tabbed theory with live canvas explorers, a parameter lab, a step-by-step werkschema, TI-84 Plus CE keystroke callouts and auto-checked book exercises with a score. The skill also registers the lesson on the landing page under "Wiskunde", grouped by niveau and hoofdstuk. Use it whenever someone in this project hands over a wiskunde PDF, hoofdstuk, paragraaf, textbook pages or photos of them, or asks to "uitleggen", "een les maken van", "interactief maken" or add a new math topic, even without mentioning this skill, the template or HTML.
 ---
 
 # Wiskunde-les
@@ -12,17 +12,39 @@ make that happen:
 - the fixed shell in `assets/lesson-template.html`: header, tabs, helpers and exercise engine;
 - the conventions below.
 
-`wiskunde/periodieke_verschijnselen.html` is the full worked example of the format. Read it when
+`wiskunde/vwo6/periodieke_verschijnselen.html` is the full worked example of the format. Read it when
 a component's use isn't clear from the template. The format is still being validated with a real
 learner, so if the user gives feedback on a lesson, ask whether it should go into this skill too.
 
 ## What you produce
 
-1. `wiskunde/<onderwerp-in-kebab-case>.html`, one self-contained file.
-2. One entry in the `examples` array in `index.html`, with `category: 'Wiskunde'`.
+1. `wiskunde/<niveau>/<onderwerp-in-kebab-case>.html`, one self-contained file.
+2. One entry in the `examples` array in `index.html`, with `category: 'Wiskunde'`, `niveau` and
+   `hoofdstuk`.
 3. One bullet in the **Files** list of `CLAUDE.md`.
 
 Don't commit unless asked.
+
+## Niveau
+
+Lessons are grouped per niveau, both on disk and on the landing page:
+
+| `niveau` in `index.html` | folder |
+|---|---|
+| `'VWO 6'` | `wiskunde/vwo6/` |
+| `'MAVO 4'` | `wiskunde/mavo4/` |
+
+The folder name is the niveau in lower case without spaces. The landing page uses the same
+string as the anchor of the niveau's block (`index.html#mavo4`). Take the niveau from the request
+or from the book (cover, colophon, "vwo" / "vmbo-gt"), and ask if it isn't clear. A new niveau
+(say HAVO 5) needs nothing more than a new folder and that value in `niveau`.
+
+All existing lessons, the worked example included, are VWO 6. For another niveau keep the shell
+and the house style, but take the depth, language and exercise types from *that* book, not
+from the VWO lessons. The same goes for the calculator. The TI-84 Plus CE callouts are for the VWO
+learner. MAVO books often work with an ordinary scientific calculator, so check what the
+book uses. If it isn't a TI-84, ask the user which model the student has before writing
+calculator callouts.
 
 ## Workflow
 
@@ -40,7 +62,7 @@ Write `lesplan.md` in the scratchpad. A full lesson is ~1500–2000 lines, and w
 easy to drop a figure value or let a concept's colour drift halfway through. Cover:
 
 ```markdown
-# Lesplan: Hoofdstuk <n> <titel> (<boek>, <niveau als bekend>)
+# Lesplan: Hoofdstuk <n> <titel> (<boek>, <niveau>)
 
 ## Kernbegrippen → conceptkleur
 - evenwichtsstand → rose · amplitude → sky · periode → amber · startpunt → emerald
@@ -69,10 +91,10 @@ read off a figure, note the reading and give the checker a tolerance that fits.
 
 ### 4. Build from the template
 
-Copy `assets/lesson-template.html` to `wiskunde/<naam>.html` and fill it in. What to keep and
+Copy `assets/lesson-template.html` to `wiskunde/<niveau>/<naam>.html` and fill it in. What to keep and
 what to change:
 
-- **Keep as-is:** `<head>` styles, header, tab navigation pattern, back-link to `../index.html`,
+- **Keep as-is:** `<head>` styles, header, tab navigation pattern, back-link to `../../index.html`,
   and everything under `HULPFUNCTIES` and `NAVIGATIE` in the script (`fmt`, `fmtPi`,
   `parseNum`, `approx`, `setupCanvas`, `drawGraph`, `setActiveButton`, `fm`, `switchTab`), plus the
   exercise engine (`checkExercise`, `showUitwerking`, `updateScore`). Lessons look and behave the
@@ -99,14 +121,19 @@ circle, shading).
 
 ### 6. Register and report
 
-Add the `index.html` entry among the Wiskunde entries in book order: by hoofdstuk, then
-paragraaf, with a Voorkennis lesson before the chapter's x.1. So H12 comes before H13, even when
-H13 was built first.
+Add the `index.html` entry among the Wiskunde entries of the same niveau, in book order: by
+hoofdstuk, then paragraaf, with a Voorkennis lesson before the chapter's x.1. So H12 comes before
+H13, even when H13 was built first. The landing page builds one block per `niveau` and, inside it,
+one grid per `hoofdstuk`, both in the order the entries appear. So keep a niveau's entries together
+and give every lesson of a chapter exactly the same `hoofdstuk` string (`'H12 Rijen'`, with the
+chapter title as the book prints it).
 
 ```js
 {
-  file: 'wiskunde/<naam>.html',
-  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3; voor de voorkennis: H12 Voorkennis>',
+  file: 'wiskunde/<niveau>/<naam>.html',
+  niveau: '<VWO 6 | MAVO 4>',
+  hoofdstuk: '<H + nummer + titel uit het boek, bv. H12 Rijen>',
+  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3; voor de voorkennis: Voorkennis>',
   icon: '<één kleurrijke emoji die het onderwerp vangt; geen zwart symbool als ➗, dat verdwijnt op de donkere kaart>',
   title: '<Onderwerp zoals in het boek>',
   tagline: '<Eén zin: wat je ziet gebeuren of wat verrast, plus wat erin zit (stappenplan, N oefenopdrachten).>',
@@ -135,7 +162,7 @@ practise. The student may jump straight to the exercises, so each tab must make 
 
 Put these inside the tab where they matter, not in a tab of their own:
 
-- **GR callouts** (TI-84 Plus CE). Read `references/ti84-plus-ce.md`.
+- **GR callouts** (TI-84 Plus CE), when the book uses a GR (see Niveau). Read `references/ti84-plus-ce.md`.
 - **Let op callouts** (amber) for the book's afspraken and the classic mistakes.
 
 When something is a must-do setting (radians!), give the callout a `border-2 border-amber-300` and a
