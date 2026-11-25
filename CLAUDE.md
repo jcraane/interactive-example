@@ -175,6 +175,61 @@ All examples are in **Dutch** (`lang="nl"`).
   and "vanaf welke n", a 5-step stappenplan, and 12 auto-checked book exercises ending in a somrij
   matcher. A lesson-level `fs()` helper (markup: `data-fs`) extends `fm()` with `Σ[k = 0|5]`
   (bounds above and below the Σ) and subscripts (`u_k`, `u_[n − 1]`).
+- **H14 Toepassingen van de differentiaalrekening** (Getal & Ruimte, six lessons, built in parallel by
+  one subagent each). They share concept colours: rose = de afgeleide (hellinggrafiek, raaklijn,
+  helling), emerald = top/optimum, amber = de gekozen variabele en het domein, sky = grenswaarde/
+  verzadigingsniveau/asymptoot, violet = soort van stijgen/dalen en het steilste punt, orange =
+  kettingregel; a given graph is dark slate `#334155`. Lesson-specific extras: fuchsia = y/h in §14.1,
+  teal/fuchsia = eerste/tweede factor (teller/noemer) in §14.2. GR screens are Dutch, as in the book.
+  The Dutch CE names of the CALC options and their prompts (Left Bound?/Guess?) are not yet confirmed on a
+  real calculator, so the lessons name them with the English term alongside.
+- `wiskunde/vwo6/de-afgeleide-functie.html` — **Wiskunde** (`paragraaf: 'Voorkennis'`), the Voorkennis
+  of H14 (Theorie A regels voor de afgeleide, Theorie B extreme waarden met het werkschema). Compact like
+  the H12 Voorkennis: three theory tabs plus all book exercises. The thread is "de afgeleide is de
+  helling": a raaklijn explorer where A runs over figuur 14.1/14.2/eˣ/2ˣ and its rc is plotted into a
+  growing hellinggrafiek, a rule ladder on the four book voorbeelden whose live check draws a line through
+  A with the computed rc (it touches the graph, or with the klassieke-fout toggle cuts it), a 4-step
+  werkschema stappenplan on figuur 14.2 with "toon aan" vs "bereken" presets and a Dutch TI-84 nulpunt
+  screen, and 12 auto-checked exercises (opgave 1a–f, 2a–b, 3a–c) ending in the Beginopdracht "Drukken
+  van een boek" as a matcher (K = 1040n + 26 000/n against the cost dots). Figuur 14.1 has no scale in the
+  book; the lesson uses f(x) = 4√x − x.
+- `wiskunde/vwo6/optimaliseren.html` — **Wiskunde**, §14.1: formules opstellen voor oppervlakte, inhoud
+  en kosten en die met de afgeleide optimaliseren. The thread is "de top ligt waar de raaklijn horizontaal
+  is": a fence explorer (fig 14.5/14.7/14.8) where x slides, y follows from the fixed fence length and O's
+  graph shows the tangent and the top, a herleidingsladder with live values for Theorie A, the book's
+  five-step werkschema with a box drawing and a graph that build up per step, a Kosten-Lab where K is a
+  rising plus a falling part whose slopes cancel at the minimum, and 12 auto-checked book exercises ending
+  in a matcher on opgave 6 (fig 14.10). The Terugblik's printed h ≈ 2,56 is a book error (8 / 1,882² ≈
+  2,26, checked: 3 · 1,882² · 2,26 = 24) and the lesson says so.
+- `wiskunde/vwo6/regels-voor-de-afgeleide.html` — **Wiskunde**, §14.2: de afgeleide van ln(x) en
+  ᵍlog(x), de productregel en de quotiëntregel. The thread is "de GR rekent de helling numeriek uit, de
+  regels geven de formule": an opgave-O14 explorer where a tangent on ln(x) fills the book's nDeriv table
+  until 1/x appears, a grondtal explorer (ᵍlog(x) = ln(x)/ln(g)), a rectangle model for f·g whose corner
+  Δf·Δg vanishes as Δx shrinks, a raaklijn-test where only "nat min tan" gives a touching tangent,
+  afgeleide-ladders checked line by line against nDeriv with klassieke-fout toggles, a 4-step stappenplan
+  on variants of A19 and A28, and 12 auto-checked book exercises ending in a matcher on A27d. Rule parts are
+  coloured by a lesson-level `fk()` helper (`⁅1…⁆`, `⁅2…⁆`, `⁅k…⁆`).
+- `wiskunde/vwo6/redeneren-met-formules.html` — **Wiskunde**, §14.3: reasoning from a formula without
+  differentiating (grenswaarde/verzadigingsniveau, stijgend of dalend). The thread is "van binnen naar
+  buiten": a gᵗ explorer (e^(−0,3t) ≈ 0,74ᵗ as a band to slide into), a grenswaarde ladder whose ≈-lines
+  show live values as t grows (the sky dashed line appears only with the conclusion, so ticked axes don't
+  give the answer away), a toe/af redeneerketting where each choice reveals that link's mini-graph, a
+  Formule-Lab for N = c/(a + b·gᵗ) with a Dutch-screen snijpunt callout, and 12 auto-checked exercises
+  ending in a matcher on figuur 14.23 (A33e).
+- `wiskunde/vwo6/redeneren-met-de-afgeleide.html` — **Wiskunde**, §14.4: conclusions from the graph or
+  formula of the afgeleide. The thread is "boven de x-as stijgt, de top van de hellinggrafiek is snelst
+  of minst": an explorer where a moving raaklijn builds the hellinggrafiek, a "waar daalt E het minst?"
+  explorer with a steilheidsmeter and a 2×2 table (maximum/minimum × boven/onder → snelst/minst snel
+  stijgen/dalen), a redeneerladder for Theorie B checked live (klassieke fouten: quotiëntregel flipped,
+  kettingregel forgotten), a 5-step snelst/minst stappenplan, and 12 auto-checked exercises ending in a
+  matcher where your dF/dp must pass through measured slopes.
+- `wiskunde/vwo6/de-afgeleide-en-soorten-van-stijgen-en-dalen.html` — **Wiskunde**, §14.5: toenemend/
+  afnemend stijgen en dalen, read from the graph and the formula of the afgeleide. The thread is "twee
+  vragen aan de grafiek van dy/dx" (boven/onder de x-as, stijgend/dalend) in a 2×2 soorten table: a raaklijn
+  walker over fig 14.24–14.29 with violet change-per-step trapjes, a predict-then-build explorer that
+  builds y from the 8 book sketches of dy/dx, a Theorie C redeneerketting with a minteken klassieke-fout
+  toggle, a 4-step stappenplan, and 12 auto-checked exercises (soort dropdowns via `select[data-soort]`)
+  ending in a steilste-raaklijn challenge on A57.
 
 Examples are independent — there is no shared library or cross-file dependency.
 
