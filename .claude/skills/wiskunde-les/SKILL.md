@@ -1,6 +1,6 @@
 ---
 name: wiskunde-les
-description: Turn a chapter or paragraph of a Dutch secondary-school math textbook (usually a PDF from Getal & Ruimte, Moderne Wiskunde or similar) into an interactive, single-file Dutch HTML lesson in this repo's `wiskunde/` folder, in the house style of `wiskunde/periodieke_verschijnselen.html`. The lesson has tabbed theory with live canvas explorers, a parameter lab, a step-by-step werkschema, TI-84 Plus CE keystroke callouts and auto-checked book exercises with a score. The skill also registers the lesson on the landing page under "Wiskunde". Use it whenever someone in this project hands over a wiskunde PDF, hoofdstuk, paragraaf, textbook pages or photos of them, or asks to "uitleggen", "een les maken van", "interactief maken" or add a new math topic, even without mentioning this skill, the template or HTML.
+description: Turn a chapter or paragraph of a Dutch secondary-school math textbook (usually a PDF from Getal & Ruimte, Moderne Wiskunde or similar) into an interactive, single-file Dutch HTML lesson in this repo's `wiskunde/<niveau>/` folder (`vwo6`, `mavo4`), in the house style of `wiskunde/vwo6/periodieke_verschijnselen.html`. The lesson has tabbed theory with live canvas explorers, a parameter lab, a step-by-step werkschema, TI-84 Plus CE keystroke callouts and auto-checked book exercises with a score. The skill also registers the lesson on the landing page under "Wiskunde", grouped by niveau and hoofdstuk. Use it whenever someone in this project hands over a wiskunde PDF, hoofdstuk, paragraaf, textbook pages or photos of them, or asks to "uitleggen", "een les maken van", "interactief maken" or add a new math topic, even without mentioning this skill, the template or HTML.
 ---
 
 # Wiskunde-les
@@ -12,17 +12,39 @@ make that happen:
 - the fixed shell in `assets/lesson-template.html`: header, tabs, helpers and exercise engine;
 - the conventions below.
 
-`wiskunde/periodieke_verschijnselen.html` is the full worked example of the format. Read it when
+`wiskunde/vwo6/periodieke_verschijnselen.html` is the full worked example of the format. Read it when
 a component's use isn't clear from the template. The format is still being validated with a real
 learner, so if the user gives feedback on a lesson, ask whether it should go into this skill too.
 
 ## What you produce
 
-1. `wiskunde/<onderwerp-in-kebab-case>.html`, one self-contained file.
-2. One entry in the `examples` array in `index.html`, with `category: 'Wiskunde'`.
+1. `wiskunde/<niveau>/<onderwerp-in-kebab-case>.html`, one self-contained file.
+2. One entry in the `examples` array in `index.html`, with `category: 'Wiskunde'`, `niveau` and
+   `hoofdstuk`.
 3. One bullet in the **Files** list of `CLAUDE.md`.
 
 Don't commit unless asked.
+
+## Niveau
+
+Lessons are grouped per niveau, both on disk and on the landing page:
+
+| `niveau` in `index.html` | folder |
+|---|---|
+| `'VWO 6'` | `wiskunde/vwo6/` |
+| `'MAVO 4'` | `wiskunde/mavo4/` |
+
+The folder name is the niveau in lower case without spaces. The landing page uses the same
+string as the anchor of the niveau's block (`index.html#mavo4`). Take the niveau from the request
+or from the book (cover, colophon, "vwo" / "vmbo-gt"), and ask if it isn't clear. A new niveau
+(say HAVO 5) needs nothing more than a new folder and that value in `niveau`.
+
+All existing lessons, the worked example included, are VWO 6. For another niveau keep the shell
+and the house style, but take the depth, language and exercise types from *that* book, not
+from the VWO lessons. The same goes for the calculator. The TI-84 Plus CE callouts are for the VWO
+learner. MAVO books often work with an ordinary scientific calculator, so check what the
+book uses. If it isn't a TI-84, ask the user which model the student has before writing
+calculator callouts.
 
 ## Workflow
 
@@ -40,7 +62,7 @@ Write `lesplan.md` in the scratchpad. A full lesson is ~1500–2000 lines, and w
 easy to drop a figure value or let a concept's colour drift halfway through. Cover:
 
 ```markdown
-# Lesplan: Hoofdstuk <n> <titel> (<boek>, <niveau als bekend>)
+# Lesplan: Hoofdstuk <n> <titel> (<boek>, <niveau>)
 
 ## Kernbegrippen → conceptkleur
 - evenwichtsstand → rose · amplitude → sky · periode → amber · startpunt → emerald
@@ -67,17 +89,28 @@ often have no answer key in the chapter, and one wrong checker teaches the stude
 right answer is wrong. That damages trust far more than a missing exercise. If a value can only be
 read off a figure, note the reading and give the checker a tolerance that fits.
 
+Recompute the book's own worked numbers too (voorbeelden, Terugblik), not just your exercises. Books
+contain misprints: G&R §14.1's Terugblik prints h ≈ 2,56 where 8 / 1,882² ≈ 2,26. Use the correct value
+and say so in the lesson, with the calculation, in a Let op card. A student who checks the book against
+the screen should understand the difference instead of distrusting both.
+
 ### 4. Build from the template
 
-Copy `assets/lesson-template.html` to `wiskunde/<naam>.html` and fill it in. What to keep and
+Copy `assets/lesson-template.html` to `wiskunde/<niveau>/<naam>.html` and fill it in. What to keep and
 what to change:
 
-- **Keep as-is:** `<head>` styles, header, tab navigation pattern, back-link to `../index.html`,
+- **Keep as-is:** `<head>` styles, header, tab navigation pattern, back-link to `../../index.html`,
   and everything under `HULPFUNCTIES` and `NAVIGATIE` in the script (`fmt`, `fmtPi`,
   `parseNum`, `approx`, `setupCanvas`, `drawGraph`, `setActiveButton`, `fm`, `switchTab`), plus the
   exercise engine (`checkExercise`, `showUitwerking`, `updateScore`). Lessons look and behave the
   same because they share this code. Put lesson-specific helpers in their own block after
   `HULPFUNCTIES`, not inside it.
+- **Keep what you use from `OPTIONELE HULPFUNCTIES`**, unchanged, and delete the rest: `gelijk`,
+  `fmtF` (fixed decimals for a slider parameter inside a formula, so the pill shows `e^1,000t` and not
+  `e^1t`), `KLEUR` + `ladderHTML` + `maakLadder` (the herleidingsladder: one row per line with a live
+  check of left = right, step colours, Vorige/Volgende/Alles and a klassieke-fout toggle), and the
+  canvas helpers `pijl`, `stip`, `tekst` (a label with a white background) and `tekenRaaklijn`.
+  `wiskunde/vwo6/omvormen-exponenten-en-logaritmen.html` shows them all in use.
 - **Replace:** every `{{…}}` placeholder and every block marked `✏️`. The template's demo content
   (parabolas) only shows how each component works. Delete what the chapter doesn't need.
 - **Add:** extra tabs by copying the explorer card. Register each tab in `tabRenderers`.
@@ -96,17 +129,26 @@ circle, shading).
 - If a browser tool is available, serve the folder over `http://` (Playwright blocks `file://`),
   click through every tab, check the console for errors and `drawGraph` label warnings, and
   screenshot each tab once to judge the layout. If you can't, say that the lesson wasn't viewed in a browser.
+  Screenshot an element (`locator(...).screenshot()`) or the viewport rather than the full page: a
+  full-page shot captures the sticky header halfway down and leaves a blank strip at the top.
+- Check the page at phone width (390 px) as well: `document.documentElement.scrollWidth` must not
+  exceed the window width.
 
 ### 6. Register and report
 
-Add the `index.html` entry among the Wiskunde entries in book order: by hoofdstuk, then
-paragraaf, with a Voorkennis lesson before the chapter's x.1. So H12 comes before H13, even when
-H13 was built first.
+Add the `index.html` entry among the Wiskunde entries of the same niveau, in book order: by
+hoofdstuk, then paragraaf, with a Voorkennis lesson before the chapter's x.1. So H12 comes before
+H13, even when H13 was built first. The landing page builds one block per `niveau` and, inside it,
+one grid per `hoofdstuk`, both in the order the entries appear. So keep a niveau's entries together
+and give every lesson of a chapter exactly the same `hoofdstuk` string (`'H12 Rijen'`, with the
+chapter title as the book prints it).
 
 ```js
 {
-  file: 'wiskunde/<naam>.html',
-  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3; voor de voorkennis: H12 Voorkennis>',
+  file: 'wiskunde/<niveau>/<naam>.html',
+  niveau: '<VWO 6 | MAVO 4>',
+  hoofdstuk: '<H + nummer + titel uit het boek, bv. H12 Rijen>',
+  paragraaf: '<hoofdstuk.paragraaf uit het boek, bv. 13.3; voor de voorkennis: Voorkennis>',
   icon: '<één kleurrijke emoji die het onderwerp vangt; geen zwart symbool als ➗, dat verdwijnt op de donkere kaart>',
   title: '<Onderwerp zoals in het boek>',
   tagline: '<Eén zin: wat je ziet gebeuren of wat verrast, plus wat erin zit (stappenplan, N oefenopdrachten).>',
@@ -135,7 +177,7 @@ practise. The student may jump straight to the exercises, so each tab must make 
 
 Put these inside the tab where they matter, not in a tab of their own:
 
-- **GR callouts** (TI-84 Plus CE). Read `references/ti84-plus-ce.md`.
+- **GR callouts** (TI-84 Plus CE), when the book uses a GR (see Niveau). Read `references/ti84-plus-ce.md`.
 - **Let op callouts** (amber) for the book's afspraken and the classic mistakes.
 
 When something is a must-do setting (radians!), give the callout a `border-2 border-amber-300` and a
@@ -164,8 +206,16 @@ The `exercises` object is declarative. Each entry has `fields`, `choice` or `che
   "Gebruik periode = 2π / c (zie tab 3)." The worked solution appears only after a correct answer
   or after two wrong tries. If the first miss gives the answer away, practice turns into copying.
 - **Accept how students actually type.** `parseNum` handles `0,5`, `1/4`, `¼`, `1½`, `−3`, `2π`
-  and `pi/4`. Give multiple valid answers as an array (`'q9-d': [1, 3]`). Give rounded answers a
-  matching `tol` (0,05 for "afronden op 1 decimaal", wider for values read off a graph).
+  and `pi/4`. Give multiple valid answers as an array (`'q9-d': [1, 3]`). For a rounded answer,
+  list the rounded and the unrounded value with a small `tol` (`'q2-a': [6.3, 10 ** 0.8]`, `tol:
+  0.0006`): then "6,3" and the GR's "6,3096" are right, but a wrongly rounded "6,4" is not. When the
+  fields of one card need different precision, give that field its own tolerance:
+  `'q11-S': { t: [240, 240.38], tol: 0.6 }`.
+- **Large numbers:** `parseNum` reads "21.600" as 21,6. Spaces are fine ("21 600"), so the exercise
+  intro says "Typ grote getallen zonder punt: 16000 of 16 000."
+- **Choose-from-a-list questions** (welke soort: toenemend stijgend …; stijgend of dalend) use a
+  `<select>` whose correct `<option value>` is the target: `'q4-soort': 'toenemend stijgend'`. The
+  engine colours it like a text field. Add an empty first option `kies …`.
 - **State the expected form in the label** whenever there's ambiguity: "c (in π)",
   "afgerond op 2 decimalen", "in uren".
 - **When the answer is a formula** ("schrijf als één breuk", "druk x uit in y"), don't make the
@@ -192,6 +242,11 @@ The `exercises` object is declarative. Each entry has `fields`, `choice` or `che
   in exercise cards and axes you draw yourself, such as those of a unit circle. The only exception is a
   simulated GR screen, because the real TI-84 shows no axis labels. Without labels the student
   can't tell whether they're reading `h` or `t`, and the figure stops matching the book.
+- **Figures without a scale.** Many book figures are sketches without numbers on the axes. Draw them
+  from the formula with a window that matches the drawn shape, and leave the derivation in a comment.
+  Watch out that ticks don't give an answer away: with a numbered axis, a dashed grenswaarde line tells
+  the student the answer to "wat is de grenswaarde?". Leave the y-ticks off (`yTick: () => ''`) or show
+  that line only after a correct answer.
 - Canvas `width`/`height` attributes are the logical size. Keep `class="w-full h-auto"`.
 - Animations run in a `requestAnimationFrame` loop that only draws while its tab is visible
   (see `animateLoop`).
@@ -227,4 +282,23 @@ These are fixed. They're what makes the lessons recognisable as one series.
   lesson plan, and keeps it *everywhere*: concept card, slider panel, toggle dot, canvas line,
   legend. The student learns "rose = evenwichtsstand" without being told. Neutral things are slate.
 - Responsive: use `lg:grid-cols-12` splits (canvas 7–8, controls 4–5) and `md:grid-cols-2` exercise
-  cards. The tab bar scrolls horizontally on phones.
+  cards. The tab bar scrolls horizontally on phones. Every column in a grid gets `min-w-0` (the
+  template has it): without it, one long formula in a `whitespace-nowrap` row makes the whole page
+  wider than a phone.
+
+## Several paragraphs at once
+
+When the user asks for a whole chapter in parallel (one subagent per paragraaf, as for H12 and H14):
+
+- **The main session decides up front** and puts it in every brief: the `hoofdstuk` string, the file
+  name per paragraaf, one concept-colour map for the whole chapter, the screen language of the book's
+  GR screens, and a separate http port per agent.
+- **Only the main session edits `index.html` and `CLAUDE.md`.** Each agent creates only its own lesson
+  file and returns its `examples` entry and CLAUDE.md bullet in its report. The main session then
+  assigns a distinct icon and accent per card, because agents working alone pick the same ones.
+- **Browser checks** can't share the Playwright MCP browser: parallel agents take over each other's
+  tabs. Install Playwright once in the scratchpad (`npm i playwright`, `npx playwright install
+  chromium`) and let each agent drive its own headless Chromium from a node script.
+- Subagents may not be allowed to use Write outside the repo; they write scratch files with Bash.
+- Afterwards the main session loads all lessons once more itself (errors, card count = tab label,
+  fixed blocks identical to the template, phone width) before reporting.

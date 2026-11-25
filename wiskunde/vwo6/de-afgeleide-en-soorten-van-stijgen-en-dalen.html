@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 14: De afgeleide en soorten van stijgen en dalen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Nieuwe schakel in een redeneerketting */
+        .verschijn {
+            animation: verschijn 0.35s ease-out;
+        }
+        @keyframes verschijn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 14</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">14.5 De afgeleide en soorten van stijgen en dalen</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-grafiek')" id="btn-tab-grafiek" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. De grafiek van de afgeleide
+            </button>
+            <button onclick="switchTab('tab-formule')" id="btn-tab-formule" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. De formule van de afgeleide
+            </button>
+            <button onclick="switchTab('tab-stappen')" id="btn-tab-stappen" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Stappenplan
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Wat is de soort van stijgen of dalen?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In §14.4 las je aan de grafiek van de afgeleide af of een grafiek <strong>stijgt</strong> of <strong>daalt</strong>. Maar stijgen kan op twee manieren: de grafiek van y = 2e<sup>0,4x</sup> wordt steeds steiler (<strong>toenemend stijgend</strong>), die van y = 2x<sup>0,3</sup> juist steeds vlakker (<strong>afnemend stijgend</strong>). Ook die <strong>soort van stijgen</strong> of dalen lees je af aan de <strong>grafiek van de afgeleide</strong>, of je beredeneert hem met de <strong>formule van de afgeleide</strong>.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">1. De grafiek van <span class="normal-case">dy/dx</span></div>
+                    <div class="font-bold text-slate-900 mt-1">Hij laat de hellingen zien</div>
+                    <p class="text-sm text-slate-600 mt-1">Bij elke x is dy/dx de helling van de raaklijn aan de grafiek van y. Is dy/dx groot, dan is de grafiek daar steil. Is dy/dx bijna 0, dan is hij daar vlak.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold">
+                        <span data-f="{dy|dx}"></span> = helling van de raaklijn
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-300">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-600">2. Boven of onder de x-as?</div>
+                    <div class="font-bold text-slate-900 mt-1">Stijgend of dalend (§14.4)</div>
+                    <p class="text-sm text-slate-600 mt-1">Ligt de grafiek van dy/dx boven de x-as, dan zijn alle hellingen positief en is de grafiek van y stijgend. Ligt hij onder de x-as, dan is de grafiek van y dalend.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-slate-300 mt-2 text-slate-700 font-semibold space-y-1">
+                        <div><span data-f="{dy|dx}"></span> &gt; 0 → y stijgend</div>
+                        <div><span data-f="{dy|dx}"></span> &lt; 0 → y dalend</div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">3. Stijgend of dalend?</div>
+                    <div class="font-bold text-slate-900 mt-1">Toenemend of afnemend</div>
+                    <p class="text-sm text-slate-600 mt-1">Is de grafiek van dy/dx zelf stijgend, dan worden de hellingen steeds groter. Is hij dalend, dan worden de hellingen steeds kleiner. Dat bepaalt de soort.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-violet-200 mt-2 text-violet-800 font-semibold space-y-1">
+                        <div><span data-f="{dy|dx}"></span> stijgend → hellingen groter</div>
+                        <div><span data-f="{dy|dx}"></span> dalend → hellingen kleiner</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- De vier soorten: twee vragen aan de grafiek van dy/dx -->
+            <div class="mt-6">
+                <h3 class="text-lg font-bold text-slate-800">De vier soorten: twee vragen aan de grafiek van dy/dx</h3>
+                <p class="text-sm text-slate-500">Vraag 1 (rij): ligt de grafiek van dy/dx boven of onder de x-as? Vraag 2 (kolom): is de grafiek van dy/dx stijgend of dalend? In elk vakje zie je de grafiek van y, met drie raaklijnen.</p>
+                <div class="overflow-x-auto mt-3">
+                    <table class="w-full min-w-[560px] border-separate border-spacing-2 text-sm">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th class="p-2 rounded-xl bg-slate-100 text-slate-700 font-semibold">grafiek van dy/dx <strong>stijgend</strong><div class="text-xs font-normal text-slate-500">de hellingen worden steeds groter</div></th>
+                                <th class="p-2 rounded-xl bg-slate-100 text-slate-700 font-semibold">grafiek van dy/dx <strong>dalend</strong><div class="text-xs font-normal text-slate-500">de hellingen worden steeds kleiner</div></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th class="p-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-left w-36">dy/dx <strong>boven</strong> de x&#8209;as<div class="text-xs font-normal text-slate-500">y is stijgend</div></th>
+                                <td class="p-3 rounded-xl bg-violet-50 border border-violet-200 text-center">
+                                    <canvas id="soort-TS" width="220" height="110" class="w-full h-auto max-w-[220px] mx-auto"></canvas>
+                                    <div class="font-bold text-violet-800 mt-1">toenemend stijgend</div>
+                                    <div class="text-xs text-slate-600">positieve hellingen, steeds groter: steeds steiler omhoog</div>
+                                </td>
+                                <td class="p-3 rounded-xl bg-violet-50 border border-violet-200 text-center">
+                                    <canvas id="soort-AS" width="220" height="110" class="w-full h-auto max-w-[220px] mx-auto"></canvas>
+                                    <div class="font-bold text-violet-800 mt-1">afnemend stijgend</div>
+                                    <div class="text-xs text-slate-600">positieve hellingen, steeds kleiner: steeds minder steil omhoog</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="p-2 rounded-xl bg-slate-100 text-slate-700 font-semibold text-left w-36">dy/dx <strong>onder</strong> de x&#8209;as<div class="text-xs font-normal text-slate-500">y is dalend</div></th>
+                                <td class="p-3 rounded-xl bg-violet-50 border border-violet-200 text-center">
+                                    <canvas id="soort-AD" width="220" height="110" class="w-full h-auto max-w-[220px] mx-auto"></canvas>
+                                    <div class="font-bold text-violet-800 mt-1">afnemend dalend</div>
+                                    <div class="text-xs text-slate-600">negatieve hellingen, steeds groter (dichter bij 0): steeds minder steil omlaag</div>
+                                </td>
+                                <td class="p-3 rounded-xl bg-violet-50 border border-violet-200 text-center">
+                                    <canvas id="soort-TD" width="220" height="110" class="w-full h-auto max-w-[220px] mx-auto"></canvas>
+                                    <div class="font-bold text-violet-800 mt-1">toenemend dalend</div>
+                                    <div class="text-xs text-slate-600">negatieve hellingen, steeds kleiner: steeds steiler omlaag</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: de raaklijn loopt over de grafiek van y, de helling verschijnt op de grafiek van dy/dx -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-md">
+                    <h3 class="text-lg font-bold text-slate-800">Verkenner: loop met de raaklijn over de grafiek</h3>
+                    <p class="text-sm text-slate-500">De raaklijn loopt over de grafiek van y. Zijn helling zie je eronder als punt op de grafiek van dy/dx. Zet de trapjes aan: bij even grote stappen naar rechts zie je of y steeds meer of steeds minder verandert.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Figuur 14.24 en 14.25</button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 14.26 en 14.27</button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 14.28 en 14.29</button>
+                    <button onclick="setBasisPreset(3)" id="basis-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie C: B = 350/L</button>
+                </div>
+            </div>
+
+            <div id="basis-pil" class="mb-4 px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis-y" width="720" height="260" class="w-full h-auto"></canvas>
+                    <canvas id="canvas-basis-d" width="720" height="210" class="w-full h-auto mt-1 border-t border-slate-200"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Grafiek van y</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Raaklijn en grafiek van dy/dx</span>
+                        <span class="flex items-center gap-1.5"><span class="w-1.5 h-4 bg-violet-600 inline-block rounded"></span> Verandering per stap</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                        ⏸ Pauzeer animatie
+                    </button>
+                    <div>
+                        <label for="basis-x-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Raaklijn handmatig verschuiven:</span>
+                            <span id="basis-x-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="basis-x-slider" type="range" min="0" max="1" step="0.01" value="0" class="w-full mt-1" oninput="manualBasisSlider(this.value)" />
+                    </div>
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbaar in de grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-raak" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Raaklijn</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-trap" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-violet-500 inline-block"></span>
+                            <span class="font-medium">Trapjes: verandering per stap</span>
+                        </label>
+                    </div>
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: DE GRAFIEK VAN DE AFGELEIDE (THEORIE A EN B) ==================== -->
+    <section id="tab-grafiek" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A en B: de grafiek van de afgeleide en soorten van stijgen en dalen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Je stelt de grafiek van dy/dx steeds twee vragen. Ligt hij boven of onder de x-as? Dan weet je of y stijgt of daalt. Is hij stijgend of dalend? Dan weet je of de hellingen groter of kleiner worden, en dus de soort.
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5 text-sm">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Theorie A • figuur 14.26 en 14.27</div>
+                    <div class="mono text-slate-800">y = 2x<sup>0,3</sup> geeft <span class="text-rose-700"><span data-f="{dy|dx}"></span> = 0,6x<sup>−0,7</sup></span></div>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>De grafiek van dy/dx ligt geheel boven de x-as. Daaruit volgt dat de grafiek van y stijgend is.</li>
+                        <li>Bovendien is de grafiek van dy/dx dalend. De hellingen zijn dus positief, maar worden steeds kleiner.</li>
+                    </ul>
+                    <div class="font-bold text-violet-800">Dus de grafiek van y is afnemend stijgend.</div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Theorie B • figuur 14.28 en 14.29</div>
+                    <div class="mono text-slate-800">y = 5 − 0,2x<sup>1,3</sup> − 0,1x geeft <span class="text-rose-700"><span data-f="{dy|dx}"></span> = −0,26x<sup>0,3</sup> − 0,1</span></div>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>De grafiek van dy/dx ligt geheel onder de x-as. Daaruit volgt dat de grafiek van y dalend is.</li>
+                        <li>Bovendien is de grafiek van dy/dx dalend. De hellingen zijn negatief en worden steeds kleiner.</li>
+                    </ul>
+                    <div class="font-bold text-violet-800">Dus de grafiek van y is toenemend dalend.</div>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500 mt-3">Wil je deze twee figuren live zien? Kies ze in de verkenner van tab 1.</p>
+        </div>
+
+        <!-- Verkenner: kies een schets van dy/dx, voorspel de soort en bouw y op uit de hellingen -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="mb-4">
+                <h3 class="text-lg font-bold text-slate-800">Verkenner: van de grafiek van dy/dx naar de grafiek van y</h3>
+                <p class="text-sm text-slate-500">Kies een schets van de grafiek van dy/dx uit het boek. Voorspel welke soort de grafiek van y heeft. Daarna bouw je y op, stukje voor stukje: bij elke x loopt de grafiek van y precies zo steil als dy/dx aangeeft.</p>
+            </div>
+
+            <div class="flex flex-wrap gap-x-6 gap-y-3 mb-5">
+                <div>
+                    <div class="text-xs font-bold text-slate-500 mb-1.5">Theorie A: boven de x-as</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setSchets(0)" id="schets-0" class="p-1 rounded-xl border-2"><canvas id="thumb-0" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(1)" id="schets-1" class="p-1 rounded-xl border-2"><canvas id="thumb-1" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(2)" id="schets-2" class="p-1 rounded-xl border-2"><canvas id="thumb-2" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(3)" id="schets-3" class="p-1 rounded-xl border-2"><canvas id="thumb-3" width="120" height="80" class="block"></canvas></button>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-slate-500 mb-1.5">Theorie B: onder de x-as</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setSchets(4)" id="schets-4" class="p-1 rounded-xl border-2"><canvas id="thumb-4" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(5)" id="schets-5" class="p-1 rounded-xl border-2"><canvas id="thumb-5" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(6)" id="schets-6" class="p-1 rounded-xl border-2"><canvas id="thumb-6" width="120" height="80" class="block"></canvas></button>
+                        <button onclick="setSchets(7)" id="schets-7" class="p-1 rounded-xl border-2"><canvas id="thumb-7" width="120" height="80" class="block"></canvas></button>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs font-bold text-slate-500 mb-1.5">Extra: met een top</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="setSchets(8)" id="schets-8" class="p-1 rounded-xl border-2"><canvas id="thumb-8" width="120" height="80" class="block"></canvas></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-bouw-y" width="720" height="230" class="w-full h-auto"></canvas>
+                    <canvas id="canvas-bouw-d" width="720" height="200" class="w-full h-auto mt-1 border-t border-slate-200"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Grafiek van y (wordt opgebouwd)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Raaklijn en grafiek van dy/dx</span>
+                    </div>
+                </div>
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-slate-600 mb-2">Jouw voorspelling: de grafiek van y is …</div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="voorspel(0)" id="voorspel-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">toenemend stijgend</button>
+                            <button onclick="voorspel(1)" id="voorspel-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">afnemend stijgend</button>
+                            <button onclick="voorspel(2)" id="voorspel-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">toenemend dalend</button>
+                            <button onclick="voorspel(3)" id="voorspel-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">afnemend dalend</button>
+                            <button onclick="voorspel(4)" id="voorspel-4" class="col-span-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">de soort verandert onderweg</button>
+                        </div>
+                    </div>
+                    <button onclick="startBouw()" id="btn-bouw" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">▶ Bouw de grafiek van y</button>
+                    <div id="bouw-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GR-callout: de grafiek van de afgeleide plotten (Voorbeeld p. 125) -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: de grafiek van de afgeleide plotten</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Voorbeeld p. 125</div>
+                </div>
+                <p class="text-sm text-slate-300 mb-3">Het aantal edelherten in het Deelerwoud is N = 50(1 + t<sup>0,54</sup>), met t in jaren en t = 0 in 2020. Je berekent <span class="mono" data-f="{dN|dt} = 50 · 0,54t^[−0,46] = 27t^[−0,46]"></span> en voert die afgeleide in.</p>
+                <div class="grid sm:grid-cols-2 gap-3">
+                    <div class="gr-screen text-slate-900 rounded-xl p-3 border-4 border-slate-700 mono text-sm">
+                        <div class="text-[10px] border-b border-slate-400/50 pb-1 mb-2 font-bold whitespace-nowrap overflow-hidden">NORM DRIJF AUTO REËEL RAD WN</div>
+                        <div>Y<sub>1</sub>=27X<sup>-0.46</sup></div>
+                        <div class="mt-1 text-slate-500">Y<sub>2</sub>=</div>
+                        <div class="mt-3 text-xs leading-snug">Xmin=0 &nbsp;Xmax=20<br>Ymin=0 &nbsp;Ymax=40</div>
+                    </div>
+                    <div class="gr-screen rounded-xl p-2 border-4 border-slate-700">
+                        <canvas id="gr-graph" width="260" height="150" class="w-full h-auto"></canvas>
+                    </div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Bereken eerst zelf de afgeleide. De GR gebruikt altijd X, dus je voert in: y<sub>1</sub> = 27x<sup>−0,46</sup>.</li>
+                    <li>Druk <span class="key">Y=</span> en typ <span class="mono">27</span> <span class="key">X,T,θ,n</span> <span class="key">^</span> <span class="key">(−)</span> <span class="mono">0.46</span>.</li>
+                    <li>Druk <span class="key">WINDOW</span> en vul in: Xmin = 0, Xmax = 20, Ymin = 0, Ymax = 40. Druk <span class="key">GRAPH</span>.</li>
+                    <li>Lees af: de grafiek ligt boven de x-as en is dalend. Dus N is afnemend stijgend: het aantal edelherten neemt steeds minder snel toe.</li>
+                </ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                <p class="text-xs leading-relaxed">Met de min-toets <span class="key">−</span> in plaats van <span class="key">(−)</span> krijg je een syntaxfout (Engelstalige GR: ERR:SYNTAX). Een negatief getal typ je altijd met <span class="key">(−)</span>, ook in een exponent.</p>
+                <p class="text-xs leading-relaxed">Je plot de formule van N in plaats van de afgeleide. Dan zie je alleen dat N stijgt. De soort van stijgen zie je pas aan de grafiek van de afgeleide.</p>
+                <p class="text-xs leading-relaxed">Staat je GR in het Engels, dan zie je bovenin NORMAL FLOAT AUTO REAL RADIAN MP. De toetsen zijn hetzelfde.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie B)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Toenemend dalend is steeds sneller dalen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij Theorie B worden de hellingen steeds kleiner: −0,1 bij x = 0, −0,36 bij x = 1 en −0,58 bij x = 7,5. Een kleinere helling is hier een negatievere helling, dus de grafiek daalt steeds harder. Daarom heet dat <strong>toenemend</strong> dalend, al wordt dy/dx kleiner. Kijk dus niet alleen naar het woord "kleiner", maar naar wat de daling doet.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave A57)</div>
+                <h4 class="font-bold text-slate-800 mt-1 flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-violet-500 inline-block"></span> De soort kan onderweg veranderen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Heeft de grafiek van dy/dx een top, dan gaat de grafiek van y daar over van toenemend stijgend naar afnemend stijgend. Op dat punt is de grafiek van y het steilst. Kies in de verkenner de schets met een top. Op de GR vind je dat punt als het maximum van de <strong>afgeleide</strong>: voer dy/dx in bij Y1, druk <span class="key">2nd</span> <span class="key">TRACE</span> (CALC) en kies optie 4 (maximum). De GR vraagt om een linkergrens, een rechtergrens en een gok; druk telkens <span class="key">ENTER</span> (Engelstalige GR: Left Bound?, Right Bound?, Guess?).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: DE FORMULE VAN DE AFGELEIDE (THEORIE C) ==================== -->
+    <section id="tab-formule" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie C: de formule van de afgeleide en soorten van stijgen en dalen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Je hebt niet altijd een grafiek nodig. Met de formule van de afgeleide kun je ook redeneren. Eerst het <strong>teken</strong>: is de afgeleide positief of negatief? Dan weet je of de grafiek stijgt of daalt. Daarna het <strong>verloop</strong>: neemt de afgeleide toe of af als de variabele toeneemt? Dat redeneer je van binnen naar buiten, één bewerking tegelijk.
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5 text-sm">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Theorie C • B = 350/L met L &gt; 0</div>
+                    <div class="mono text-slate-800" data-f="B = {350|L} = 350L^[−1] geeft {dB|dL} = −350L^[−2] = {−350|L²}"></div>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>De teller −350 is negatief en voor L &gt; 0 is de noemer L² positief. Dus <span class="mono" data-f="{dB|dL} &lt; 0"></span>: de grafiek van B is dalend.</li>
+                        <li>Als L toeneemt, dan neemt L² toe voor L &gt; 0, dus <span class="mono" data-f="{350|L²}"></span> neemt af en <span class="mono" data-f="{−350|L²}"></span> neemt toe. Dus dB/dL neemt toe.</li>
+                    </ul>
+                    <div class="font-bold text-violet-800">De grafiek van B is dus afnemend dalend.</div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Voorbeeld p. 129 • lezers van een artikel</div>
+                    <p class="text-slate-600">N = <span class="mono" data-f="{2t + 1500|t + 1}"></span> is het aantal lezers per dag, t de tijd in dagen met t = 0 op de dag van plaatsing. Met de quotiëntregel:</p>
+                    <div class="mono text-slate-800 text-sm space-y-1.5">
+                        <div data-f="{dN|dt} = {(t + 1) · 2 − (2t + 1500) · 1|(t + 1)²}"></div>
+                        <div data-f="{dN|dt} = {2t + 2 − 2t − 1500|(t + 1)²} = {−1498|(t + 1)²}"></div>
+                    </div>
+                    <ul class="list-disc pl-5 text-slate-600 space-y-1">
+                        <li>De teller is negatief en de noemer is voor t ≥ 0 positief, dus dN/dt is negatief: N is dalend.</li>
+                        <li>Als t toeneemt, dan neemt t + 1 toe en dan neemt (t + 1)² toe voor t ≥ 0. Dus dan neemt <span class="mono" data-f="{−1498|(t + 1)²}"></span> toe.</li>
+                    </ul>
+                    <div class="font-bold text-violet-800">De grafiek van N is dus afnemend dalend.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: redeneerketting met live waarden bij twee getallen -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Redeneerketting: neemt de afgeleide toe of af?</h2>
+                    <p class="text-sm text-slate-600">Kies een voorbeeld en klik door de schakels. Achter elke schakel staan de waarden bij twee getallen, het tweede groter dan het eerste. Zo zie je dat elke pijl klopt. Klik daarna op de klassieke fout.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setKetPreset(0)" id="ket-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie C: B = 350/L</button>
+                    <button onclick="setKetPreset(1)" id="ket-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld p. 129: lezers</button>
+                    <button onclick="setKetPreset(2)" id="ket-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld p. 125: edelherten</button>
+                    <button onclick="setKetPreset(3)" id="ket-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: P = 15 + 2ln(3n)</button>
+                </div>
+            </div>
+
+            <div id="ket-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-3">
+                    <div id="ket-teken"></div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">Stap 2 • verloop: van binnen naar buiten</div>
+                    <div id="ket-ladder" class="space-y-2"></div>
+                    <div id="ket-conclusie"></div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-keten" width="460" height="280" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Grafiek van de afgeleide</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> Getal 1 en getal 2</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="ket-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Kies de getallen:</span>
+                            <span id="ket-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="ket-slider" type="range" min="0" max="10" step="0.5" value="2" class="w-full mt-1" oninput="setKetV(this.value)" />
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="ketVorige()" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm whitespace-nowrap">← Vorige</button>
+                        <span id="ket-teller" class="text-xs font-semibold text-slate-500 whitespace-nowrap"></span>
+                        <button onclick="ketVolgende()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm whitespace-nowrap">Volgende →</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="ketAlles()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Toon alle schakels</button>
+                        <button onclick="ketToggleFout()" id="btn-ket-fout" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-300">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Afspraak (p. 130)</div>
+                    <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Cruciale afspraak</span>
+                </div>
+                <h4 class="font-bold text-slate-800 mt-1">"Toon met de afgeleide aan": jij kiest de route</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Staat er "Toon met de afgeleide aan …", dan mag je kiezen. Je geeft een redenering met de <strong>formule</strong> van de afgeleide, zoals in de ketting hierboven. Of je gebruikt de <strong>grafiek</strong> van de afgeleide op de GR (tab 2). Vaak is de grafiek het handigst. Staat er "Toon met de <strong>formule</strong> van de afgeleide aan", dan moet je redeneren.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave R63)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Het minteken draait de richting om, en het domein telt</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    <span class="mono" data-f="{1498|(t + 1)²}"></span> neemt af, dus <span class="mono" data-f="{−1498|(t + 1)²}"></span> neemt <strong>toe</strong>: −374,5 bij t = 1 wordt −93,6 bij t = 3. Een negatief getal dat dichter bij 0 komt, wordt groter.
+                </p>
+                <p class="text-xs text-slate-700 leading-relaxed mt-2">
+                    "(t + 1)² neemt toe" geldt alleen als t + 1 positief is. Daarom staat er <span class="mono text-amber-800 font-bold">voor t ≥ 0</span>. Voor negatieve getallen gaat het mis: (−3)² = 9, maar (−2)² = 4. Kijk dus altijd naar het domein (x &gt; 1, t ≥ 0, L &gt; 0).
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: STAPPENPLAN ==================== -->
+    <section id="tab-stappen" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: welke soort stijgen of dalen?</h2>
+                    <p class="text-sm text-slate-600">Kies een voorbeeld of opgave uit het boek en klik door de vier stappen. De tekening bouwt zich op.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setStapVoorbeeld(0)" id="stap-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld p. 125: edelherten</button>
+                    <button onclick="setStapVoorbeeld(1)" id="stap-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 65b: R = 50 − 1,2<sup>n</sup></button>
+                    <button onclick="setStapVoorbeeld(2)" id="stap-ex-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld p. 129: lezers</button>
+                    <button onclick="setStapVoorbeeld(3)" id="stap-ex-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 60d: D = (x + 200)/(20 − x)</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                <button onclick="setStap(1)" id="stap-btn-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">Bereken de afgeleide</div>
+                </button>
+                <button onclick="setStap(2)" id="stap-btn-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">Boven of onder de as?</div>
+                </button>
+                <button onclick="setStap(3)" id="stap-btn-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Stijgend of dalend?</div>
+                </button>
+                <button onclick="setStap(4)" id="stap-btn-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">Conclusie: de soort</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-stap-y" width="640" height="230" class="w-full h-auto"></canvas>
+                    <canvas id="canvas-stap-d" width="640" height="200" class="w-full h-auto mt-1 border-t border-slate-200"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <div class="flex justify-between">
+                        <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
+                            ← Vorige stap
+                        </button>
+                        <button onclick="setStap(Math.min(AANTAL_STAPPEN, huidigeStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">
+                            Volgende stap →
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen, breuken als 1/2 of ½ en negatieve getallen met een minteken.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 12 opgaven uit §14.5 die samen alle theorie behandelen. De andere opgaven maak je in je schrift. Bij "welke soort" kies je uit de vier soorten. Bij een genummerd vakje <span class="mono" data-f="#1"></span> typ je alleen het getal dat erin hoort.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Opdracht 1: opgave O54b en c (figuur 14.25) -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave O54b en c (figuur 14.25)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Waaraan zie je de soort?</h3>
+                    <canvas id="canvas-q1" width="380" height="190" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Gegeven is de formule y = 2e<sup>0,4x</sup>. De afgeleide is <span class="mono" data-f="{dy|dx} = 0,8e^[0,4x]"></span>; die grafiek zie je in figuur 14.25. Waaraan zie je dat de grafiek van y toenemend stijgend is?</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q1" value="A" /> A. De grafiek van dy/dx ligt boven de x-as.</label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q1" value="B" /> B. De grafiek van dy/dx ligt boven de x-as en is stijgend.</label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q1" value="C" /> C. De grafiek van dy/dx is stijgend.</label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q1" value="D" /> D. De grafiek van y = 2e<sup>0,4x</sup> ligt boven de x-as.</label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave 55 (soorten van stijgen) -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 55</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke soort van stijgen?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Bereken de afgeleide en onderzoek met de grafiek van de afgeleide welke soort van stijgen bij de grafiek van y hoort.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>a</b> <span class="mono" data-f="y = 0,05(1 + 4e^[0,5x])"></span></div>
+                            <select id="q2-a" data-soort aria-label="soort bij 55a" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>b</b> <span class="mono">y = ln(2x + 15)</span> <span class="text-amber-700 font-semibold">met x &gt; −7,5</span></div>
+                            <select id="q2-b" data-soort aria-label="soort bij 55b" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>c</b> <span class="mono" data-f="y = {30 − 10x|1 − x}"></span> <span class="text-amber-700 font-semibold">met x &gt; 1</span></div>
+                            <select id="q2-c" data-soort aria-label="soort bij 55c" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>d</b> <span class="mono">y = x · ln(x + 4)</span> <span class="text-amber-700 font-semibold">met x ≥ 0</span></div>
+                            <select id="q2-d" data-soort aria-label="soort bij 55d" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave O58 -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave O58</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Afgeleide met de quotiëntregel, dan de soort</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Gegeven is de formule <span class="mono" data-f="y = {x + 11|x + 1}"></span> <span class="text-amber-700 font-semibold">met x ≥ 0</span>.<br>a. Toon aan dat dy/dx de vorm hieronder heeft en vul het vakje in.<br>b en c. Welke soort hoort bij de grafiek van y?</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-f="{dy|dx} = {#1|(x + 1)²}"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                        <div>
+                            <label for="q3-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <input id="q3-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-s" class="font-semibold text-slate-700">soort van y</label>
+                            <select id="q3-s" data-soort class="w-full mt-1 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 59 (soorten van dalen) -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 59</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke soort van dalen?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Bereken de afgeleide en onderzoek met de grafiek van de afgeleide welke soort van dalen bij de grafiek van y hoort.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>a</b> <span class="mono" data-f="y = 100e^[−0,1x]"></span></div>
+                            <select id="q4-a" data-soort aria-label="soort bij 59a" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>b</b> <span class="mono" data-f="y = 5 − x√[x]"></span></div>
+                            <select id="q4-b" data-soort aria-label="soort bij 59b" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>c</b> <span class="mono">y = 10 − ln(3x + 20)</span> <span class="text-amber-700 font-semibold">met x ≥ 0</span></div>
+                            <select id="q4-c" data-soort aria-label="soort bij 59c" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>d</b> <span class="mono" data-f="y = {3 − x²|x + 1}"></span> <span class="text-amber-700 font-semibold">met x ≥ 0</span></div>
+                            <select id="q4-d" data-soort aria-label="soort bij 59d" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave A56a en b (diabetes) -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave A56a en b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🩺 Diabetes</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Wereldwijd lijden steeds meer mensen aan diabetes. Het percentage P van de mensen dat lijdt aan deze ziekte wordt gegeven door de formule P = 2,35(1 + e<sup>0,0275t</sup>). Hierin is t de tijd in jaren met t = 0 in januari 1980.</p>
+                    <p class="text-xs text-slate-600 mb-2">a. Bereken met hoeveel procent het percentage van de mensen dat lijdt aan diabetes is toegenomen in de periode van januari 1980 tot januari 2015. Rond af op gehelen.<br>b. Stel de formule op van de afgeleide van P en toon met de grafiek van de afgeleide aan dat de toename van P steeds groter wordt.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-f="{dP|dt} = #1 · e^[0,0275t]"></span></div>
+                    <div class="grid grid-cols-3 gap-2 text-xs mt-3">
+                        <div>
+                            <label for="q5-a" class="font-semibold text-slate-700">a. toename (%)</label>
+                            <input id="q5-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-1" class="font-semibold text-slate-700">b. vakje 1</label>
+                            <input id="q5-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-s" class="font-semibold text-slate-700">b. soort van P</label>
+                            <select id="q5-s" data-soort class="w-full mt-1 px-1.5 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave O62 (figuur 14.30) -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave O62 (figuur 14.30)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Redeneren met de formule van dA/dt</h3>
+                    <canvas id="canvas-q6" width="380" height="170" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">In de figuur is de grafiek van A = 100 − 90 · 0,8<sup>t</sup> <span class="text-amber-700 font-semibold">met t ≥ 0</span> getekend.<br>a. Toon aan dat dA/dt de vorm hieronder heeft. Rond het vakje af op één decimaal.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-f="{dA|dt} ≈ #1 · 0,8^[t]"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                        <div>
+                            <label for="q6-1" class="font-semibold text-slate-700">a. vakje 1</label>
+                            <input id="q6-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-s" class="font-semibold text-slate-700">d. soort van A</label>
+                            <select id="q6-s" data-soort class="w-full mt-1 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-700 mt-3 leading-loose">c. Vul in: toe of af.<br>
+                        Als t toeneemt, dan neemt 0,8<sup>t</sup> <select id="q6-c1" data-toeaf aria-label="vakje c1" class="px-1 py-0.5 border rounded bg-white text-xs"></select>, dus dan neemt 20,1 · 0,8<sup>t</sup> <select id="q6-c2" data-toeaf aria-label="vakje c2" class="px-1 py-0.5 border rounded bg-white text-xs"></select>.
+                        Dus als t toeneemt, dan neemt dA/dt <select id="q6-c3" data-toeaf aria-label="vakje c3" class="px-1 py-0.5 border rounded bg-white text-xs"></select>.
+                    </p>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave R63 (Let op: het minteken) -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave R63 (Voorbeeld p. 129)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Wat doet het minteken?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">In het voorbeeld is <span class="mono" data-f="{dN|dt} = {−1498|(t + 1)²}"></span> met t ≥ 0. Als t toeneemt, dan neemt (t + 1)² toe. Wat doet <span class="mono" data-f="{−1498|(t + 1)²}"></span> dan, en waarom?</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="A" /> A. Het neemt af: de noemer wordt groter, dus de breuk wordt kleiner.</label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="B" /> <span>B. Het neemt toe: <span class="mono" data-f="{1498|(t + 1)²}"></span> neemt af, en het minteken draait dat om.</span></label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="C" /> C. Het neemt toe: de teller −1498 wordt groter.</label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q7" value="D" /> D. Het blijft gelijk: de teller verandert niet.</label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave 64 (formule van de afgeleide) -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 64</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Redeneren met de formule van de afgeleide</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Onderzoek met de formule van de afgeleide welke soort van stijgen of dalen bij de grafiek hoort.</p>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>a</b> <span class="mono" data-f="N = {1500 + 50t|330 + 0,25t}"></span> <span class="text-amber-700 font-semibold">met t ≥ 0</span></div>
+                            <select id="q8-a" data-soort aria-label="soort bij 64a" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>b</b> <span class="mono" data-f="T = 315e^[0,28t]"></span></div>
+                            <select id="q8-b" data-soort aria-label="soort bij 64b" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>c</b> <span class="mono" data-f="S = 50 − {30|x}"></span> <span class="text-amber-700 font-semibold">met x &gt; 0</span></div>
+                            <select id="q8-c" data-soort aria-label="soort bij 64c" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 p-2 rounded-lg bg-slate-50">
+                            <div class="flex-1 text-sm"><b>d</b> <span class="mono">B = 3 − ln(2n)</span> <span class="text-amber-700 font-semibold">met n &gt; 0</span></div>
+                            <select id="q8-d" data-soort aria-label="soort bij 64d" class="sm:w-44 px-2 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: opgave A61a, b en e (marathon) -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave A61a, b en e</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🏃 De marathon van Rotterdam</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Niek Slappendel was met zijn 81 jaar de oudste deelnemer. Hij liep de 42,195 km in een persoonlijk record van 4 uur en 59 minuten.<br>a. Wat was de gemiddelde snelheid van Niek? Geef het antwoord in m/s en rond af op twee decimalen.</p>
+                    <p class="text-xs text-slate-600 mb-2">Een model voor de gemiddelde snelheid is v = a(2L<sup>0,7</sup> − 1,25L<sup>0,8</sup>). Hierin is v de gemiddelde snelheid op de marathon in m/s, L de leeftijd in jaren met <span class="text-amber-700 font-semibold">30 ≤ L ≤ 90</span> en a een constante die van de marathonloper afhangt.<br>b. Iemand loopt op 30-jarige leeftijd de marathon met een gemiddelde snelheid van 18 km/uur. Bereken voor deze loper a in drie decimalen.<br>e. Welke soort van dalen hoort bij de grafiek van v? Neem a = 1,90.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q9-a" class="font-semibold text-slate-700">a. snelheid (m/s)</label>
+                            <input id="q9-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-b" class="font-semibold text-slate-700">b. a (drie dec.)</label>
+                            <input id="q9-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-s" class="font-semibold text-slate-700">e. soort van v</label>
+                            <select id="q9-s" data-soort class="w-full mt-1 px-1.5 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: opgave 66a, c en d (insecticide) -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave 66a, c en d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🍐 Insecticide op de perenboom</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Fruittelers bespuiten regelmatig hun fruitbomen met insecticiden. De opbrengst R in kg van een perenboom hangt af van de hoeveelheid gebruikte insecticide x per oogst, in een geschikte eenheid: <span class="mono" data-f="R = 150 − {50|1 + x}"></span> <span class="text-amber-700 font-semibold">met 0 ≤ x ≤ 10</span>.</p>
+                    <p class="text-xs text-slate-600 mb-2">a. Hoeveel procent is de toename van R als de fruitteler de hoeveelheid insecticide laat toenemen van 4,5 tot 6,5? Rond af op één decimaal.<br>c. Welke soort van stijgen hoort bij de grafiek van R?<br>d. Voor welke x is de snelheid waarmee R verandert minder dan 0,8? Rond af op één decimaal.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q10-a" class="font-semibold text-slate-700">a. toename (%)</label>
+                            <input id="q10-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-s" class="font-semibold text-slate-700">c. soort van R</label>
+                            <select id="q10-s" data-soort class="w-full mt-1 px-1.5 py-1.5 border rounded-lg bg-white"></select>
+                        </div>
+                        <div>
+                            <label for="q10-d" class="font-semibold text-slate-700">d. voor x &gt; … (tot 10)</label>
+                            <input id="q10-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: opgave A67a, d en f (figuur 14.31) -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Opgave A67a, d en f (figuur 14.31)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🛒 De omzet van een supermarkt</h3>
+                    <div class="grid lg:grid-cols-12 gap-4 items-start mt-2">
+                        <div class="lg:col-span-7 space-y-2">
+                            <p class="text-xs text-slate-600">Elk artikel in een supermarkt krijgt een rangnummer: het bestverkochte artikel nummer 1, het op één na bestverkochte artikel nummer 2, enzovoort. Bij de (cumulatieve) omzet O(n) van de artikelen met de rangnummers 1 tot en met n hoort de grafiek in figuur 14.31. Een supermarkt gebruikt voor de dagomzet in euro's het model <span class="mono" data-f="O(n) = 30 000 − {150 000|5 + 0,1n}"></span> <span class="text-amber-700 font-semibold">met 0 ≤ n ≤ 2000</span>.</p>
+                            <p class="text-xs text-slate-600">De kosten in euro's per dag zijn K(n) = 8n<sup>1,05</sup>. De dagelijkse winst in euro's is W(n) = O(n) − K(n).</p>
+                            <p class="text-xs text-slate-600">a. De grafiek nadert een grenswaarde. Welke?<br>d. Hoeveel procent van de totale dagomzet wordt opgebracht door de 20% bestverkopende artikelen? En hoeveel procent door de 60% slechtst verkopende artikelen? Rond af op één decimaal.<br>f. Bereken met behulp van de afgeleide bij welk aantal artikelen n de winst maximaal is.</p>
+                        </div>
+                        <div class="lg:col-span-5">
+                            <canvas id="canvas-q11" width="400" height="230" class="w-full h-auto bg-slate-50 rounded-lg border"></canvas>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mt-3">
+                        <div>
+                            <label for="q11-a" class="font-semibold text-slate-700">a. grenswaarde (€)</label>
+                            <input id="q11-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-d1" class="font-semibold text-slate-700">d. beste 20% (%)</label>
+                            <input id="q11-d1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-d2" class="font-semibold text-slate-700">d. slechtste 60% (%)</label>
+                            <input id="q11-d2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-f" class="font-semibold text-slate-700">f. n (artikelen)</label>
+                            <input id="q11-f" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: einduitdaging op opgave A57 -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging (opgave A57)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Zoek de steilste raaklijn</h3>
+                    <p class="text-xs text-slate-600 mt-1">Het aantal leden N van een nieuwe politieke beweging wordt gegeven door de formule <span class="mono" data-f="N = {5000|1 + 19e^[−0,175t]}"></span>. Hierin is t de tijd in maanden met t = 0 op het moment van oprichten. De grafiek van N gaat over van toenemend stijgend naar afnemend stijgend. Voor welke t gebeurt dit? Rond af op één decimaal.</p>
+                    <p class="text-xs text-slate-600 mt-1">Schuif jouw raaklijn langs de grafiek en kijk naar de helling. Bereken daarna de afgeleide en controleer je antwoord met de GR.</p>
+                    <canvas id="canvas-q12" width="760" height="280" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div id="q12-d-wrap" class="hidden">
+                        <canvas id="canvas-q12-d" width="760" height="170" class="w-full h-auto mb-2 bg-slate-50 rounded-lg border"></canvas>
+                    </div>
+                    <div class="grid md:grid-cols-12 gap-3 items-end text-xs">
+                        <div class="md:col-span-5">
+                            <label for="q12-slider" class="font-semibold text-slate-700 flex justify-between">
+                                <span>Jouw raaklijn bij:</span>
+                                <span id="q12-live" class="mono font-bold text-indigo-600"></span>
+                            </label>
+                            <input id="q12-slider" type="range" min="0" max="40" step="0.1" value="6" class="w-full mt-1" oninput="drawQ12()" />
+                        </div>
+                        <div class="md:col-span-7">
+                            <div class="p-2.5 rounded-xl bg-slate-900 text-white mono text-sm overflow-x-auto"><span data-f="{dN|dt} = {#1 · e^[−0,175t]|(1 + 19e^[−0,175t])²}"></span></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3 md:w-1/2">
+                        <div>
+                            <label for="q12-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <input id="q12-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q12-t" class="font-semibold text-slate-700">t (één decimaal)</label>
+                            <input id="q12-t" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== HULPFUNCTIES VOOR DEZE LES ====================
+    const ln = Math.log;
+    const SLATE = '#334155';        // gegeven grafiek van y (donker slate)
+    const ROSE_LICHT = '#fda4af';   // het deel van dy/dx waar de raaklijn nog niet langs is geweest
+    const SOORTEN = { TS: 'toenemend stijgend', AS: 'afnemend stijgend', TD: 'toenemend dalend', AD: 'afnemend dalend' };
+    const HELLINGEN = {
+        TS: 'de hellingen zijn positief en worden steeds groter: steeds steiler omhoog',
+        AS: 'de hellingen zijn positief en worden steeds kleiner: steeds minder steil omhoog',
+        TD: 'de hellingen zijn negatief en worden steeds kleiner: steeds steiler omlaag',
+        AD: 'de hellingen zijn negatief en worden steeds groter: steeds minder steil omlaag',
+    };
+
+    /** De soort uit het teken van dy/dx (+1 of −1) en het verloop van dy/dx (+1 stijgend, −1 dalend). */
+    function soortVan(teken, verloop) {
+        if (teken > 0) return verloop > 0 ? 'TS' : 'AS';
+        return verloop < 0 ? 'TD' : 'AD';
+    }
+
+    /** Vast aantal decimalen, in Nederlandse notatie: 1 → "1,000". */
+    const fmtF = (v, d) => v.toFixed(d).replace('.', ',').replace('-', '−');
+
+    /** Mooie rasterstap (1, 2, 2,5 of 5 maal een macht van 10) voor een bereik. */
+    function mooieStap(bereik, maxStappen = 6) {
+        const p = 10 ** Math.floor(Math.log10(bereik / maxStappen));
+        return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => bereik / s <= maxStappen) || 10 * p;
+    }
+
+    /** Tekent binnen het grafiekvlak van een drawGraph-resultaat; alles daarbuiten wordt afgeknipt. */
+    function binnen(g, teken) {
+        const { ctx, box } = g;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+        teken(ctx);
+        ctx.restore();
+    }
+
+    /** Raaklijn door (x0, y0) met helling m. Op het scherm altijd even lang (len pixels). */
+    function raaklijn(g, x0, y0, m, color = C.rose, len = 130, width = 3) {
+        const px = g.mapX(x0), py = g.mapY(y0);
+        const dx = g.mapX(x0 + 1) - px, dy = g.mapY(y0 + m) - py;
+        const n = Math.hypot(dx, dy) || 1;
+        const ux = dx / n * len / 2, uy = dy / n * len / 2;
+        binnen(g, ctx => {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.setLineDash([]);
+            strokeLine(ctx, px - ux, py - uy, px + ux, py + uy);
+        });
+    }
+
+    /** Vlak tussen een grafiek en de horizontale as, van a tot b. */
+    function vulTotAs(g, f, a, b, color) {
+        binnen(g, ctx => {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(g.mapX(a), g.mapY(0));
+            for (let i = 0; i <= 160; i++) {
+                const x = a + (b - a) * i / 160, y = f(x);
+                if (isFinite(y)) ctx.lineTo(g.mapX(x), g.mapY(Math.max(-1e6, Math.min(1e6, y))));
+            }
+            ctx.lineTo(g.mapX(b), g.mapY(0));
+            ctx.closePath();
+            ctx.fill();
+        });
+    }
+
+    /** Verticale stippellijn over het hele grafiekvlak. */
+    function vStreep(g, x, color) {
+        binnen(g, ctx => {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            strokeLine(ctx, g.mapX(x), g.box.y0, g.mapX(x), g.box.y1);
+        });
+    }
+
+    /** Gestippelde pijl van (x1, y1) naar (x2, y2) in pixels. */
+    function pijl(ctx, x1, y1, x2, y2, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([6, 4]);
+        strokeLine(ctx, x1, y1, x2, y2);
+        ctx.setLineDash([]);
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 11 * Math.cos(a - 0.4), y2 - 11 * Math.sin(a - 0.4));
+        ctx.lineTo(x2 - 11 * Math.cos(a + 0.4), y2 - 11 * Math.sin(a + 0.4));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function stip(ctx, x, y, color, r = 6) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /** Label met een lichte achtergrond, zodat het leesbaar blijft boven een lijn of grafiek. */
+    function tekst(ctx, s, x, y, color, align = 'left') {
+        ctx.font = '700 12px Inter, sans-serif';
+        ctx.textAlign = align;
+        const w = ctx.measureText(s).width;
+        const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fillRect(x0 - 3, y - 12, w + 6, 16);
+        ctx.fillStyle = color;
+        ctx.fillText(s, x, y);
+    }
+
+    /** Label naast een punt, dat binnen het grafiekvlak blijft (links van het punt als rechts geen ruimte is). */
+    function puntLabel(g, s, px, py, color) {
+        const rechts = px > g.box.x1 - 130;
+        const y = Math.max(g.box.y0 + 16, Math.min(g.box.y1 - 6, py - 10));
+        tekst(g.ctx, s, rechts ? px - 10 : px + 10, y, color, rechts ? 'right' : 'left');
+    }
+
+    /** Invoerveld nakijken in de stijl van de opdrachtmotor: goed als een van de doelen binnen tol ligt. */
+    function veldOk(id, doel, tol) {
+        const input = $(id);
+        const ok = [].concat(doel).some(t => approx(parseNum(input.value), t, tol));
+        input.classList.toggle('border-emerald-400', ok);
+        input.classList.toggle('border-rose-400', !ok);
+        return ok;
+    }
+
+    /** Keuzelijst nakijken (soort, of toe/af). */
+    function keuzeOk(id, waarde) {
+        const sel = $(id);
+        const ok = sel.value === waarde;
+        sel.classList.toggle('border-emerald-400', ok);
+        sel.classList.toggle('border-rose-400', !ok);
+        return ok;
+    }
+
+    /** Eerst alle onderdelen nakijken (en kleuren), dan pas het totaal. */
+    const allesGoed = lijst => lijst.every(Boolean);
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => { renderMatrix(); renderBasis(); },
+        'tab-grafiek': () => { renderThumbs(); renderBouw(); drawGrScherm(); },
+        'tab-formule': () => renderKet(),
+        'tab-stappen': () => renderStap(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN ====================
+    // Kleine grafieken in de tabel "de vier soorten": y op 0 ≤ x ≤ 4, met drie raaklijnen.
+    const matrixSoorten = {
+        TS: { f: x => 0.22 * x * x + 0.3, d: x => 0.44 * x },
+        AS: { f: x => 4 * (1 - Math.exp(-0.7 * x)) + 0.2, d: x => 2.8 * Math.exp(-0.7 * x) },
+        AD: { f: x => 4 * Math.exp(-0.7 * x) + 0.2, d: x => -2.8 * Math.exp(-0.7 * x) },
+        TD: { f: x => 3.9 - 0.22 * x * x, d: x => -0.44 * x },
+    };
+
+    function renderMatrix() {
+        Object.entries(matrixSoorten).forEach(([k, s]) => {
+            const g = drawGraph('soort-' + k, {
+                xMin: 0, xMax: 4.3, yMin: 0, yMax: 4.6, xStep: 1, yStep: 1,
+                xTick: () => '', yTick: () => '', xLabel: 'x', yLabel: 'y',
+                pad: { l: 14, r: 16, t: 22, b: 10 },
+                curves: [{ f: s.f, color: SLATE, width: 2.5, domain: [0, 4] }],
+            });
+            [0.7, 2, 3.3].forEach(x => {
+                raaklijn(g, x, s.f(x), s.d(x), C.rose, 64, 2);
+                stip(g.ctx, g.mapX(x), g.mapY(s.f(x)), SLATE, 3);
+            });
+        });
+    }
+
+    // Fig 14.24 en 14.25: y = 2e^{0,4x} en dy/dx = 0,8e^{0,4x}. In het boek: y-schaal 2, 4, 6, de grafiek van y
+    //   loopt tot ≈ (3,4; 7,9) en fig 14.25 heeft x van −2 tot 3 (streepjes bij 1). Hier staan beide op dezelfde
+    //   x-as (−3 tot 4), zodat de raaklijn recht boven zijn helling staat.
+    // Fig 14.26 en 14.27 (Theorie A): geen schaal in het boek; 0 ≤ x ≤ 10 geeft y(10) = 2 · 10^0,3 ≈ 4.
+    // Fig 14.28 en 14.29 (Theorie B): van (0, 5) tot ≈ (7,5; 1,45); zo ver loopt de grafiek in het boek.
+    // Theorie C: B = 350/L met L > 0 (geen figuur in het boek), venster 0 ≤ L ≤ 20.
+    // dom = waar de raaklijn loopt, trap = waar de 8 trapjes staan, fdom/ddom = domein van de grafieken.
+    const basisPresets = [
+        {
+            fy: 'y = 2e^[0,4x]', fd: '{dy|dx} = 0,8e^[0,4x]',
+            f: x => 2 * Math.exp(0.4 * x), d: x => 0.8 * Math.exp(0.4 * x),
+            xn: 'x', yn: 'y', dn: 'dy/dx',
+            xMin: -3, xMax: 4, xStep: 1, yMin: 0, yMax: 8, yStep: 2, dMin: 0, dMax: 4, dStep: 1,
+            dom: [-3, 3.4], trap: [-3, 3.4], ddom: [-3, 4],
+        },
+        {
+            fy: 'y = 2x^[0,3]', fd: '{dy|dx} = 0,6x^[−0,7]',
+            f: x => 2 * x ** 0.3, d: x => 0.6 * x ** -0.7,
+            xn: 'x', yn: 'y', dn: 'dy/dx',
+            xMin: 0, xMax: 10, xStep: 1, yMin: 0, yMax: 4.5, yStep: 1, dMin: 0, dMax: 2, dStep: 0.5,
+            dom: [0.3, 10], trap: [0, 10], fdom: [0, 10], ddom: [0.05, 10],
+        },
+        {
+            fy: 'y = 5 − 0,2x^[1,3] − 0,1x', fd: '{dy|dx} = −0,26x^[0,3] − 0,1',
+            f: x => 5 - 0.2 * x ** 1.3 - 0.1 * x, d: x => -0.26 * x ** 0.3 - 0.1,
+            xn: 'x', yn: 'y', dn: 'dy/dx',
+            xMin: 0, xMax: 8, xStep: 1, yMin: 0, yMax: 5.5, yStep: 1, dMin: -0.7, dMax: 0.05, dStep: 0.1,
+            dom: [0.1, 7.5], trap: [0, 7.5], fdom: [0, 7.5], ddom: [0, 7.5],
+        },
+        {
+            fy: 'B = {350|L}', fd: '{dB|dL} = {−350|L²}',
+            f: L => 350 / L, d: L => -350 / L ** 2,
+            xn: 'L', yn: 'B', dn: 'dB/dL',
+            xMin: 0, xMax: 20, xStep: 2, yMin: 0, yMax: 200, yStep: 50, dMin: -100, dMax: 10, dStep: 25,
+            dom: [2.5, 20], trap: [2, 20], fdom: [1.5, 20], ddom: [1.5, 20],
+        },
+    ];
+    let basisIdx = 0, basisX = 0, basisPlaying = true, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        const slider = $('basis-x-slider');
+        slider.min = pr.dom[0];
+        slider.max = pr.dom[1];
+        slider.step = (pr.dom[1] - pr.dom[0]) / 200;
+        basisX = pr.dom[0];
+        $('basis-pil').innerHTML = `${fm(pr.fy)}<span class="text-slate-500 mx-3">→</span><span class="text-rose-300">${fm(pr.fd)}</span>`;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+        basisX = parseFloat(val);
+        renderBasis();
+    }
+
+    /** De trapjes: de verandering van y bij 8 even grote stappen over pr.trap. */
+    function trapjes(pr) {
+        const [a, b] = pr.trap, h = (b - a) / 8;
+        return Array.from({ length: 8 }, (_, k) => {
+            const xa = a + k * h, xb = xa + h;
+            return { xa, xb, ya: pr.f(xa), yb: pr.f(xb) };
+        });
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const x0 = basisX, y0 = pr.f(x0), m = pr.d(x0);
+        const trap = trapjes(pr);
+
+        const gy = drawGraph('canvas-basis-y', {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.yMin, yMax: pr.yMax, xStep: pr.xStep, yStep: pr.yStep,
+            xLabel: pr.xn, yLabel: pr.yn,
+            curves: [{ f: pr.f, color: SLATE, width: 3, domain: pr.fdom }],
+        });
+        if ($('chk-trap').checked) {
+            binnen(gy, ctx => trap.forEach(s => {
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([4, 3]);
+                strokeLine(ctx, gy.mapX(s.xa), gy.mapY(s.ya), gy.mapX(s.xb), gy.mapY(s.ya));
+                ctx.setLineDash([]);
+                ctx.strokeStyle = C.violet;
+                ctx.lineWidth = 4;
+                strokeLine(ctx, gy.mapX(s.xb), gy.mapY(s.ya), gy.mapX(s.xb), gy.mapY(s.yb));
+            }));
+        }
+        vStreep(gy, x0, '#a5b4fc');
+        if ($('chk-raak').checked) raaklijn(gy, x0, y0, m);
+        stip(gy.ctx, gy.mapX(x0), gy.mapY(y0), SLATE, 5.5);
+
+        const gd = drawGraph('canvas-basis-d', {
+            xMin: pr.xMin, xMax: pr.xMax, yMin: pr.dMin, yMax: pr.dMax, xStep: pr.xStep, yStep: pr.dStep,
+            xLabel: pr.xn, yLabel: pr.dn,
+            curves: [
+                { f: pr.d, color: ROSE_LICHT, width: 2.5, domain: pr.ddom },
+                { f: pr.d, color: C.rose, width: 3.5, domain: [pr.ddom[0], x0] },
+            ],
+        });
+        vStreep(gd, x0, '#a5b4fc');
+        const px = gd.mapX(x0), py = gd.mapY(m);
+        stip(gd.ctx, px, py, C.rose, 6.5);
+        puntLabel(gd, `helling = ${fmt(m, 2)}`, px, py, C.rose);
+
+        // Uitleg met de getallen van dit moment
+        const teken = Math.sign(m);
+        const verloop = Math.sign(pr.d(pr.dom[1]) - pr.d(pr.dom[0]));
+        const soort = soortVan(teken, verloop);
+        const delta = trap.map(s => s.yb - s.ya);
+        const dig = Math.abs(delta[4]) >= 10 ? 1 : 2;
+        const rij = delta.slice(0, 5).map(v => fmt(v, dig)).join(' · ') + ' · …';
+        const groter = Math.abs(delta[7]) > Math.abs(delta[0]);
+        $('basis-x-slider').value = x0;
+        $('basis-x-label').innerText = `${pr.xn} = ${fmt(x0)}`;
+        $('basis-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900">Raaklijn bij ${pr.xn} = ${fmt(x0)}</div>
+            <div class="mono">${pr.yn} = ${fmt(y0)} · helling ${pr.dn} = <span class="text-rose-700 font-bold">${fmt(m)}</span></div>
+            <div>${pr.dn} ${teken > 0 ? '&gt;' : '&lt;'} 0: de grafiek van ${pr.dn} ligt <strong>${teken > 0 ? 'boven' : 'onder'}</strong> de ${pr.xn}-as, dus ${pr.yn} is ${teken > 0 ? 'stijgend' : 'dalend'}.</div>
+            <div>Verandering per stap (trapjes): <span class="mono text-violet-700 font-bold">${rij}</span><br>${teken > 0 ? 'De stijging' : 'De daling'} wordt steeds ${groter ? 'groter' : 'kleiner'}.</div>
+            <div>De grafiek van ${pr.dn} is <strong>${verloop > 0 ? 'stijgend' : 'dalend'}</strong>: ${HELLINGEN[soort]}.</div>
+            <div class="mt-1 px-2.5 py-1.5 rounded-lg bg-violet-100 text-violet-900 font-bold">De grafiek van ${pr.yn} is ${SOORTEN[soort]}.</div>`;
+    }
+
+    // Eén animatielus voor tab 1 (raaklijn loopt mee) en tab 2 (y wordt opgebouwd); tekent alleen als de tab zichtbaar is.
+    function animateLoop(ts) {
+        if (lastTs !== null) {
+            const dt = Math.min(0.05, (ts - lastTs) / 1000);
+            if (basisPlaying && !$('tab-basis').classList.contains('hidden')) {
+                const pr = basisPresets[basisIdx];
+                basisX += dt * (pr.dom[1] - pr.dom[0]) / 7;
+                if (basisX > pr.dom[1]) basisX = pr.dom[0];
+                renderBasis();
+            }
+            if (bouwBezig && !$('tab-grafiek').classList.contains('hidden')) {
+                bouwX = Math.min(BOUW_MAX, bouwX + dt * (BOUW_MAX - BOUW_MIN) / 3.5);
+                if (bouwX >= BOUW_MAX) bouwBezig = false;
+                renderBouw();
+            }
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: DE GRAFIEK VAN DE AFGELEIDE (THEORIE A EN B) ====================
+    // De schetsen van dy/dx uit Theorie A (p. 125) en Theorie B (p. 127), in de volgorde en vorm van het boek,
+    // op −1 ≤ x ≤ 4 (de y-as op een vijfde, zoals in de schetsen). Het boek geeft geen schaal, dus hier ook
+    // geen getallen. De laatste schets (dy/dx met een top) staat niet in het boek; hij hoort bij opgave A57.
+    const BOUW_MIN = -1, BOUW_MAX = 4;
+    const schetsen = [
+        { soort: 'TS', d: x => 0.15 + 0.35 * Math.exp(0.55 * x) },          // boven de as, stijgend, steeds steiler
+        { soort: 'TS', d: x => 2.4 - 1.9 * Math.exp(-0.55 * (x + 1)) },     // boven de as, stijgend, steeds vlakker
+        { soort: 'AS', d: x => 0.3 + 2.4 * Math.exp(-0.7 * (x + 1)) },      // boven de as, dalend, steeds vlakker
+        { soort: 'AS', d: x => 2.5 - 0.09 * (x + 1) ** 2 },                 // boven de as, dalend, steeds steiler
+        { soort: 'TD', d: x => -0.15 - 0.09 * (x + 1) ** 2 },               // onder de as, dalend, steeds steiler
+        { soort: 'TD', d: x => -2.5 + 2.2 * Math.exp(-0.6 * (x + 1)) },     // onder de as, dalend, steeds vlakker
+        { soort: 'AD', d: x => -0.25 - 2.3 * Math.exp(-0.6 * (x + 1)) },    // onder de as, stijgend, steeds vlakker
+        { soort: 'AD', d: x => -2.5 + 0.09 * (x + 1) ** 2 },                // onder de as, stijgend, steeds steiler
+        { soort: 'W', d: x => 0.3 + 2 * Math.exp(-((x - 1.5) ** 2) / 1.2), top: 1.5 },
+    ];
+    const VOORSPEL = ['TS', 'AS', 'TD', 'AD', 'W'];
+    const naamSoort = k => k === 'W' ? 'de soort verandert onderweg' : SOORTEN[k];
+
+    // y bij elke schets: de oppervlakte onder dy/dx (Simpson per stukje), zo verschoven dat y boven de x-as blijft.
+    schetsen.forEach(s => {
+        const n = 400, h = (BOUW_MAX - BOUW_MIN) / n, ys = [0];
+        for (let i = 0; i < n; i++) {
+            const a = BOUW_MIN + i * h;
+            ys.push(ys[i] + h * (s.d(a) + 4 * s.d(a + h / 2) + s.d(a + h)) / 6);
+        }
+        const lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo, shift = -lo + 0.2 * span;
+        s.y = x => {
+            const t = Math.max(0, Math.min(n, (x - BOUW_MIN) / h)), i = Math.min(n - 1, Math.floor(t));
+            return ys[i] + (ys[i + 1] - ys[i]) * (t - i) + shift;
+        };
+        s.yMin = 0;
+        s.yMax = 1.35 * span;
+        const onder = s.soort === 'TD' || s.soort === 'AD';
+        s.dMin = onder ? -2.9 : -0.6;
+        s.dMax = onder ? 0.6 : 3.4;
+    });
+
+    let schetsIdx = 0, voorspelling = null, bouwX = null, bouwBezig = false;
+
+    function setSchets(i) {
+        schetsIdx = i;
+        voorspelling = null;
+        bouwX = null;
+        bouwBezig = false;
+        renderThumbs();
+        renderBouw();
+    }
+
+    function voorspel(k) {
+        voorspelling = VOORSPEL[k];
+        startBouw();
+    }
+
+    function startBouw() {
+        bouwX = BOUW_MIN;
+        bouwBezig = true;
+        renderBouw();
+    }
+
+    function renderThumbs() {
+        schetsen.forEach((s, i) => {
+            drawGraph('thumb-' + i, {
+                xMin: BOUW_MIN, xMax: BOUW_MAX, yMin: s.dMin, yMax: s.dMax, xStep: 10, yStep: 10,
+                xTick: () => '', yTick: () => '', xLabel: 'x', yLabel: 'dy/dx',
+                pad: { l: 6, r: 14, t: 20, b: 6 },
+                curves: [{ f: s.d, color: C.rose, width: 2.5 }],
+            });
+            $('schets-' + i).className = 'p-1 rounded-xl border-2 transition ' +
+                (i === schetsIdx ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white hover:bg-slate-50');
+        });
+    }
+
+    function renderBouw() {
+        const s = schetsen[schetsIdx];
+        const gebouwd = bouwX !== null;
+        const klaar = gebouwd && !bouwBezig;
+
+        VOORSPEL.forEach((k, i) => {
+            const b = $('voorspel-' + i), gekozen = voorspelling === k;
+            b.classList.toggle('bg-indigo-600', gekozen);
+            b.classList.toggle('text-white', gekozen);
+            b.classList.toggle('bg-slate-100', !gekozen);
+            b.classList.toggle('text-slate-700', !gekozen);
+        });
+        $('btn-bouw').innerText = klaar ? '↺ Bouw opnieuw' : '▶ Bouw de grafiek van y';
+
+        const gy = drawGraph('canvas-bouw-y', {
+            xMin: BOUW_MIN, xMax: BOUW_MAX, yMin: s.yMin, yMax: s.yMax, xStep: 1, yStep: mooieStap(s.yMax),
+            xTick: () => '', yTick: () => '', xLabel: 'x', yLabel: 'y',
+            curves: gebouwd ? [{ f: s.y, color: SLATE, width: 3, domain: [BOUW_MIN, bouwX] }] : [],
+        });
+        const gd = drawGraph('canvas-bouw-d', {
+            xMin: BOUW_MIN, xMax: BOUW_MAX, yMin: s.dMin, yMax: s.dMax, xStep: 1, yStep: 1,
+            xTick: () => '', yTick: () => '', xLabel: 'x', yLabel: 'dy/dx',
+            curves: [{ f: s.d, color: C.rose, width: 3 }],
+        });
+
+        if (s.top !== undefined && klaar) {
+            vStreep(gy, s.top, C.violet);
+            vStreep(gd, s.top, C.violet);
+            stip(gd.ctx, gd.mapX(s.top), gd.mapY(s.d(s.top)), C.violet, 7);
+            stip(gy.ctx, gy.mapX(s.top), gy.mapY(s.y(s.top)), C.violet, 7);
+            puntLabel(gd, 'top van dy/dx', gd.mapX(s.top), gd.mapY(s.d(s.top)), C.violet);
+            puntLabel(gy, 'hier het steilst', gy.mapX(s.top), gy.mapY(s.y(s.top)) + 26, C.violet);
+        }
+        if (gebouwd) {
+            vStreep(gy, bouwX, '#a5b4fc');
+            vStreep(gd, bouwX, '#a5b4fc');
+            raaklijn(gy, bouwX, s.y(bouwX), s.d(bouwX));
+            stip(gy.ctx, gy.mapX(bouwX), gy.mapY(s.y(bouwX)), SLATE, 5.5);
+            stip(gd.ctx, gd.mapX(bouwX), gd.mapY(s.d(bouwX)), C.rose, 6.5);
+        } else {
+            tekst(gy.ctx, 'Voorspel eerst de soort. Dan bouw je hier de grafiek van y op.', (gy.box.x0 + gy.box.x1) / 2, (gy.box.y0 + gy.box.y1) / 2, '#64748b', 'center');
+        }
+
+        // Uitleg
+        const boven = s.d(0) > 0;
+        let html;
+        if (!gebouwd) {
+            html = `<div class="font-bold text-indigo-900">Twee vragen aan de grafiek van dy/dx</div>
+                <div>1. Ligt hij boven of onder de x-as? Dan weet je of y stijgt of daalt.</div>
+                <div>2. Is hij stijgend of dalend? Dan weet je of de hellingen groter of kleiner worden.</div>
+                <div class="text-slate-500">Kies daarna je voorspelling. De grafiek van y wordt dan opgebouwd.</div>`;
+        } else if (bouwBezig) {
+            const m = s.d(bouwX), m0 = s.d(bouwX - 0.05);
+            html = `<div class="font-bold text-indigo-900">De grafiek van y wordt opgebouwd …</div>
+                <div>Hier is dy/dx <strong>${m > 0 ? 'positief' : 'negatief'}</strong>: de raaklijn gaat ${m > 0 ? 'omhoog' : 'omlaag'}.</div>
+                <div>dy/dx wordt hier ${m > m0 ? 'groter' : 'kleiner'}: de raaklijn wordt <strong>${Math.abs(m) > Math.abs(m0) ? 'steiler' : 'minder steil'}</strong>.</div>`;
+        } else {
+            const goed = voorspelling === s.soort;
+            html = voorspelling
+                ? `<div class="font-bold ${goed ? 'text-emerald-700' : 'text-red-700'}">Jouw voorspelling: ${naamSoort(voorspelling)} ${goed ? '✓' : '✗'}</div>`
+                : `<div class="font-bold text-indigo-900">Klaar!</div>`;
+            if (s.soort === 'W') {
+                html += `<div>1. De grafiek van dy/dx ligt boven de x-as, dus y is stijgend.</div>
+                    <div>2. Tot de top is de grafiek van dy/dx stijgend: toenemend stijgend. Na de top is hij dalend: afnemend stijgend.</div>
+                    <div>Bij de top van dy/dx (violet) is de grafiek van y het steilst. Daar verandert de soort (opgave A57).</div>
+                    <div class="mt-1 px-2.5 py-1.5 rounded-lg bg-violet-100 text-violet-900 font-bold">Eerst toenemend stijgend, dan afnemend stijgend.</div>`;
+            } else {
+                const stijgt = s.d(BOUW_MAX) > s.d(BOUW_MIN);
+                html += `<div>1. De grafiek van dy/dx ligt ${boven ? 'boven' : 'onder'} de x-as, dus y is ${boven ? 'stijgend' : 'dalend'}.</div>
+                    <div>2. De grafiek van dy/dx is ${stijgt ? 'stijgend' : 'dalend'}: ${HELLINGEN[s.soort]}.</div>
+                    <div class="mt-1 px-2.5 py-1.5 rounded-lg bg-violet-100 text-violet-900 font-bold">De grafiek van y is ${SOORTEN[s.soort]}.</div>`;
+            }
+        }
+        $('bouw-uitleg').innerHTML = html;
+    }
+
+    // Gesimuleerd GR-scherm bij het Voorbeeld (p. 125): y1 = 27x^−0,46 met 0 ≤ x ≤ 20 en 0 ≤ y ≤ 40.
+    // Zoals op de echte TI-84: assen zonder labels, streepjes per 1 (x) en per 5 (y).
+    function drawGrScherm() {
+        const { ctx, w, h } = setupCanvas($('gr-graph'));
+        const X = x => 2 + x / 20 * (w - 4), Y = y => h - 2 - y / 40 * (h - 4);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1.2;
+        strokeLine(ctx, X(0), Y(0), X(20), Y(0));
+        strokeLine(ctx, X(0), Y(0), X(0), Y(40));
+        for (let x = 1; x <= 20; x++) strokeLine(ctx, X(x), Y(0), X(x), Y(0) - 3);
+        for (let y = 5; y <= 40; y += 5) strokeLine(ctx, X(0), Y(y), X(0) + 3, Y(y));
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        let pen = false;
+        for (let i = 1; i <= 400; i++) {
+            const x = i / 20, y = 27 * x ** -0.46;
+            if (y > 40) continue;
+            if (!pen) ctx.moveTo(X(x), Y(y)); else ctx.lineTo(X(x), Y(y));
+            pen = true;
+        }
+        ctx.stroke();
+    }
+
+    // ==================== TAB 3: DE FORMULE VAN DE AFGELEIDE (THEORIE C) ====================
+    // Redeneerketting zoals in Theorie C (p. 129), het Voorbeeld (p. 129) en de Terugblik (p. 132). Elke schakel
+    // is één bewerking; f geeft de waarde van die schakel. De richting (toe/af) volgt uit de waarden bij
+    // v₁ en v₂ = v₁ + h, dus de student ziet dat de pijl klopt. De laatste schakel is de afgeleide zelf.
+    // dom: true = deze stap klopt alleen op het domein (amber). fout = de klassieke fout op plek bij.
+    const ketPresets = [
+        {
+            vraag: 'Theorie C: B = {350|L} met L > 0 geeft {dB|dL} = {−350|L²}. Welke soort hoort bij de grafiek van B?',
+            v: 'L', yn: 'B', dn: 'dB/dL', h: 1, slider: { min: 1.5, max: 12, step: 0.5, start: 2 },
+            d: L => -350 / L ** 2, graf: { xMin: 0, xMax: 14, xStep: 2, yMin: -200, yMax: 20, yStep: 50, ddom: [1, 14] },
+            teken: 'De teller −350 is negatief en voor L > 0 is de noemer L² positief. Dus {dB|dL} < 0: de grafiek van B is dalend.',
+            rows: [
+                { e: 'L', f: L => L, u: 'Je laat L toenemen.' },
+                { e: 'L²', f: L => L * L, u: 'Voor L > 0 geldt: hoe groter het getal, hoe groter het kwadraat.', dom: true },
+                { e: '{350|L²}', f: L => 350 / L ** 2, u: 'Je deelt 350 door een groter getal, dus de uitkomst wordt kleiner.' },
+                { e: '{−350|L²}', f: L => -350 / L ** 2, u: 'Het minteken draait de richting om.' },
+            ],
+            fout: { bij: 3, e: '{−350|L²}', f: L => -350 / L ** 2, claim: -1, u: 'Fout: "de noemer wordt groter, dus de breuk wordt kleiner". Dat geldt voor {350|L²}, maar het minteken draait de richting om.' },
+        },
+        {
+            vraag: 'Voorbeeld p. 129: N = {2t + 1500|t + 1} met t ≥ 0 geeft {dN|dt} = {−1498|(t + 1)²}. Toon aan dat de grafiek van N afnemend dalend is.',
+            v: 't', yn: 'N', dn: 'dN/dt', h: 2, slider: { min: 0, max: 10, step: 0.5, start: 1 },
+            d: t => -1498 / (t + 1) ** 2, graf: { xMin: 0, xMax: 13, xStep: 1, yMin: -1600, yMax: 100, yStep: 400, ddom: [0, 13] },
+            teken: 'De teller −1498 is negatief en voor t ≥ 0 is de noemer (t + 1)² positief. Dus {dN|dt} < 0: de grafiek van N is dalend.',
+            rows: [
+                { e: 't', f: t => t, u: 'Je laat t toenemen.' },
+                { e: 't + 1', f: t => t + 1, u: 'Er komt 1 bij; dat verandert de richting niet.' },
+                { e: '(t + 1)²', f: t => (t + 1) ** 2, u: 'Voor t ≥ 0 is t + 1 positief: hoe groter het getal, hoe groter het kwadraat.', dom: true },
+                { e: '{1498|(t + 1)²}', f: t => 1498 / (t + 1) ** 2, u: 'Je deelt door een groter getal, dus de uitkomst wordt kleiner.' },
+                { e: '{−1498|(t + 1)²}', f: t => -1498 / (t + 1) ** 2, u: 'Het minteken draait de richting om.' },
+            ],
+            fout: { bij: 4, e: '{−1498|(t + 1)²}', f: t => -1498 / (t + 1) ** 2, claim: -1, u: 'Fout: "de noemer wordt groter, dus de breuk wordt kleiner". Dat geldt voor {1498|(t + 1)²}, maar het minteken draait de richting om.' },
+        },
+        {
+            vraag: 'Voorbeeld p. 125, nu met de formule: N = 50(1 + t^[0,54]) geeft {dN|dt} = 27t^[−0,46] = {27|t^[0,46]}. Welke soort van stijgen?',
+            v: 't', yn: 'N', dn: 'dN/dt', h: 3, slider: { min: 0.5, max: 15, step: 0.5, start: 2 },
+            d: t => 27 * t ** -0.46, graf: { xMin: 0, xMax: 20, xStep: 2, yMin: 0, yMax: 40, yStep: 10, ddom: [0.4, 20] },
+            teken: '27 is positief en voor t > 0 is t^[0,46] positief. Dus {dN|dt} > 0: de grafiek van N is stijgend.',
+            rows: [
+                { e: 't', f: t => t, u: 'Je laat t toenemen.' },
+                { e: 't^[0,46]', f: t => t ** 0.46, u: 'Voor t > 0 neemt een macht met een positieve exponent toe.', dom: true },
+                { e: '{27|t^[0,46]}', f: t => 27 / t ** 0.46, u: 'Je deelt 27 door een groter getal, dus de uitkomst wordt kleiner.' },
+            ],
+            fout: { bij: 2, e: '{27|t^[0,46]}', f: t => 27 / t ** 0.46, claim: 1, u: 'Fout: "t neemt toe, dus de afgeleide ook". Maar t staat in de noemer: 27t^[−0,46] = {27|t^[0,46]}.' },
+        },
+        {
+            vraag: 'Terugblik: P = 15 + 2ln(3n) met n > 0 geeft {dP|dn} = 2 · {1|3n} · 3 = {2|n}. Welke soort van stijgen?',
+            v: 'n', yn: 'P', dn: 'dP/dn', h: 1, slider: { min: 0.5, max: 8, step: 0.5, start: 1 },
+            d: n => 2 / n, graf: { xMin: 0, xMax: 10, xStep: 1, yMin: 0, yMax: 5, yStep: 1, ddom: [0.3, 10] },
+            teken: 'Voor n > 0 is {2|n} positief. Hieruit volgt dat de grafiek van P stijgend is.',
+            rows: [
+                { e: 'n', f: n => n, u: 'Je laat n toenemen.' },
+                { e: '{2|n}', f: n => 2 / n, u: 'Je deelt 2 door een groter getal, dus de uitkomst wordt kleiner (voor n > 0).', dom: true },
+            ],
+            fout: { bij: 1, e: '{2|n}', f: n => 2 / n, claim: 1, u: 'Fout: "n neemt toe, dus {2|n} ook". Maar n staat in de noemer.' },
+        },
+    ];
+    const ket = { idx: 0, stap: 1, fout: false, v: 2 };
+
+    function setKetPreset(i) {
+        ket.idx = i;
+        ket.stap = 1;
+        ket.fout = false;
+        const pr = ketPresets[i], s = $('ket-slider');
+        s.min = pr.slider.min;
+        s.max = pr.slider.max;
+        s.step = pr.slider.step;
+        s.value = pr.slider.start;
+        ket.v = pr.slider.start;
+        $('ket-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Voorbeeld</span><span class="mono">${fm(pr.vraag)}</span>`;
+        setActiveButton('ket-preset-', ketPresets.length, i);
+        renderKet(true);
+    }
+
+    function setKetV(val) {
+        ket.v = parseFloat(val);
+        renderKet();
+    }
+
+    function ketVolgende() {
+        ket.fout = false;
+        ket.stap = Math.min(ketPresets[ket.idx].rows.length + 1, ket.stap + 1);
+        renderKet(true);
+    }
+
+    function ketVorige() {
+        ket.fout = false;
+        ket.stap = Math.max(1, ket.stap - 1);
+        renderKet();
+    }
+
+    function ketAlles() {
+        ket.fout = false;
+        ket.stap = ketPresets[ket.idx].rows.length + 1;
+        renderKet();
+    }
+
+    function ketToggleFout() {
+        ket.fout = !ket.fout;
+        renderKet(true);
+    }
+
+    function renderKet(animeer = false) {
+        const pr = ketPresets[ket.idx];
+        const n = pr.rows.length;
+        const v1 = ket.v, v2 = ket.v + pr.h;
+        const d1 = pr.d(v1), d2 = pr.d(v2);
+        $('ket-label').innerText = `${pr.v} = ${fmt(v1)} en ${pr.v} = ${fmt(v2)}`;
+
+        $('ket-teken').innerHTML = `
+            <div class="p-3 rounded-xl border border-l-4 border-slate-300 bg-slate-50 text-sm space-y-1">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Stap 1 • teken</div>
+                <div class="text-slate-700">${fm(pr.teken)}</div>
+                <div class="mono text-[11px] text-slate-500">controle bij ${pr.v} = ${fmt(v1)}: ${pr.dn} = ${fmt(d1, 3)}</div>
+            </div>`;
+
+        const lijst = ket.fout
+            ? [...pr.rows.slice(0, pr.fout.bij), { ...pr.fout, isFout: true }]
+            : pr.rows.slice(0, Math.min(ket.stap, n));
+        $('ket-ladder').innerHTML = lijst.map((row, i) => {
+            const a = row.f(v1), b = row.f(v2);
+            const echt = Math.sign(b - a);
+            const claim = row.isFout ? row.claim : echt;
+            const klopt = claim === echt;
+            const laatste = i === lijst.length - 1;
+            const isAfgeleide = !row.isFout && i === n - 1;
+            const rij = row.isFout ? 'border-red-500 bg-red-50' : isAfgeleide ? 'border-rose-500 bg-rose-50/70' : 'border-slate-300 bg-white';
+            const badgeKl = row.isFout ? 'bg-red-100 text-red-700' : 'bg-violet-100 text-violet-800';
+            const uKl = row.isFout ? 'text-red-700 font-semibold' : row.dom ? 'text-amber-800' : 'text-slate-600';
+            return `
+                <div class="${animeer && laatste ? 'verschijn ' : ''}flex flex-col md:flex-row md:items-center gap-1.5 md:gap-3 px-3 py-2.5 rounded-xl border border-l-4 ${rij}">
+                    <div class="mono text-base text-slate-900 md:w-32 shrink-0">${fm(row.e)}</div>
+                    <span class="self-start md:self-auto px-2 py-0.5 rounded-full text-xs font-bold whitespace-nowrap ${badgeKl}">${claim > 0 ? '↑ neemt toe' : '↓ neemt af'}</span>
+                    <div class="text-xs md:flex-1 leading-snug ${uKl}">${fm(row.u)}</div>
+                    <div class="mono text-[11px] text-slate-500 whitespace-nowrap md:text-right">${fmt(a, 3)} → ${fmt(b, 3)} <span class="font-bold text-sm ${klopt ? 'text-emerald-600' : 'text-red-600'}">${klopt ? '✓' : '✗'}</span></div>
+                </div>`;
+        }).join('');
+
+        const teken = Math.sign(d1), verloop = Math.sign(d2 - d1);
+        let concl = '';
+        if (ket.fout) {
+            const fout = soortVan(teken, pr.fout.claim);
+            concl = `<div class="verschijn p-3 rounded-xl bg-red-50 border border-red-300 text-sm text-red-800">
+                <strong>Foute conclusie:</strong> ${pr.dn} ${teken > 0 ? '&gt;' : '&lt;'} 0 en neemt ${pr.fout.claim > 0 ? 'toe' : 'af'}, dus ${SOORTEN[fout]}. ✗<br>
+                De waarden laten zien dat ${pr.dn} juist ${verloop > 0 ? 'toeneemt' : 'afneemt'}: ${fmt(d1, 3)} → ${fmt(d2, 3)}.</div>`;
+        } else if (ket.stap > n) {
+            const soort = soortVan(teken, verloop);
+            concl = `<div class="verschijn p-3 rounded-xl bg-violet-100 border border-violet-300 text-sm text-violet-900 space-y-1">
+                <div class="text-xs font-bold uppercase tracking-wider text-violet-700">Conclusie</div>
+                <div>${pr.dn} ${teken > 0 ? '&gt;' : '&lt;'} 0 en ${pr.dn} neemt ${verloop > 0 ? 'toe' : 'af'}: ${HELLINGEN[soort]}.</div>
+                <div class="font-bold">De grafiek van ${pr.yn} is ${SOORTEN[soort]}.</div></div>`;
+        }
+        $('ket-conclusie').innerHTML = concl;
+        $('ket-teller').innerText = ket.fout ? 'klassieke fout' : ket.stap > n ? 'conclusie' : `schakel ${ket.stap} van ${n}`;
+        $('btn-ket-fout').innerText = ket.fout ? '✓ Goede redenering' : '⚠ Klassieke fout';
+
+        // Grafiek van de afgeleide met de twee gekozen getallen
+        const gr = pr.graf;
+        const g = drawGraph('canvas-keten', {
+            xMin: gr.xMin, xMax: gr.xMax, yMin: gr.yMin, yMax: gr.yMax, xStep: gr.xStep, yStep: gr.yStep,
+            xLabel: pr.v, yLabel: pr.dn, pad: { l: 50, r: 22 },
+            curves: [{ f: pr.d, color: C.rose, width: 3, domain: gr.ddom }],
+        });
+        binnen(g, ctx => {
+            ctx.strokeStyle = '#a5b4fc';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([5, 4]);
+            [[v1, d1], [v2, d2]].forEach(([x, y]) => strokeLine(ctx, g.mapX(x), g.mapY(0), g.mapX(x), g.mapY(y)));
+        });
+        pijl(g.ctx, g.mapX(v1), g.mapY(d1), g.mapX(v2), g.mapY(d2), C.violet);
+        stip(g.ctx, g.mapX(v1), g.mapY(d1), C.indigo, 6);
+        stip(g.ctx, g.mapX(v2), g.mapY(d2), C.indigo, 6);
+        puntLabel(g, `1: ${fmt(d1, 2)}`, g.mapX(v1), g.mapY(d1) + (d2 > d1 ? 26 : -4), C.indigo);
+        puntLabel(g, `2: ${fmt(d2, 2)}`, g.mapX(v2), g.mapY(d2) + (d2 > d1 ? -4 : 26), C.indigo);
+    }
+
+    // ==================== TAB 4: STAPPENPLAN ====================
+    // Voorbeeld p. 125 (edelherten), opgave 65b, Voorbeeld p. 129 (lezers) en opgave 60d: samen de vier soorten.
+    // p1 en p2 = de twee plekken waar de pijl langs dy/dx loopt en waar de raaklijnen staan.
+    const stapVoorbeelden = [
+        {
+            v: 't', yn: 'N', dn: 'dN/dt',
+            f: t => 50 * (1 + t ** 0.54), d: t => 27 * t ** -0.46,
+            x: { min: 0, max: 20, step: 2 }, y: { min: 0, max: 350, step: 50 }, dd: { min: 0, max: 50, step: 10 },
+            fdom: [0, 20], ddom: [0.08, 20], p1: 2, p2: 15,
+            afgeleide: ['N = 50(1 + t^[0,54]) = 50 + 50t^[0,54]', '{dN|dt} = 50 · 0,54t^[−0,46] = 27t^[−0,46]'],
+            tekenTxt: 'Voor t > 0 is 27t^[−0,46] positief. De grafiek van dN/dt ligt boven de t-as, dus de grafiek van N is stijgend.',
+            verloopTxt: 'Voer in y₁ = 27x^[−0,46]: de grafiek van dN/dt is dalend. De hellingen zijn positief, maar worden steeds kleiner.',
+            context: 'Het aantal edelherten in het Deelerwoud neemt steeds minder snel toe.',
+        },
+        {
+            v: 'n', yn: 'R', dn: 'dR/dn',
+            f: n => 50 - 1.2 ** n, d: n => -(1.2 ** n) * ln(1.2),
+            x: { min: 0, max: 15, step: 1 }, y: { min: 0, max: 55, step: 10 }, dd: { min: -3, max: 0.5, step: 0.5 },
+            fdom: [0, 15], ddom: [0, 15], p1: 3, p2: 12,
+            afgeleide: ['R = 50 − 1,2^[n]', '{dR|dn} = −1,2^[n] · ln(1,2)'],
+            tekenTxt: '1,2^[n] is positief en ln(1,2) ≈ 0,18 ook, dus −1,2^[n] · ln(1,2) is negatief. De grafiek van dR/dn ligt onder de n-as: R is dalend.',
+            verloopTxt: 'Als n toeneemt, dan neemt 1,2^[n] toe, dus 1,2^[n] · ln(1,2) toe en −1,2^[n] · ln(1,2) af. De grafiek van dR/dn is dalend: de hellingen worden steeds negatiever.',
+            context: 'R daalt steeds sneller.',
+        },
+        {
+            v: 't', yn: 'N', dn: 'dN/dt',
+            f: t => (2 * t + 1500) / (t + 1), d: t => -1498 / (t + 1) ** 2,
+            x: { min: 0, max: 30, step: 5 }, y: { min: 0, max: 1600, step: 400 }, dd: { min: -1600, max: 100, step: 400 },
+            fdom: [0, 30], ddom: [0, 30], p1: 1, p2: 6,
+            afgeleide: ['N = {2t + 1500|t + 1} geeft {dN|dt} = {(t + 1) · 2 − (2t + 1500) · 1|(t + 1)²}', '{dN|dt} = {2t + 2 − 2t − 1500|(t + 1)²} = {−1498|(t + 1)²}'],
+            tekenTxt: 'De teller −1498 is negatief en voor t ≥ 0 is de noemer positief. De grafiek van dN/dt ligt onder de t-as: N is dalend.',
+            verloopTxt: 'Als t toeneemt, dan neemt (t + 1)² toe voor t ≥ 0, dus {1498|(t + 1)²} af en {−1498|(t + 1)²} toe. De grafiek van dN/dt is stijgend.',
+            context: 'Het aantal lezers per dag daalt steeds minder snel.',
+        },
+        {
+            v: 'x', yn: 'D', dn: 'dD/dx',
+            f: x => (x + 200) / (20 - x), d: x => 220 / (20 - x) ** 2,
+            x: { min: 0, max: 20, step: 2 }, y: { min: 0, max: 250, step: 50 }, dd: { min: 0, max: 60, step: 10 },
+            fdom: [0, 19.95], ddom: [0, 19.95], p1: 6, p2: 17, grens: 20,
+            afgeleide: ['D = {x + 200|20 − x} geeft {dD|dx} = {(20 − x) · 1 − (x + 200) · −1|(20 − x)²}', '{dD|dx} = {20 − x + x + 200|(20 − x)²} = {220|(20 − x)²}'],
+            tekenTxt: '220 en (20 − x)² zijn positief. De grafiek van dD/dx ligt boven de x-as: D is stijgend.',
+            verloopTxt: 'Als x toeneemt (0 < x < 20), dan neemt 20 − x af, dus (20 − x)² af en {220|(20 − x)²} toe. De grafiek van dD/dx is stijgend.',
+            context: 'D stijgt steeds sneller naarmate x dichter bij 20 komt.',
+        },
+    ];
+    const AANTAL_STAPPEN = 4;
+    let stapIdx = 0, huidigeStap = 1;
+
+    function setStapVoorbeeld(i) {
+        stapIdx = i;
+        setActiveButton('stap-ex-', stapVoorbeelden.length, i);
+        setStap(1);
+    }
+
+    function setStap(s) {
+        huidigeStap = s;
+        for (let i = 1; i <= AANTAL_STAPPEN; i++) {
+            $('stap-btn-' + i).className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+            $('stap-btn-' + i).firstElementChild.className = `text-xs font-bold ${i === s ? 'text-indigo-600' : 'text-slate-500'}`;
+        }
+        renderStap();
+    }
+
+    function renderStap() {
+        const ex = stapVoorbeelden[stapIdx];
+        const d1 = ex.d(ex.p1), d2 = ex.d(ex.p2);
+        const teken = Math.sign(d1), verloop = Math.sign(d2 - d1);
+        const soort = soortVan(teken, verloop);
+        const st = huidigeStap;
+
+        // De tekening bouwt zich op: elke stap voegt iets toe aan de vorige.
+        const gy = drawGraph('canvas-stap-y', {
+            xMin: ex.x.min, xMax: ex.x.max, yMin: ex.y.min, yMax: ex.y.max, xStep: ex.x.step, yStep: ex.y.step,
+            xLabel: ex.v, yLabel: ex.yn, pad: { l: 50 },
+            curves: [{ f: ex.f, color: SLATE, width: 3, domain: ex.fdom }],
+        });
+        const gd = drawGraph('canvas-stap-d', {
+            xMin: ex.x.min, xMax: ex.x.max, yMin: ex.dd.min, yMax: ex.dd.max, xStep: ex.x.step, yStep: ex.dd.step,
+            xLabel: ex.v, yLabel: ex.dn, pad: { l: 50 },
+            curves: st >= 2 ? [{ f: ex.d, color: C.rose, width: 3, domain: ex.ddom }] : [],
+        });
+        if (ex.grens) {
+            [gy, gd].forEach(g => {
+                vStreep(g, ex.grens - 0.02, C.amber);
+                tekst(g.ctx, `${ex.v} < ${ex.grens}`, g.mapX(ex.grens) - 8, g === gy ? g.box.y1 - 10 : g.box.y0 + 14, C.amber, 'right');
+            });
+        }
+        // Labels in de lege hoek: linksboven bij een stijgende grafiek, rechtsboven bij een dalende.
+        const lab = teken > 0 ? { x: gy.box.x0 + 8, a: 'left' } : { x: gy.box.x1 - 8, a: 'right' };
+        const midden = (ex.x.min + ex.x.max) / 2;
+        if (st === 1) {
+            tekst(gd.ctx, `${ex.dn} = ?  Bereken eerst de afgeleide.`, (gd.box.x0 + gd.box.x1) / 2, (gd.box.y0 + gd.box.y1) / 2, '#64748b', 'center');
+        }
+        if (st >= 2) {
+            vulTotAs(gd, ex.d, ex.ddom[0], ex.ddom[1], 'rgba(225, 29, 72, 0.10)');
+            tekst(gd.ctx, `${teken > 0 ? 'boven' : 'onder'} de ${ex.v}-as`, gd.mapX(midden), gd.mapY(0) + (teken > 0 ? -10 : 22), C.rose, 'center');
+            tekst(gy.ctx, `${ex.yn} is ${teken > 0 ? 'stijgend' : 'dalend'}`, lab.x, gy.box.y0 + 14, '#334155', lab.a);
+        }
+        if (st >= 3) {
+            pijl(gd.ctx, gd.mapX(ex.p1), gd.mapY(d1), gd.mapX(ex.p2), gd.mapY(d2), C.violet);
+            stip(gd.ctx, gd.mapX(ex.p1), gd.mapY(d1), C.violet, 6);
+            stip(gd.ctx, gd.mapX(ex.p2), gd.mapY(d2), C.violet, 6);
+            puntLabel(gd, `${fmt(d1, 2)}`, gd.mapX(ex.p1), gd.mapY(d1) + (verloop > 0 ? 24 : -2), C.violet);
+            puntLabel(gd, `${fmt(d2, 2)} (${verloop > 0 ? 'stijgend' : 'dalend'})`, gd.mapX(ex.p2), gd.mapY(d2) + (verloop > 0 ? -2 : 24), C.violet);
+        }
+        if (st >= 4) {
+            [ex.p1, ex.p2].forEach(p => {
+                raaklijn(gy, p, ex.f(p), ex.d(p), C.rose, 110);
+                stip(gy.ctx, gy.mapX(p), gy.mapY(ex.f(p)), SLATE, 5);
+            });
+            tekst(gy.ctx, SOORTEN[soort], lab.x, gy.box.y0 + 34, C.violet, lab.a);
+        }
+
+        // Uitleg per stap, met de getallen van het gekozen voorbeeld
+        const regels = ex.afgeleide.map(r => `<div>${fm(r)}</div>`).join('');
+        const uitleg = [
+            `<div class="font-bold text-indigo-900 text-base">Stap 1: bereken de afgeleide</div>
+             <div class="mono text-sm bg-white p-3 rounded-xl border border-indigo-200 space-y-2 overflow-x-auto">${regels}</div>
+             <p class="text-xs text-slate-600">Gebruik de rekenregels voor het differentiëren. Schrijf de formule zo nodig eerst anders, bijvoorbeeld als som van machten.</p>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 2: ligt de grafiek van ${ex.dn} boven of onder de ${ex.v}-as?</div>
+             <p>${fm(ex.tekenTxt)}</p>
+             <div class="mono text-xs bg-white p-2.5 rounded-xl border border-indigo-200">Controle: bij ${ex.v} = ${fmt(ex.p1)} is ${ex.dn} = ${fmt(d1, 3)}</div>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 3: is de grafiek van ${ex.dn} stijgend of dalend?</div>
+             <p>${fm(ex.verloopTxt)}</p>
+             <div class="mono text-xs bg-white p-2.5 rounded-xl border border-violet-200 text-violet-800">${ex.v} = ${fmt(ex.p1)}: ${fmt(d1, 3)} → ${ex.v} = ${fmt(ex.p2)}: ${fmt(d2, 3)}</div>`,
+            `<div class="font-bold text-indigo-900 text-base">Stap 4: conclusie</div>
+             <p>${ex.dn} is ${teken > 0 ? 'positief' : 'negatief'} en ${verloop > 0 ? 'neemt toe' : 'neemt af'}: ${HELLINGEN[soort]}.</p>
+             <div class="px-3 py-2 rounded-xl bg-violet-100 border border-violet-300 text-violet-900 font-bold">De grafiek van ${ex.yn} is ${SOORTEN[soort]}.</div>
+             <p class="text-xs text-slate-600">${ex.context} De raaklijnen (rose) laten het zien.</p>`,
+        ];
+        $('stap-uitleg').innerHTML = uitleg[st - 1];
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //   choice:     'B'                                              — meerkeuze, radio name = sleutel
+    //   check:      () => true/false                                 — eigen controle (hier: velden + keuzelijsten)
+    //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
+    //   hint:       wijst naar de aanpak en de plek in de les — NIET het antwoord
+    //   goed:       korte bevestiging bij een goed antwoord (optioneel)
+    //   uitwerking: volledige berekening (HTML); verschijnt na goed antwoord of na 2 fouten
+    // Afgeronde antwoorden staan erin als [afgerond, onafgerond] met een kleine tol: zo telt zowel "2,35" als
+    // het GR-getal "2,352", maar niet een verkeerd afgeronde "2,36".
+    const A56_TOENAME = ((1 + Math.exp(0.0275 * 35)) / 2 - 1) * 100;    // 80,91 %
+    const A61_V = 42195 / (4 * 3600 + 59 * 60);                          // 2,352 m/s
+    const A61_A = 5 / (2 * 30 ** 0.7 - 1.25 * 30 ** 0.8);                // 1,898
+    const O62_K = -90 * ln(0.8);                                         // 20,08
+    const R66 = x => 150 - 50 / (1 + x);
+    const OPG66_A = (R66(6.5) / R66(4.5) - 1) * 100;                     // 1,72 %
+    const OPG66_D = Math.sqrt(62.5) - 1;                                 // 6,906
+    const O67 = n => 30000 - 150000 / (5 + 0.1 * n);
+    const A67_D1 = O67(400) / O67(2000) * 100;                           // 91,11 %
+    const A67_D2 = (O67(2000) - O67(800)) / O67(2000) * 100;             // 3,53 %
+    const N57 = t => 5000 / (1 + 19 * Math.exp(-0.175 * t));
+    const dN57 = t => 16625 * Math.exp(-0.175 * t) / (1 + 19 * Math.exp(-0.175 * t)) ** 2;
+    const A57_T = ln(19) / 0.175;                                        // 16,825: top van dN/dt
+    let q12Klaar = false;
+
+    const exercises = {
+        q1: {
+            choice: 'B',
+            hint: 'Je hebt twee dingen nodig: ligt de grafiek van dy/dx boven of onder de x-as, en is hij stijgend of dalend? (tab 1, de vier soorten)',
+            uitwerking: `De grafiek van dy/dx ligt boven de x-as, dus alle hellingen zijn positief: y is stijgend (54b). Bovendien is de grafiek van dy/dx stijgend: de hellingen worden steeds groter. Dus de grafiek van y is toenemend stijgend (54c): <strong>B</strong>.<br>
+                A zegt alleen dat y stijgt. C zegt alleen dat de hellingen groter worden; dat geldt ook bij afnemend dalend. D gaat over de grafiek van y zelf, niet over de hellingen.`,
+        },
+        q2: {
+            check: () => allesGoed([keuzeOk('q2-a', 'TS'), keuzeOk('q2-b', 'AS'), keuzeOk('q2-c', 'AS'), keuzeOk('q2-d', 'TS')]),
+            hint: 'Bereken per formule dy/dx en plot hem op de GR. Ligt hij boven of onder de x-as? Is hij stijgend of dalend? (tab 2 en tab 4)',
+            uitwerking: `a. ${fm('{dy|dx} = 0,05 · 4 · 0,5e^[0,5x] = 0,1e^[0,5x]')}: boven de x-as en stijgend, dus <strong>toenemend stijgend</strong>.<br>
+                b. ${fm('{dy|dx} = {1|2x + 15} · 2 = {2|2x + 15}')}: boven de x-as (x &gt; −7,5) en dalend, dus <strong>afnemend stijgend</strong>.<br>
+                c. ${fm('{dy|dx} = {(1 − x) · −10 − (30 − 10x) · −1|(1 − x)²} = {20|(1 − x)²}')}: boven de x-as en voor x &gt; 1 dalend, dus <strong>afnemend stijgend</strong>.<br>
+                d. Met de productregel: ${fm('{dy|dx} = 1 · ln(x + 4) + x · {1|x + 4} = ln(x + 4) + {x|x + 4}')}: boven de x-as en stijgend, dus <strong>toenemend stijgend</strong>.`,
+        },
+        q3: {
+            check: () => allesGoed([veldOk('q3-1', -10, 0.001), keuzeOk('q3-s', 'AD')]),
+            hint: 'Gebruik de quotiëntregel, zoals in het Voorbeeld van tab 3. Kijk daarna: boven of onder de x-as, stijgend of dalend?',
+            uitwerking: `a. ${fm('{dy|dx} = {(x + 1) · 1 − (x + 11) · 1|(x + 1)²} = {x + 1 − x − 11|(x + 1)²} = {−10|(x + 1)²}')}, dus vakje 1 is −10.<br>
+                b. De teller is negatief en de noemer positief: de grafiek van dy/dx ligt onder de x-as, dus y daalt.<br>
+                c. Als x toeneemt, dan neemt (x + 1)² toe, dus ${fm('{−10|(x + 1)²}')} neemt toe: de grafiek van dy/dx is stijgend, van −10 bij x = 0 naar bijna 0. Dus y is <strong>afnemend dalend</strong>.`,
+        },
+        q4: {
+            check: () => allesGoed([keuzeOk('q4-a', 'AD'), keuzeOk('q4-b', 'TD'), keuzeOk('q4-c', 'AD'), keuzeOk('q4-d', 'AD')]),
+            hint: 'Bereken per formule dy/dx (schrijf x√x eerst als een macht van x) en plot hem op de GR. Onder de x-as, en dan stijgend of dalend? (tab 2)',
+            uitwerking: `a. ${fm('{dy|dx} = 100 · −0,1e^[−0,1x] = −10e^[−0,1x]')}: onder de x-as en stijgend, dus <strong>afnemend dalend</strong>.<br>
+                b. ${fm('y = 5 − x^[1,5]')} geeft ${fm('{dy|dx} = −1,5x^[0,5] = −1,5√[x]')}: onder de x-as en dalend, dus <strong>toenemend dalend</strong>.<br>
+                c. ${fm('{dy|dx} = −{1|3x + 20} · 3 = {−3|3x + 20}')}: onder de x-as en stijgend, dus <strong>afnemend dalend</strong>.<br>
+                d. ${fm('{dy|dx} = {(x + 1) · −2x − (3 − x²) · 1|(x + 1)²} = {−x² − 2x − 3|(x + 1)²}')}: onder de x-as en stijgend (van −3 bij x = 0 naar −1), dus <strong>afnemend dalend</strong>.`,
+        },
+        q5: {
+            check: () => allesGoed([veldOk('q5-a', [81, A56_TOENAME], 0.006), veldOk('q5-1', [0.064625, 0.0646], 0.00002), keuzeOk('q5-s', 'TS')]),
+            hint: 'a: de toename in procenten is (nieuw − oud) / oud · 100%. b: de afgeleide van e^(kt) is k · e^(kt). Plot dP/dt op de GR (tab 2).',
+            uitwerking: `a. P(0) = 2,35 · 2 = 4,70 en P(35) = 2,35(1 + e<sup>0,9625</sup>) ≈ 8,50. ${fm('{8,50 − 4,70|4,70} · 100% ≈ 81%')}: het percentage is met ongeveer 81% toegenomen. (Het verschil 3,8 is het aantal procentpunten, niet de toename in procenten.)<br>
+                b. ${fm('{dP|dt} = 2,35 · 0,0275e^[0,0275t] = 0,064625e^[0,0275t]')}. De grafiek van dP/dt ligt boven de t-as en is stijgend, dus P is <strong>toenemend stijgend</strong>: de toename wordt steeds groter.`,
+        },
+        q6: {
+            check: () => allesGoed([veldOk('q6-1', [20.1, O62_K], 0.006), keuzeOk('q6-c1', 'af'), keuzeOk('q6-c2', 'af'), keuzeOk('q6-c3', 'af'), keuzeOk('q6-s', 'AS')]),
+            hint: 'De afgeleide van g^t is g^t · ln(g), en ln(0,8) is negatief. Redeneer daarna van binnen naar buiten, zoals in de redeneerketting (tab 3).',
+            uitwerking: `a. ${fm('{dA|dt} = −90 · 0,8^[t] · ln(0,8) ≈ 20,1 · 0,8^[t]')}, want −90 · ln(0,8) ≈ 20,08.<br>
+                b. 20,1 en 0,8<sup>t</sup> zijn positief, dus dA/dt &gt; 0: de grafiek van A stijgt.<br>
+                c. Als t toeneemt, dan neemt 0,8<sup>t</sup> <strong>af</strong> (de groeifactor is kleiner dan 1), dus dan neemt 20,1 · 0,8<sup>t</sup> <strong>af</strong>. Dus dA/dt neemt <strong>af</strong>.<br>
+                d. De hellingen zijn positief en worden steeds kleiner: A is <strong>afnemend stijgend</strong>.`,
+        },
+        q7: {
+            choice: 'B',
+            hint: 'Vul twee waarden in, bijvoorbeeld t = 1 en t = 3, en vergelijk. Kijk ook naar de klassieke fout in de redeneerketting (tab 3).',
+            uitwerking: `${fm('{1498|(t + 1)²}')} neemt af, want je deelt door een steeds groter getal. Het minteken draait dat om: ${fm('{−1498|(t + 1)²}')} neemt <strong>toe</strong>: <strong>B</strong>.<br>
+                Controle: t = 1 geeft ${fm('{−1498|4} = −374,5')} en t = 3 geeft ${fm('{−1498|16} ≈ −93,6')}. En −93,6 is groter dan −374,5.<br>
+                A vergeet het minteken. C klopt niet: de teller blijft −1498. D klopt niet: de noemer verandert wel.`,
+        },
+        q8: {
+            check: () => allesGoed([keuzeOk('q8-a', 'AS'), keuzeOk('q8-b', 'TS'), keuzeOk('q8-c', 'AS'), keuzeOk('q8-d', 'AD')]),
+            hint: 'Bereken de afgeleide. Is hij positief of negatief? En neemt hij toe of af als de variabele toeneemt? Redeneer van binnen naar buiten (tab 3).',
+            uitwerking: `a. ${fm('{dN|dt} = {(330 + 0,25t) · 50 − (1500 + 50t) · 0,25|(330 + 0,25t)²} = {16 125|(330 + 0,25t)²}')}. Positief; de noemer neemt toe, dus dN/dt neemt af: <strong>afnemend stijgend</strong>.<br>
+                b. ${fm('{dT|dt} = 315 · 0,28e^[0,28t] = 88,2e^[0,28t]')}. Positief, en e<sup>0,28t</sup> neemt toe, dus dT/dt neemt toe: <strong>toenemend stijgend</strong>.<br>
+                c. ${fm('S = 50 − 30x^[−1]')} geeft ${fm('{dS|dx} = 30x^[−2] = {30|x²}')}. Positief; x² neemt toe, dus ${fm('{30|x²}')} neemt af: <strong>afnemend stijgend</strong>.<br>
+                d. ${fm('{dB|dn} = −{1|2n} · 2 = −{1|n}')}. Negatief; ${fm('{1|n}')} neemt af, dus ${fm('−{1|n}')} neemt toe: <strong>afnemend dalend</strong>.`,
+        },
+        q9: {
+            check: () => allesGoed([veldOk('q9-a', [2.35, A61_V], 0.0006), veldOk('q9-b', [1.898, A61_A], 0.0006), keuzeOk('q9-s', 'TD')]),
+            hint: 'a en b: v is in m/s, dus reken kilometers en uren eerst om naar meters en seconden. e: differentieer v en plot dv/dL voor 30 ≤ L ≤ 90 (tab 2).',
+            uitwerking: `a. 4 uur en 59 minuten is 4 · 3600 + 59 · 60 = 17 940 s. ${fm('v = {42 195|17 940} ≈ 2,35')} m/s.<br>
+                b. 18 km/uur = ${fm('{18 000|3600}')} = 5 m/s. ${fm('5 = a(2 · 30^[0,7] − 1,25 · 30^[0,8])')} geeft ${fm('a = {5|2 · 30^[0,7] − 1,25 · 30^[0,8]} ≈ 1,898')}. Met 18 in plaats van 5 vind je a ≈ 6,83: dan reken je in km/uur.<br>
+                e. ${fm('{dv|dL} = 1,90(1,4L^[−0,3] − L^[−0,2])')}. Voer in y₁ = 1.90(1.4x<sup>−0.3</sup> − x<sup>−0.2</sup>) met 30 ≤ x ≤ 90: de grafiek ligt onder de x-as en is dalend. Dus v is <strong>toenemend dalend</strong>: de snelheid neemt steeds sneller af.`,
+        },
+        q10: {
+            check: () => allesGoed([veldOk('q10-a', [1.7, OPG66_A], 0.006), keuzeOk('q10-s', 'AS'), veldOk('q10-d', [6.9, OPG66_D], 0.006)]),
+            hint: 'a: bereken R bij x = 4,5 en bij x = 6,5. c: redeneer met de formule van dR/dx (tab 3). d: los dR/dx = 0,8 op en kijk aan welke kant dR/dx kleiner is.',
+            uitwerking: `a. R(4,5) ≈ 140,91 en R(6,5) ≈ 143,33. ${fm('{143,33 − 140,91|140,91} · 100% ≈ 1,7%')}.<br>
+                c. ${fm('R = 150 − 50(1 + x)^[−1]')} geeft ${fm('{dR|dx} = 50(1 + x)^[−2] = {50|(1 + x)²}')}. Positief, en (1 + x)² neemt toe, dus dR/dx neemt af: <strong>afnemend stijgend</strong>.<br>
+                d. ${fm('{50|(1 + x)²} = 0,8')} geeft (1 + x)² = 62,5, dus ${fm('x = √[62,5] − 1 ≈ 6,9')}. Omdat dR/dx afneemt, is dR/dx kleiner dan 0,8 voor <strong>6,9 &lt; x ≤ 10</strong>.`,
+        },
+        q11: {
+            check: () => allesGoed([veldOk('q11-a', 30000, 0.5), veldOk('q11-d1', [91, 91.1, A67_D1], 0.006), veldOk('q11-d2', [3.5, A67_D2], 0.006), veldOk('q11-f', 316, 0.01)]),
+            hint: 'a: wat gebeurt er met 150 000 / (5 + 0,1n) als n heel groot wordt? d: de 20% bestverkopende artikelen hebben de rangnummers 1 t/m 400. f: los dW/dn = 0 op met de GR en vergelijk de hele getallen ernaast.',
+            uitwerking: `a. Als n heel groot wordt, dan wordt 5 + 0,1n heel groot en nadert ${fm('{150 000|5 + 0,1n}')} naar 0. De grenswaarde is <strong class="text-sky-700">30 000</strong>: de dagomzet komt nooit boven € 30 000, hoeveel artikelen de supermarkt ook verkoopt.<br>
+                d. De totale dagomzet is O(2000) ≈ 29 268,29. De beste 20% zijn 400 artikelen: O(400) ≈ 26 666,67, dat is ${fm('{26 666,67|29 268,29} · 100% ≈ 91,1%')}. De slechtste 60% zijn de rangnummers 801 t/m 2000: O(2000) − O(800) ≈ 29 268,29 − 28 235,29 = 1033,00, dat is ≈ 3,5%.<br>
+                f. ${fm('{dO|dn} = {15 000|(5 + 0,1n)²}')} en ${fm('{dK|dn} = 8,4n^[0,05]')}, dus ${fm('{dW|dn} = {15 000|(5 + 0,1n)²} − 8,4n^[0,05]')}. Met de GR geeft dW/dn = 0: n ≈ 315,9. W(315) ≈ 22 530,59 en W(316) ≈ 22 530,62, dus de winst is maximaal bij <strong class="text-emerald-700">n = 316</strong>.`,
+        },
+        q12: {
+            check: () => {
+                const ok = allesGoed([veldOk('q12-1', 16625, 0.5), veldOk('q12-t', [16.8, A57_T], 0.006)]);
+                if (ok) {
+                    q12Klaar = true;
+                    $('q12-d-wrap').classList.remove('hidden');
+                    drawQ12();
+                }
+                return ok;
+            },
+            hint: 'De soort verandert bij de steilste raaklijn: de top van de grafiek van dN/dt. Differentieer N = 5000(1 + 19e^(−0,175t))^−1 en zoek met de GR het maximum van dN/dt (tab 2, Let op).',
+            uitwerking: `${fm('N = 5000(1 + 19e^[−0,175t])^[−1]')} geeft met de kettingregel<br>${fm('{dN|dt} = −5000(1 + 19e^[−0,175t])^[−2] · 19 · −0,175e^[−0,175t] = {16 625e^[−0,175t]|(1 + 19e^[−0,175t])²}')}.<br>
+                Voer de afgeleide in bij Y1 en zoek het maximum (CALC, optie 4): t ≈ 16,8 met dN/dt ≈ 218,75. De grafiek van dN/dt ligt boven de t-as; tot t ≈ 16,8 is hij stijgend en daarna dalend.<br>
+                Dus bij <strong class="text-violet-700">t ≈ 16,8</strong> gaat N over van toenemend stijgend naar afnemend stijgend. Daar is de raaklijn het steilst, en N = 2500: precies de helft van 5000.`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Fig 14.25: dy/dx = 0,8e^{0,4x}; assen zoals in het boek: x van −2 tot 3, y tot 3 (streepjes bij 1).
+    function drawQ1() {
+        drawGraph('canvas-q1', {
+            xMin: -2, xMax: 3, yMin: 0, yMax: 3, xStep: 1, yStep: 1, pad: { l: 30, b: 24 },
+            xLabel: 'x', yLabel: 'dy/dx',
+            curves: [{ f: x => 0.8 * Math.exp(0.4 * x), color: C.rose }],
+        });
+    }
+
+    // Fig 14.30: A = 100 − 90 · 0,8^t met t ≥ 0. Begint bij A = 10; in het boek loopt hij tot A ≈ 85 (t ≈ 8).
+    function drawQ6() {
+        drawGraph('canvas-q6', {
+            xMin: 0, xMax: 9, yMin: 0, yMax: 100, xStep: 1, yStep: 20, pad: { l: 34, b: 24 },
+            xLabel: 't', yLabel: 'A',
+            curves: [{ f: t => 100 - 90 * 0.8 ** t, color: SLATE, width: 2.5, domain: [0, 8] }],
+        });
+    }
+
+    // Fig 14.31: O(n) = 30 000 − 150 000/(5 + 0,1n) met 0 ≤ n ≤ 2000. De grenswaarde is gestippeld (in het boek
+    // blauw). Net als in het boek geen getallen langs de verticale as, anders lees je opgave a af.
+    function drawQ11() {
+        drawGraph('canvas-q11', {
+            xMin: 0, xMax: 2000, yMin: 0, yMax: 34000, xStep: 500, yStep: 10000, pad: { l: 60, r: 20, t: 30 },
+            xLabel: 'n', yLabel: 'omzet in euro’s', yTick: () => '',
+            curves: [{ f: O67, color: SLATE, width: 2.5, domain: [0, 2000] }],
+            hLines: [{ y: 30000, color: C.sky, dash: [6, 4] }],
+        });
+    }
+
+    // Opgave A57 (geen figuur in het boek): N = 5000/(1 + 19e^{−0,175t}) op 0 ≤ t ≤ 40.
+    function drawQ12() {
+        const t0 = parseFloat($('q12-slider').value);
+        const g = drawGraph('canvas-q12', {
+            xMin: 0, xMax: 40, yMin: 0, yMax: 5500, xStep: 5, yStep: 1000, pad: { l: 50 },
+            xLabel: 't', yLabel: 'N', xCaption: 'tijd in maanden',
+            curves: [{ f: N57, color: SLATE, width: 3 }],
+        });
+        if (q12Klaar) vStreep(g, A57_T, C.violet);
+        raaklijn(g, t0, N57(t0), dN57(t0), C.rose, 200);
+        stip(g.ctx, g.mapX(t0), g.mapY(N57(t0)), C.indigo, 6);
+        $('q12-live').innerText = `t = ${fmtF(t0, 1)} · helling = ${fmtF(dN57(t0), 3)}`;
+        if (q12Klaar) {
+            const gd = drawGraph('canvas-q12-d', {
+                xMin: 0, xMax: 40, yMin: 0, yMax: 260, xStep: 5, yStep: 50, pad: { l: 50 },
+                xLabel: 't', yLabel: 'dN/dt',
+                curves: [{ f: dN57, color: C.rose, width: 3 }],
+            });
+            vStreep(gd, A57_T, C.violet);
+            stip(gd.ctx, gd.mapX(A57_T), gd.mapY(dN57(A57_T)), C.violet, 7);
+            puntLabel(gd, `top bij t ≈ ${fmt(A57_T, 1)}`, gd.mapX(A57_T), gd.mapY(dN57(A57_T)) + 20, C.violet);
+            stip(gd.ctx, gd.mapX(t0), gd.mapY(dN57(t0)), C.indigo, 5.5);
+        }
+    }
+
+    function renderOpdrachten() {
+        drawQ1();
+        drawQ6();
+        drawQ11();
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('select[data-soort]').forEach(sel => {
+        sel.innerHTML = '<option value="">kies …</option>' +
+            Object.entries(SOORTEN).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+    });
+    document.querySelectorAll('select[data-toeaf]').forEach(sel => {
+        sel.innerHTML = '<option value="">…</option><option value="toe">toe</option><option value="af">af</option>';
+    });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    setSchets(0);
+    setKetPreset(0);
+    setStapVoorbeeld(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

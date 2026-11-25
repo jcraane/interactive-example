@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 14: Optimaliseren</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Nieuwe regel in een herleidingsladder */
+        .verschijn {
+            animation: verschijn 0.35s ease-out;
+        }
+        @keyframes verschijn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 14</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">14.1 Optimaliseren</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-theorie')" id="btn-tab-theorie" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Oppervlakte en inhoud
+            </button>
+            <button onclick="switchTab('tab-werk')" id="btn-tab-werk" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Werkschema
+            </button>
+            <button onclick="switchTab('tab-kosten')" id="btn-tab-kosten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Minimale kosten
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Wat is optimaliseren?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Je hebt 120 meter hek, en in een hoek van het perceel staat een huis (opgave 1). Hoe zet je het hek neer, zodat de tuin zo groot mogelijk wordt? Het zoeken naar de <strong>grootste</strong> oppervlakte, de grootste inhoud of de <strong>laagste</strong> kosten heet <strong>optimaliseren</strong>. Je stelt een formule op die nog maar van één variabele afhangt. Met de <strong>afgeleide</strong> vind je daarna de top.
+            </p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3 mt-5">
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">1. De variabele x</div>
+                    <div class="font-bold text-slate-900 mt-1">Wat je zelf kiest</div>
+                    <p class="text-sm text-slate-600 mt-1">Je kiest één afmeting als variabele. x kan alleen waarden hebben waarbij de figuur echt bestaat. Dat is het domein.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">figuur 14.5: 0 ≤ x ≤ 52</div>
+                </div>
+                <div class="p-4 rounded-xl bg-fuchsia-50 border border-fuchsia-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-fuchsia-700">2. Het verband</div>
+                    <div class="font-bold text-slate-900 mt-1">y uitdrukken in x</div>
+                    <p class="text-sm text-slate-600 mt-1">De gegeven informatie, zoals 120 meter hek, legt een verband tussen x en y. Daarmee druk je y uit in x.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-fuchsia-200 mt-2 text-fuchsia-800 font-semibold space-y-0.5">
+                        <div>2x + 2y + 16 = 120</div>
+                        <div>y = −x + 52</div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-100 border border-slate-300">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-700">3. De grootheid</div>
+                    <div class="font-bold text-slate-900 mt-1">O, I of K in één variabele</div>
+                    <p class="text-sm text-slate-600 mt-1">Dit optimaliseer je: de oppervlakte O, de inhoud I of de kosten K. Na het invullen van y hangt hij alleen nog van x af.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-slate-300 mt-2 text-slate-800 font-semibold space-y-0.5">
+                        <div>O = (10 + x)(6 + y)</div>
+                        <div>O = −x² + 48x + 580</div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">4. De afgeleide</div>
+                    <div class="font-bold text-slate-900 mt-1">De helling van de grafiek</div>
+                    <p class="text-sm text-slate-600 mt-1">De afgeleide is de helling van de raaklijn. Is hij positief, dan neemt O toe. Is hij negatief, dan neemt O af.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-rose-200 mt-2 text-rose-800 font-semibold" data-f="{dO|dx} = −2x + 48"></div>
+                </div>
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">5. Het optimum</div>
+                    <div class="font-bold text-slate-900 mt-1">Waar de helling 0 is</div>
+                    <p class="text-sm text-slate-600 mt-1">Bij de top is de raaklijn horizontaal, dus de afgeleide is 0. Een schets laat zien of het een maximum of een minimum is.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold" data-f="{dO|dx} = 0 geeft x = 24"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: hetzelfde hek, een andere tuin (figuur 14.5, 14.7, 14.8) -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-xl">
+                    <h3 class="text-lg font-bold text-slate-800">Verkenner: hetzelfde hek, een andere tuin</h3>
+                    <p class="text-sm text-slate-500">Schuif aan x. Het hek blijft even lang, dus y verandert mee. Kijk hoe de oppervlakte O verandert en wat de raaklijn doet als je bij de top komt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Figuur 14.5 (opgave 1)</button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 14.7 (opgave 3)</button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 14.8 (opgave 4)</button>
+                </div>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="grid sm:grid-cols-2 gap-3">
+                        <canvas id="canvas-basis-land" width="380" height="300" class="w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                        <canvas id="canvas-basis-graf" width="380" height="300" class="w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                    </div>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-stone-600 inline-block rounded"></span> Hek</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Grafiek van O</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> Jouw x</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Raaklijn</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Top</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">⏸ Pauzeer animatie</button>
+
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="basis-x-slider" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>x = de variabele die je kiest</span>
+                            <span id="basis-x-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="basis-x-slider" type="range" min="0" max="52" step="0.5" value="10" class="w-full mt-1.5" oninput="manualBasisSlider(this.value)" />
+                    </div>
+
+                    <button onclick="naarTop()" class="w-full py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-semibold text-xs">Schuif naar de top</button>
+
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5 text-sm">
+                        <div class="font-bold text-slate-700 border-b pb-1.5">Zichtbaar in de grafiek:</div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-raak" checked onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Raaklijn (helling = afgeleide)</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-top" onchange="renderBasis()" />
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-medium">Top van de grafiek</span>
+                        </label>
+                    </div>
+
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 1 en 4)</div>
+                <h4 class="font-bold text-slate-800 mt-1">x is niet altijd een zijde</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In figuur 14.5 is zijde DC niet x, maar 10 + x. Vraagt een opgave naar de afmetingen van het perceel, dan geef je de zijden, dus 10 + x en 6 + y. Kies Figuur 14.8 en schuif naar de top: daar is x = 41 en y = 49, maar het perceel is 14 + 41 = 55 bij 6 + 49 = 55 meter.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 3)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Langs een huis of schuur staat geen hek</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In figuur 14.7 is de schuur 10 m breed, en daar is geen hek nodig. Het hek is dus de omtrek min 10: 2x + 2y − 10 = 150. In figuur 14.5 en 14.8 tel je de muren van het huis niet mee. In de verkenner zie je het verschil: het hek is dik getekend, een muur dun.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: OPPERVLAKTE EN INHOUD (THEORIE A) ==================== -->
+    <section id="tab-theorie" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A: maximale oppervlakte en maximale inhoud</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In opgave 1 is de lengte van de omheining gegeven. Vaak zoek je een maximale oppervlakte of inhoud, en dan heb je een formule nodig die van één variabele afhangt. Je werkt in drie stappen:
+            </p>
+            <div class="grid md:grid-cols-3 gap-3 mt-4 text-sm">
+                <div class="p-3 rounded-xl bg-fuchsia-50 border border-fuchsia-200">
+                    <div class="text-xs font-bold text-fuchsia-800">1. Druk y uit in x</div>
+                    <p class="text-slate-700 mt-1">Gebruik het gegeven, bijvoorbeeld de lengte van het hek.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-100 border border-slate-300">
+                    <div class="text-xs font-bold text-slate-800">2. Druk O uit in x</div>
+                    <p class="text-slate-700 mt-1">Schrijf O met x en y, en vul dan y in.</p>
+                </div>
+                <div class="p-3 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold text-rose-800">3. Differentieer</div>
+                    <p class="text-slate-700 mt-1">Met de afgeleide bereken je de maximale oppervlakte (tab 3).</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Herleidingsladder: de formule opstellen, met een controle voor elke x -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Stap voor stap de formule opstellen</h2>
+                    <p class="text-sm text-slate-600">Kies een voorbeeld uit het boek en klik door de regels. Schuif aan x: de tekening verandert, en achter elke regel zie je dat hij klopt voor die x.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setTheoriePreset(0)" id="theorie-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld (figuur 14.6)</button>
+                    <button onclick="setTheoriePreset(1)" id="theorie-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 1 (figuur 14.5)</button>
+                    <button onclick="setTheoriePreset(2)" id="theorie-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 4 (figuur 14.8)</button>
+                    <button onclick="setTheoriePreset(3)" id="theorie-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: doos</button>
+                </div>
+            </div>
+
+            <div id="theorie-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-2">
+                    <div id="theorie-ladder" class="space-y-2"></div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-theorie" width="460" height="300" class="w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="theorie-slider" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>Kies x:</span>
+                            <span id="theorie-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="theorie-slider" type="range" min="0" max="10" step="1" value="5" class="w-full mt-1.5" oninput="setTheorieX(this.value)" />
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="theorie.vorige()" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm whitespace-nowrap">← Vorige</button>
+                        <span id="theorie-teller" class="text-xs font-semibold text-slate-500 whitespace-nowrap"></span>
+                        <button onclick="theorie.volgende()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm whitespace-nowrap">Volgende →</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="theorie.alles()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Toon alle stappen</button>
+                        <button onclick="theorie.toggleFout()" id="btn-theorie-fout" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    </div>
+                    <div id="theorie-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+            <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
+                <span class="font-semibold text-slate-700">Kleur van een regel:</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-fuchsia-500 inline-block"></span> het verband: y (of h) uitdrukken in x</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-600 inline-block"></span> de grootheid O of I uitdrukken in x</span>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (voorbeeld, figuur 14.6)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Tel elk stuk hek precies één keer</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Loop de figuur langs en schrijf elk stuk op: AD + EF + BC + AB + CD + GH. Het korte stuk GH vergeet je snel. Kies het voorbeeld en klik op de klassieke fout: zonder GH klopt de regel niet meer, want het hek is dan geen 480 meter.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave A5 en Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een doos heeft twaalf ribben</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Vier ribben in de lengte, vier in de breedte en vier in de hoogte. Bij de doos van 3x bij x bij h is de totale lengte L = 4 · 3x + 4 · x + 4 · h = 16x + 4h. Deel je daarna door 4, deel dan álle termen: h = −4x + 6.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: WERKSCHEMA (THEORIE B) ==================== -->
+    <section id="tab-werk" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie B: optimaliseringsproblemen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Tot nu toe zocht je steeds een maximale oppervlakte of inhoud. Soms zoek je juist een <strong>minimale</strong> waarde, zoals de minimale kosten van een verpakking. Het opsporen van een maximale of minimale waarde heet <strong>optimaliseren</strong>. Je hebt daarvoor de formule nodig van de grootheid die je wilt optimaliseren. Die formule stel je steeds vaker zelf op, met het werkschema.
+            </p>
+            <div class="grid lg:grid-cols-12 gap-4 mt-4">
+                <div class="lg:col-span-8 p-4 rounded-xl bg-indigo-50/60 border-l-4 border-indigo-500">
+                    <div class="font-bold text-slate-800 text-sm">Werkschema: het met de afgeleide oplossen van een optimaliseringsprobleem van de grootheid G</div>
+                    <ol class="list-decimal pl-5 mt-2 space-y-1 text-sm text-slate-700">
+                        <li>Verdiep je in de situatie en kijk welke variabelen een rol spelen.</li>
+                        <li>Druk G uit in de variabelen.</li>
+                        <li>Zoek een verband tussen de variabelen met behulp van de gegeven informatie en druk daarmee de ene variabele uit in de andere variabele.</li>
+                        <li>Druk G uit in één variabele.</li>
+                        <li>Gebruik de afgeleide van G om de gestelde vraag te beantwoorden.</li>
+                    </ol>
+                </div>
+                <div class="lg:col-span-4 p-4 rounded-xl bg-white border-2 border-slate-300 text-sm text-slate-700 self-start">
+                    Bij berekenen met de afgeleide mag je de vergelijking <span class="mono" data-f="{dI|dx} = 0"></span> ook met de GR oplossen.
+                </div>
+            </div>
+        </div>
+
+        <!-- Stappenplan: het werkschema met de voorbeelden uit het boek -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-5">
+                <div class="md:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: het werkschema</h2>
+                    <p class="text-sm text-slate-600">Kies een voorbeeld uit het boek en klik door de vijf stappen. Tekening en grafiek bouwen mee op.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 md:justify-end">
+                    <button onclick="setWerkPreset(0)" id="werk-ex-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld (figuur 14.11)</button>
+                    <button onclick="setWerkPreset(1)" id="werk-ex-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: maximale inhoud</button>
+                    <button onclick="setWerkPreset(2)" id="werk-ex-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: minimale kosten</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 mb-6">
+                <button onclick="setStap(1)" id="stap-btn-1" class="p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500">
+                    <div class="text-xs font-bold text-indigo-600">Stap 1</div>
+                    <div class="font-bold text-sm text-slate-800">Variabelen</div>
+                </button>
+                <button onclick="setStap(2)" id="stap-btn-2" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 2</div>
+                    <div class="font-bold text-sm text-slate-800">G in de variabelen</div>
+                </button>
+                <button onclick="setStap(3)" id="stap-btn-3" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 3</div>
+                    <div class="font-bold text-sm text-slate-800">Verband zoeken</div>
+                </button>
+                <button onclick="setStap(4)" id="stap-btn-4" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 4</div>
+                    <div class="font-bold text-sm text-slate-800">G in één variabele</div>
+                </button>
+                <button onclick="setStap(5)" id="stap-btn-5" class="p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100">
+                    <div class="text-xs font-bold text-slate-500">Stap 5</div>
+                    <div class="font-bold text-sm text-slate-800">Afgeleide gebruiken</div>
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-3">
+                    <canvas id="canvas-werk-fig" width="640" height="230" class="w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                    <canvas id="canvas-werk-graf" width="640" height="300" class="w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
+                    <div class="flex justify-between">
+                        <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">← Vorige stap</button>
+                        <button onclick="setStap(Math.min(AANTAL_STAPPEN, huidigeStap + 1))" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">Volgende stap →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-5 border-2 border-amber-300">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-800">Cruciale afspraak</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">"Bereken met de afgeleide"</span>
+            </div>
+            <h4 class="font-bold text-slate-800 mt-1">De afgeleide schrijf je op, de GR mag alleen de vergelijking oplossen</h4>
+            <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                Staat er "bereken met de afgeleide", dan laat je zien: de formule van G in één variabele, de afgeleide, de vergelijking <span class="mono" data-f="{dG|dx} = 0"></span> en de oplossing. Die vergelijking mag je met de GR oplossen. Alleen het maximum of minimum van G aflezen op de GR is dan niet genoeg.
+            </p>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <!-- GR-callout: dK/dx = 0 oplossen (Terugblik). Nederlandstalige CE, zoals in het boek. -->
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: <span data-f="{dK|dx} = 0"></span> oplossen</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Terugblik</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="text-[10px] border-b border-slate-400/50 pb-1 mb-2 font-bold leading-tight">
+                        <div>NORM DRIJF AUTO REËEL RAD WN</div>
+                    </div>
+                    <div class="text-[11px]">Plot1&nbsp; Plot2&nbsp; Plot3</div>
+                    <div>Y<sub>1</sub>=480X−3200/X²</div>
+                    <div class="text-slate-600">Y<sub>2</sub>=</div>
+                    <div class="mt-2 pt-1.5 border-t border-slate-400/50 text-[11px] text-slate-700">onderin het grafiekscherm, na het nulpunt:</div>
+                    <div class="flex justify-between"><span>X=1.8820721</span><span>Y=0</span></div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">Y=</span> en typ bij Y1 de <strong class="text-white">afgeleide</strong>: 480 <span class="key">X,T,θ,n</span> <span class="key">−</span> 3200 <span class="key">÷</span> <span class="key">X,T,θ,n</span> <span class="key">x²</span>.</li>
+                    <li>Druk <span class="key">WINDOW</span> en neem bijvoorbeeld Xmin=0, Xmax=4, Ymin=−2000 en Ymax=2000. Druk <span class="key">GRAPH</span>.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">TRACE</span> (CALC) en kies de optie voor het nulpunt (Engelstalige GR: <span class="key">2:zero</span>).</li>
+                    <li>De GR vraagt om een linkergrens, een rechtergrens en een schatting (Engelstalige GR: Left Bound?, Right Bound?, Guess?). Zet de cursor links van het snijpunt met de x-as en druk <span class="key">ENTER</span>, dan rechts ervan <span class="key">ENTER</span>, en nog een keer <span class="key">ENTER</span>.</li>
+                    <li>Onderin staat X=1.8820721. Je noteert: <span class="mono text-white" data-f="{dK|dx} = 0"></span> geeft (GR) x = 1,882…</li>
+                </ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                <p class="text-xs leading-relaxed">Het minimum van Y1 zoeken. Y1 is de afgeleide, niet K. K is minimaal waar de afgeleide 0 is, dus waar de grafiek van Y1 de x-as snijdt. Dat is een nulpunt, geen minimum.</p>
+                <p class="text-xs leading-relaxed">Te vroeg afronden. Reken h uit met de waarde in de GR (<span class="key">2nd</span> <span class="key">(−)</span>, op het scherm Antw; Engelstalige GR: Ans). Met 1,88 in plaats van 1,882… wordt h al 2,263 in plaats van 2,258.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (voorbeeld p. 99)</div>
+                <h4 class="font-bold text-slate-800 mt-1">x = 0 valt af</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    <span class="mono">600x − 12x² = 0</span> geeft x = 0 of x = 50. Bij x = 0 is er geen doos: de inhoud is 0. Kijk naar de schets en naar het domein: alleen x = 50 geeft het maximum. Zo valt ook een oplossing af die buiten het domein ligt, of een negatieve lengte.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Schrijf een breuk eerst als macht</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Om <span class="mono" data-f="{3200|x}"></span> te differentiëren schrijf je <span class="mono" data-f="3200x^[−1]"></span>. Dan geeft de machtsregel <span class="mono" data-f="−3200x^[−2] = −{3200|x²}"></span>. De afgeleide is dus niet 3200, en ook niet <span class="mono" data-f="{3200|x²}"></span> zonder minteken.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (afmetingen)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Beantwoord de vraag helemaal</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Na <span class="mono">x = 1,882…</span> ben je nog niet klaar. Vraagt de opgave de afmetingen, reken dan alle drie de maten uit: 3x ≈ 5,65, x ≈ 1,88 en h ≈ 2,26 dm. In het boek staat bij de Terugblik h ≈ 2,56, maar <span class="mono" data-f="{8|1,882²} ≈ 2,26"></span>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: MINIMALE KOSTEN (KOSTEN-LAB) ==================== -->
+    <section id="tab-kosten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="lg:max-w-xl">
+                    <h2 class="text-xl font-bold text-slate-800">Minimale kosten: een stijgend en een dalend deel</h2>
+                    <p class="text-sm text-slate-600 mt-1">Bij kosten zoek je een minimum. De formule bestaat vaak uit een deel dat stijgt als x groter wordt en een deel dat daalt, zoals <span class="mono" data-f="K = 240x² + {3200|x}"></span>. Het minimum ligt waar de twee hellingen elkaar precies opheffen: daar is <span class="mono" data-f="{dK|dx} = 0"></span>.</p>
+                </div>
+                <div id="kosten-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-lg md:text-xl font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Situatie:</span>
+                <button onclick="setKostenPreset(0)" id="kosten-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Parkeerterrein (variant op opgave 9)</button>
+                <button onclick="setKostenPreset(1)" id="kosten-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Doos (Terugblik)</button>
+                <button onclick="resetKosten()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200">Beginwaarden</button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="grid sm:grid-cols-12 gap-3">
+                        <canvas id="canvas-kosten-fig" width="300" height="300" class="sm:col-span-5 w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                        <canvas id="canvas-kosten-graf" width="440" height="300" class="sm:col-span-7 w-full h-auto bg-white rounded-lg border border-slate-200"></canvas>
+                    </div>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Kosten K</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-0 border-t-2 border-dashed border-slate-400 inline-block"></span> De twee delen van K</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> Jouw x</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Raaklijn</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Minimum</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-3">
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="kosten-x" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span id="kosten-x-naam">x</span>
+                            <span id="kosten-x-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="kosten-x" type="range" min="1" max="60" step="0.5" value="15" class="w-full mt-1.5" oninput="renderKosten()" />
+                    </div>
+                    <div id="kosten-params" class="space-y-3"></div>
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-k-delen" checked onchange="renderKosten()" />
+                            <span class="w-3 h-3 rounded-full bg-slate-400 inline-block"></span>
+                            <span class="font-medium">De twee delen van K</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-k-raak" checked onchange="renderKosten()" />
+                            <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
+                            <span class="font-medium">Raaklijn</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="chk-k-min" onchange="renderKosten()" />
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-medium">Minimum</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div id="kosten-uitleg" class="mt-4 p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs text-slate-700 grid md:grid-cols-3 gap-3"></div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 9)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een negatieve oplossing valt af</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    <span class="mono" data-f="210 − {84 000|x²} = 0"></span> geeft x² = 400, dus x = 20 of x = −20. Een lengte is positief, dus alleen x = 20 telt. Schrijf ook op hoe je weet dat het een minimum is: de schets laat een dal zien.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Kosten in centen of in euro's?</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In de Terugblik kost de bodem 80 cent per dm², dus K = 3x² · 80 + 8xh · 50 is in centen. Bij opgave 10 werkt het boek met € 0,20 en € 0,40, en dan is K in euro's. Voor de x van het minimum maakt het niet uit, maar de minimale kosten zelf schrijf je in de eenheid die de opgave vraagt.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen, breuken als 3/8 of ⅓ en negatieve getallen met een minteken. Grote getallen typ je zonder punt: 21600 of 21 600, niet 21.600.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 12 opgaven uit §14.1 die samen de hele paragraaf behandelen. De "toon aan"-vragen en de andere opgaven maak je in je schrift; de uitwerking laat ze wel zien. Rond af zoals de opgave vraagt. Bij een genummerd vakje <span class="mono" data-f="#1"></span> typ je alleen het getal dat erin hoort.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: opgave 2 (figuur 14.6) -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave 2 (figuur 14.6)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Het stuk land uit het voorbeeld</h3>
+                    <canvas id="canvas-q1" width="380" height="220" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Het hekwerk is 480 meter. In het voorbeeld van Theorie A vond je <span class="mono">O = −4,8x² + 384x</span>. Bereken met de afgeleide bij welke afmetingen de oppervlakte O van het stuk land maximaal is.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q1-ab" class="font-semibold text-slate-700">lengte AB (m)</label>
+                            <input id="q1-ab" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-bc" class="font-semibold text-slate-700">breedte BC (m)</label>
+                            <input id="q1-bc" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-o" class="font-semibold text-slate-700">maximale O (m²)</label>
+                            <input id="q1-o" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave A5 (figuur 14.9) -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave A5 (figuur 14.9)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Het doosje met een rechthoekig grondvlak</h3>
+                    <canvas id="canvas-q2" width="380" height="220" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">De lengte van het grondvlak is twee keer de breedte. De lengte van alle ribben samen is 9 dm. Er geldt <span class="mono">h = 2¼ − 3x</span> en <span class="mono">I = 4½x² − 6x³</span>. Onderzoek met de afgeleide voor welke x de inhoud maximaal is.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q2-x" class="font-semibold text-slate-700">x (dm)</label>
+                            <input id="q2-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-h" class="font-semibold text-slate-700">hoogte h (dm)</label>
+                            <input id="q2-h" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-i" class="font-semibold text-slate-700">maximale I (dm³)</label>
+                            <input id="q2-i" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave 7 (figuur 14.12) -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 7 (figuur 14.12)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een stuk land met 960 meter hekwerk</h3>
+                    <canvas id="canvas-q3" width="380" height="220" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">AB is in drie gelijke stukken verdeeld en AD ook. In totaal wordt 960 meter hekwerk gebruikt. De oppervlakte is <span class="mono">O = −13½x² + 1080x</span>. Bereken met de afgeleide de maximale oppervlakte. Wat zijn dan de lengte en de breedte van het stuk land?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q3-o" class="font-semibold text-slate-700">maximale O (m²)</label>
+                            <input id="q3-o" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-ab" class="font-semibold text-slate-700">lengte AB (m)</label>
+                            <input id="q3-ab" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-ad" class="font-semibold text-slate-700">breedte AD (m)</label>
+                            <input id="q3-ad" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 8 (figuur 14.13) -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 8 (figuur 14.13)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Jonas vouwt een bakje</h3>
+                    <canvas id="canvas-q4" width="380" height="240" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">Jonas knipt uit elke hoek van een stuk karton van 20 bij 30 cm een vierkant met zijde x cm. Hij vouwt de vier zijvlakken omhoog.<br>a. Bereken de inhoud van het bakje als x = 3.<br>b. Bereken met de afgeleide voor welke x de inhoud maximaal is. Rond af op één decimaal.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q4-i" class="font-semibold text-slate-700">a. inhoud bij x = 3 (cm³)</label>
+                            <input id="q4-i" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q4-x" class="font-semibold text-slate-700">b. x (één decimaal)</label>
+                            <input id="q4-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave 9 (figuur 14.14) -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave 9 (figuur 14.14)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🚗 Het parkeerterrein</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Een winkelier laat een rechthoekig parkeerterrein van 600 m² aanleggen. Drie zijden krijgen houten paaltjes (70 euro per meter), de zijde aan de straatkant krijgt betonnen paaltjes (140 euro per meter, inclusief de inrit). Voor de kosten K in euro's geldt</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm text-center mb-2"><span data-f="K = 210x + {84 000|x}"></span></div>
+                    <p class="text-xs text-slate-600 mb-3">waarbij x de lengte in meters van het parkeerterrein aan de straatkant is. Bereken met de afgeleide bij welke afmetingen van het terrein de kosten minimaal zijn.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q5-x" class="font-semibold text-slate-700">zijde aan de straatkant (m)</label>
+                            <input id="q5-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-y" class="font-semibold text-slate-700">andere zijde (m)</label>
+                            <input id="q5-y" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave 10 (geen figuur in het boek) -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 10</span>
+                    <h3 class="font-bold text-slate-800 mt-1">📦 De dozen van De Haan</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">De firma De Haan maakt dozen zonder deksel met een inhoud van 72 dm³. De onderkant is rechthoekig, met een lengte die twee keer zo groot is als de breedte. Het materiaal van de zijkanten kost € 0,20 per dm² en dat van de extra stevige onderkant € 0,40 per dm². De breedte van de onderkant is x dm. Voor de materiaalkosten K in euro's geldt</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm text-center mb-2"><span data-f="K = 0,8x² + {216|5x}"></span></div>
+                    <p class="text-xs text-slate-600 mb-3">Bereken met de afgeleide bij welke afmetingen K minimaal is.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q6-b" class="font-semibold text-slate-700">breedte (dm)</label>
+                            <input id="q6-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-l" class="font-semibold text-slate-700">lengte (dm)</label>
+                            <input id="q6-l" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-h" class="font-semibold text-slate-700">hoogte (dm)</label>
+                            <input id="q6-h" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave 11 (figuur 14.15) -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave 11 (figuur 14.15)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">⛳ De overkapping op de driving range</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">De voorkant van de overkapping is open. Voor de twee zijkanten, de achterkant en het dak is 72 m² materiaal beschikbaar. De zijkanten zijn vierkanten met zijde x meter. Aan de voorkant komen sierlijsten: de lijst aan de bovenkant kost 50 euro per meter, de lijsten aan de zijkanten 100 euro per meter.</p>
+                    <p class="text-xs text-slate-600 mb-2">Druk de kosten K van de lijsten in euro's uit in x en bereken met de afgeleide bij welke afmetingen de kosten minimaal zijn. Rond af op gehele cm.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm text-center mb-2"><span data-f="K = #1x + {#2|x}"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q7-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <input id="q7-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-2" class="font-semibold text-slate-700">vakje 2</label>
+                            <input id="q7-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-x" class="font-semibold text-slate-700">x (m, op gehele cm)</label>
+                            <input id="q7-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-b" class="font-semibold text-slate-700">breedte voorkant (m, op gehele cm)</label>
+                            <input id="q7-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave A12a en b (figuur 14.16) -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave A12b (figuur 14.16)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">De kist zonder deksel</h3>
+                    <canvas id="canvas-q8" width="380" height="200" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-3">De vierkante bodem kost 24 euro per m², de zijkanten 18 euro per m². De opdrachtgever wil 288 euro aan materiaal uitgeven. Voor de inhoud geldt <span class="mono">I = 4x − ⅓x³</span>, met x de zijde van de bodem in meters. Bereken met de afgeleide bij welke afmetingen de inhoud maximaal is, en bereken de maximale inhoud. Rond af op twee decimalen.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q8-x" class="font-semibold text-slate-700">x (m)</label>
+                            <input id="q8-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q8-y" class="font-semibold text-slate-700">hoogte y (m)</label>
+                            <input id="q8-y" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q8-i" class="font-semibold text-slate-700">maximale I (m³)</label>
+                            <input id="q8-i" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: variant op opgave A12c en d (parameter a) -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Variant op opgave A12c en d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Een kist voor a euro</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Stel dat de opdrachtgever van opgave A12 a euro aan materiaal wil uitgeven. De inhoud van de kist is dan</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm text-center mb-2"><span data-f="I = {1|72}ax − {1|3}x³"></span></div>
+                    <p class="text-xs text-slate-600 mb-3">In opgave A12d toon je aan dat de inhoud maximaal is voor <span class="mono" data-f="x = √[{1|72}a]"></span>.<br>Bereken x en de maximale inhoud als de opdrachtgever 648 euro wil uitgeven. Hoeveel euro moet hij uitgeven als de maximale inhoud hoort bij x = 1,5?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q9-x" class="font-semibold text-slate-700">x bij 648 euro (m)</label>
+                            <input id="q9-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-i" class="font-semibold text-slate-700">maximale I (m³)</label>
+                            <input id="q9-i" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-a" class="font-semibold text-slate-700">a bij x = 1,5 (euro)</label>
+                            <input id="q9-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: opgave A13 (figuur 14.17) -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave A13 (figuur 14.17)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">⚡ Een kabel onder de rivier</h3>
+                    <canvas id="canvas-q10" width="380" height="210" class="w-full h-auto my-3 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">De rivier is 200 meter breed. Een kabel loopt van de centrale E via P naar de fabriek F, die aan de overkant 2000 meter stroomafwaarts ligt. In de rivier kost de kabel 65 euro per meter, over land 50 euro per meter. Er geldt AP = x meter en <span class="mono" data-f="EP = √[x² + 40 000]"></span>.</p>
+                    <p class="text-xs text-slate-600 mb-2">Vul de formule voor de aanlegkosten K in, en bereken met de afgeleide bij welke afstand AP de kosten minimaal zijn. Rond af op gehele meters.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm text-center mb-2"><span data-f="K = #1 · √[x² + 40 000] + #2 · (2000 − x)"></span></div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q10-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <input id="q10-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-2" class="font-semibold text-slate-700">vakje 2</label>
+                            <input id="q10-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-x" class="font-semibold text-slate-700">AP (gehele meters)</label>
+                            <input id="q10-x" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: GR-valkuil bij de Terugblik (meerkeuze) -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Terugblik (GR)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Wat zoek je op in het grafiekscherm?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Bij de doos uit de Terugblik is <span class="mono" data-f="K = 240x² + 3200x^[−1]"></span>. Je lost <span class="mono" data-f="{dK|dx} = 0"></span> op met de GR en typt daarvoor bij Y1 de afgeleide: <span class="mono">Y1 = 480X − 3200/X²</span>. Welke optie in het CALC-menu (<span class="key">2nd</span> <span class="key">TRACE</span>) geeft de x waarbij K minimaal is?</p>
+                    <div class="grid md:grid-cols-2 gap-2 text-xs">
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="A" /> Het maximum van de grafiek van Y1
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="B" /> Het minimum van de grafiek van Y1
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="C" /> Het nulpunt van Y1 (Engelstalige GR: zero)
+                        </label>
+                        <label class="flex items-center gap-2 p-3 rounded-xl border cursor-pointer hover:bg-slate-50">
+                            <input type="radio" name="q11" value="D" /> De waarde van Y1 bij x = 0 (Engelstalige GR: value)
+                        </label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: einduitdaging op opgave 6 (figuur 14.10) -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging (opgave 6, figuur 14.10)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw grafiek samenvallen met de grafiek van O</h3>
+                    <p class="text-xs text-slate-600 mt-1">Een rechthoekig stuk land is gedeeltelijk begrensd door een sloot. Het wordt afgezet met een omheining van 200 meter; de slootkant hoeft niet te worden afgezet. De oppervlakte in m² is O. De stippen hieronder zijn de oppervlakte bij x = 0, 5, 10, … . De formule van O is van de vorm <span class="mono">O = ax² + bx + c</span>. Bereken a, b en c en controleer: valt jouw grafiek over de stippen?</p>
+                    <div class="grid md:grid-cols-12 gap-3 my-2">
+                        <canvas id="canvas-q12-fig" width="300" height="240" class="md:col-span-4 w-full h-auto bg-slate-50 rounded-lg border"></canvas>
+                        <canvas id="canvas-q12" width="560" height="240" class="md:col-span-8 w-full h-auto bg-slate-50 rounded-lg border"></canvas>
+                    </div>
+                    <div class="grid grid-cols-3 md:grid-cols-4 gap-3 text-xs items-end">
+                        <div>
+                            <label for="q12-a" class="font-semibold text-slate-700">a</label>
+                            <input id="q12-a" type="number" step="0.5" value="-1" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-b" class="font-semibold text-slate-700">b</label>
+                            <input id="q12-b" type="number" step="1" value="100" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-c" class="font-semibold text-slate-700">c</label>
+                            <input id="q12-c" type="number" step="10" value="500" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div id="q12-live" class="col-span-3 md:col-span-1 mono text-sm text-indigo-700 font-bold"></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== HULPFUNCTIES VOOR DEZE LES ====================
+    // Conceptkleuren van H14 + één eigen kleur voor deze les:
+    // amber = x (de variabele die je kiest), fuchsia = y of h (via het verband uitgedrukt in x),
+    // donker slate = de grootheid O, I of K, rose = afgeleide en raaklijn, emerald = top/optimum,
+    // orange = kettingregel (opgave A13).
+    const DONKER = '#334155';
+    const FUCHSIA = '#c026d3';
+    const HEK = '#57534e';
+
+    /** Vast aantal decimalen, in Nederlandse notatie: 1 → "1,000". */
+    const fmtF = (v, d) => v.toFixed(d).replace('.', ',').replace('-', '−');
+
+    /** Groot getal met een spatie per drie cijfers, zoals het boek: 84000 → "84 000". */
+    function fmtG(v, digits = 2) {
+        const s = fmt(v, digits);
+        const neg = s.startsWith('−');
+        const [int, dec] = (neg ? s.slice(1) : s).split(',');
+        const g = int.length >= 5 ? int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : int;
+        return (neg ? '−' : '') + g + (dec !== undefined ? ',' + dec : '');
+    }
+
+    /** Twee uitkomsten gelijk (relatief), of allebei niet gedefinieerd. */
+    function gelijk(a, b) {
+        if (!isFinite(a) || !isFinite(b)) return !isFinite(a) && !isFinite(b);
+        return Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+    }
+
+    // Kleur van een regel in de herleidingsladder: fuchsia = het verband (y of h uitdrukken in x),
+    // g = de grootheid O of I uitdrukken in x.
+    const KLEUR = {
+        fuchsia: { rij: 'border-fuchsia-400 bg-fuchsia-50/70', tekst: 'text-fuchsia-800' },
+        g: { rij: 'border-slate-600 bg-slate-100/80', tekst: 'text-slate-800' },
+        slate: { rij: 'border-slate-300 bg-slate-50', tekst: 'text-slate-600' },
+    };
+
+    /**
+     * Herleidingsladder: de regels onder elkaar, zoals in het boek. Achter elke regel staat de
+     * controle met de ingevulde getallen. Een regel is { e, l, r }: links moet gelijk zijn aan rechts.
+     * u + k = de stap naar de volgende regel en de kleur van die stap.
+     */
+    function ladderHTML(lijst, vals, klaar, animeer) {
+        return lijst.map((row, i) => {
+            const laatste = i === lijst.length - 1;
+            const L = row.l(vals), R = row.r(vals);
+            let tekst, teken;
+            if (!isFinite(L) || !isFinite(R)) {
+                tekst = 'bestaat niet';
+                teken = '–';
+            } else if (gelijk(L, R)) {
+                tekst = `${fmtG(L, 2)} = ${fmtG(R, 2)}`;
+                teken = '✓';
+            } else {
+                tekst = `${fmtG(L, 2)} ≠ ${fmtG(R, 2)}`;
+                teken = '✗';
+            }
+            const tekenKlasse = { '✓': 'text-emerald-600', '✗': 'text-red-600', '–': 'text-slate-400' }[teken];
+
+            let rij, uitleg;
+            if (row.isFout) {
+                rij = 'border-red-500 bg-red-50';
+                uitleg = `<span class="font-semibold text-red-700">✗ ${fm(row.u)}</span>`;
+            } else if (laatste && klaar) {
+                rij = 'border-indigo-500 bg-indigo-50';
+                uitleg = '<span class="font-semibold text-indigo-700">Klaar!</span>';
+            } else {
+                const kl = KLEUR[row.k || 'slate'];
+                rij = kl.rij;
+                uitleg = !row.u ? '' : laatste
+                    ? `<span class="${kl.tekst} opacity-80">Volgende stap: ${fm(row.u)}</span>`
+                    : `<span class="${kl.tekst}">${fm(row.u)}</span>`;
+            }
+            return `
+                <div class="${animeer && laatste ? 'verschijn ' : ''}flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 px-3 py-2.5 rounded-xl border-l-4 ${rij}">
+                    <div class="mono text-base text-slate-900 md:w-5/12 overflow-x-auto">${fm(row.e)}</div>
+                    <div class="text-xs md:flex-1 leading-snug">${uitleg}</div>
+                    <div class="mono text-[11px] text-slate-500 whitespace-nowrap md:text-right">${tekst} <span class="font-bold text-sm ${tekenKlasse}">${teken}</span></div>
+                </div>`;
+        }).join('');
+    }
+
+    /** Bediening van een herleidingsladder: volgende/vorige stap, alles tonen, klassieke fout. */
+    function maakLadder(presets, render) {
+        const s = { idx: 0, stap: 1, fout: false };
+        s.pr = () => presets[s.idx];
+        s.kies = i => { s.idx = i; s.stap = 1; s.fout = false; };
+        s.volgende = () => { s.fout = false; s.stap = Math.min(s.pr().rows.length, s.stap + 1); render(true); };
+        s.vorige = () => { s.fout = false; s.stap = Math.max(1, s.stap - 1); render(false); };
+        s.alles = () => { s.fout = false; s.stap = s.pr().rows.length; render(false); };
+        s.toggleFout = () => { if (!s.pr().fout) return; s.fout = !s.fout; render(true); };
+        s.klaar = () => !s.fout && s.stap === s.pr().rows.length;
+        s.lijst = () => s.fout
+            ? [...s.pr().rows.slice(0, s.pr().fout.bij), { ...s.pr().fout, isFout: true }]
+            : s.pr().rows.slice(0, s.stap);
+        s.teller = () => s.fout ? 'klassieke fout' : `regel ${s.stap} van ${s.pr().rows.length}`;
+        return s;
+    }
+
+    function stip(ctx, x, y, color, r = 6) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /** Label met een lichte achtergrond, zodat het leesbaar blijft boven een lijn of grafiek. */
+    function tekst(ctx, s, x, y, color, align = 'left', size = 12) {
+        ctx.font = `700 ${size}px Inter, sans-serif`;
+        ctx.textAlign = align;
+        const w = ctx.measureText(s).width;
+        const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fillRect(x0 - 3, y - size, w + 6, size + 4);
+        ctx.fillStyle = color;
+        ctx.fillText(s, x, y);
+    }
+
+    /** Maatlijn met twee pijlpunten (pixels) en een label. */
+    function maatlijn(ctx, x1, y1, x2, y2, label, color, lx, ly, align = 'center') {
+        if (Math.hypot(x2 - x1, y2 - y1) > 4) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = 1.5;
+            strokeLine(ctx, x1, y1, x2, y2);
+            const a = Math.atan2(y2 - y1, x2 - x1);
+            [[x1, y1, a + Math.PI], [x2, y2, a]].forEach(([x, y, r]) => {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - 7 * Math.cos(r - 0.45), y - 7 * Math.sin(r - 0.45));
+                ctx.lineTo(x - 7 * Math.cos(r + 0.45), y - 7 * Math.sin(r + 0.45));
+                ctx.closePath();
+                ctx.fill();
+            });
+            ctx.restore();
+        }
+        if (label) tekst(ctx, label, lx ?? (x1 + x2) / 2, ly ?? (y1 + y2) / 2, color, align);
+    }
+
+    /**
+     * Een stuk land van bovenaf, zoals de figuren in het boek. Alles in meters, oorsprong in A
+     * (linksonder), y omhoog. De schaal komt uit maxW × maxH, zodat hij vast blijft terwijl x verandert.
+     * sc: { W, H, gebouwen: [{x, y, w, h, naam}], water: [{x, y, w, h}], hek: [[x1, y1, x2, y2]],
+     *       geenHek: [[…]], maten: [{van, tot, tekst, kleur, kant, off}], letters: [{x, y, t, dx, dy}] }
+     */
+    function tekenTerrein(canvasId, sc, maxW, maxH, marge = {}) {
+        const { ctx, w, h } = setupCanvas($(canvasId));
+        const m = Object.assign({ l: 78, r: 40, t: 44, b: 40 }, marge);
+        const s = Math.min((w - m.l - m.r) / maxW, (h - m.t - m.b) / maxH);
+        const X = x => m.l + x * s, Y = y => h - m.b - y * s;
+        (sc.water || []).forEach(r => {
+            ctx.fillStyle = '#a9d2ef';
+            ctx.fillRect(X(r.x), Y(r.y + r.h), r.w * s, r.h * s);
+        });
+        ctx.fillStyle = '#e3f0d4';
+        ctx.fillRect(X(0), Y(sc.H), sc.W * s, sc.H * s);
+        (sc.gebouwen || []).forEach(b => {
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(X(b.x), Y(b.y + b.h), b.w * s, b.h * s);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(X(b.x), Y(b.y + b.h), b.w * s, b.h * s);
+            if (b.naam && b.w * s > 34 && b.h * s > 14) {
+                ctx.fillStyle = '#334155';
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(b.naam, X(b.x + b.w / 2), Y(b.y + b.h / 2) + 4);
+            }
+        });
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.2;
+        (sc.geenHek || []).forEach(([x1, y1, x2, y2]) => strokeLine(ctx, X(x1), Y(y1), X(x2), Y(y2)));
+        (sc.hek || []).forEach(([x1, y1, x2, y2]) => {
+            ctx.strokeStyle = HEK;
+            ctx.lineWidth = 3;
+            strokeLine(ctx, X(x1), Y(y1), X(x2), Y(y2));
+            const len = Math.hypot(X(x2) - X(x1), Y(y2) - Y(y1)), n = Math.max(1, Math.round(len / 16));
+            ctx.fillStyle = HEK;
+            for (let i = 0; i <= n; i++) {
+                const px = X(x1) + (X(x2) - X(x1)) * i / n, py = Y(y1) + (Y(y2) - Y(y1)) * i / n;
+                ctx.fillRect(px - 2.5, py - 2.5, 5, 5);
+            }
+        });
+        (sc.letters || []).forEach(l => {
+            ctx.font = 'italic 600 13px Inter, sans-serif';
+            ctx.fillStyle = '#334155';
+            ctx.textAlign = 'center';
+            ctx.fillText(l.t, X(l.x) + (l.dx || 0), Y(l.y) + (l.dy || 0));
+        });
+        (sc.maten || []).forEach(mt => {
+            const off = mt.off ?? 18;
+            let x1 = X(mt.van[0]), y1 = Y(mt.van[1]), x2 = X(mt.tot[0]), y2 = Y(mt.tot[1]);
+            let lx, ly, al = 'center';
+            if (mt.kant === 'boven') { y1 -= off; y2 -= off; lx = (x1 + x2) / 2; ly = y1 - 6; }
+            else if (mt.kant === 'onder') { y1 += off; y2 += off; lx = (x1 + x2) / 2; ly = y1 + 17; }
+            else if (mt.kant === 'links') { x1 -= off; x2 -= off; lx = x1 - 6; ly = (y1 + y2) / 2 + 5; al = 'right'; }
+            else { x1 += off; x2 += off; lx = x1 + 6; ly = (y1 + y2) / 2 + 5; al = 'left'; }
+            maatlijn(ctx, x1, y1, x2, y2, mt.tekst, mt.kleur, lx, ly, al);
+        });
+        return { ctx, X, Y, s, w, h };
+    }
+
+    /**
+     * Een doos in scheve parallelprojectie. L = lengte (voorkant), B = breedte (diepte), H = hoogte.
+     * maten: { L: [tekst, kleur], B: [...], H: [...] }. open = zonder deksel. De doos past in het canvas.
+     */
+    function tekenDoos(canvasId, d) {
+        const { ctx, w, h } = setupCanvas($(canvasId));
+        const k = 0.55, hoek = Math.PI / 6;
+        const du = k * Math.cos(hoek), dv = k * Math.sin(hoek);
+        const spanW = d.L + d.B * du, spanH = d.H + d.B * dv;
+        const m = Object.assign({ l: 96, r: 96, t: 22, b: 40 }, d.marge);
+        if (d.onderschrift) m.b += 16;
+        const s = Math.min((w - m.l - m.r) / spanW, (h - m.t - m.b) / spanH);
+        const ox = m.l + ((w - m.l - m.r) - spanW * s) / 2;
+        const oy = h - m.b - ((h - m.t - m.b) - spanH * s) / 2;
+        const P = (x, y, z) => [ox + (x + z * du) * s, oy - (y + z * dv) * s];
+        const vlak = (pts, fill) => {
+            ctx.beginPath();
+            pts.forEach((p, i) => (i ? ctx.lineTo(...P(...p)) : ctx.moveTo(...P(...p))));
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.fill();
+        };
+        const lijn = (a, b, dash = []) => {
+            ctx.setLineDash(dash);
+            strokeLine(ctx, ...P(...a), ...P(...b));
+            ctx.setLineDash([]);
+        };
+        const { L, B, H } = d;
+        const kleur = d.kleur || '#ecd9b4';
+        // Bij een open doos zie je door de opening de binnenkant van de achterwand en de linkerwand.
+        // Daarna de voorkant en de rechterzijkant. Verborgen ribben teken je niet, net als in het boek.
+        if (d.open) {
+            vlak([[0, 0, B], [L, 0, B], [L, H, B], [0, H, B]], '#d9c08f');
+            vlak([[0, 0, 0], [0, 0, B], [0, H, B], [0, H, 0]], '#cdb07a');
+        }
+        vlak([[0, 0, 0], [L, 0, 0], [L, H, 0], [0, H, 0]], kleur);
+        vlak([[L, 0, 0], [L, 0, B], [L, H, B], [L, H, 0]], '#dcc394');
+        if (!d.open) vlak([[0, H, 0], [L, H, 0], [L, H, B], [0, H, B]], '#f4e7cc');
+        ctx.strokeStyle = '#78593a';
+        ctx.lineWidth = 1.6;
+        // Open doos: alleen het stuk van de ribbe linksachter dat boven de voorkant uitkomt
+        if (d.open) lijn([0, H, B], [0, Math.max(0, H - B * dv), B]);
+        lijn([0, 0, 0], [L, 0, 0]); lijn([L, 0, 0], [L, H, 0]); lijn([L, H, 0], [0, H, 0]); lijn([0, H, 0], [0, 0, 0]);
+        lijn([L, 0, 0], [L, 0, B]); lijn([L, 0, B], [L, H, B]); lijn([L, H, 0], [L, H, B]);
+        lijn([0, H, 0], [0, H, B]); lijn([0, H, B], [L, H, B]);
+        // Maten: lengte onder de voorkant, hoogte links, breedte langs de schuine ribbe rechtsonder
+        const [ax, ay] = P(0, 0, 0), [bx, by] = P(L, 0, 0), [tx, ty] = P(0, H, 0), [cx, cy] = P(L, 0, B);
+        if (d.maten?.L) maatlijn(ctx, ax, ay + 14, bx, by + 14, d.maten.L[0], d.maten.L[1], (ax + bx) / 2, ay + 31);
+        if (d.maten?.H) maatlijn(ctx, ax - 14, ay, tx - 14, ty, d.maten.H[0], d.maten.H[1], ax - 20, (ay + ty) / 2 + 5, 'right');
+        if (d.maten?.B) maatlijn(ctx, bx + 12, by + 7, cx + 12, cy + 7, d.maten.B[0], d.maten.B[1], (bx + cx) / 2 + 20, (by + cy) / 2 + 16, 'left');
+        if (d.onderschrift) {
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.fillText(d.onderschrift, w / 2, h - 7);
+        }
+        return { ctx, P, s };
+    }
+
+    /** Raaklijnstuk in een grafiek van drawGraph: door (x0, y0) met helling d, halfPx pixels naar elke kant. */
+    function raaklijn(g, x0, y0, d, color, halfPx = 70) {
+        const { ctx, mapX, mapY, box } = g;
+        const dxPx = mapX(x0 + 1) - mapX(x0), dyPx = mapY(y0 + d) - mapY(y0);
+        const len = Math.hypot(dxPx, dyPx);
+        if (!isFinite(len) || len === 0) return;
+        const ux = dxPx / len, uy = dyPx / len, px = mapX(x0), py = mapY(y0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        strokeLine(ctx, px - ux * halfPx, py - uy * halfPx, px + ux * halfPx, py + uy * halfPx);
+        ctx.restore();
+    }
+
+    // Scènes uit het boek (meters, A linksonder).
+    // Huis hb × hh in hoek D; zijden DC = hb + x en DA = hh + y (figuur 14.5: 10 × 6, figuur 14.8: 14 × 6).
+    function huisScene(x, y, hb, hh, getallen = true) {
+        const W = hb + x, H = hh + y;
+        return {
+            W, H,
+            gebouwen: [{ x: 0, y: H - hh, w: hb, h: hh, naam: 'huis' }],
+            hek: [[hb, H, W, H], [W, H, W, 0], [W, 0, 0, 0], [0, 0, 0, H - hh]],
+            geenHek: [[0, H - hh, 0, H], [0, H, hb, H]],
+            maten: [
+                { van: [0, H], tot: [hb, H], tekst: `${hb}`, kleur: '#64748b', kant: 'boven' },
+                { van: [hb, H], tot: [W, H], tekst: getallen ? `x = ${fmt(x, 1)}` : 'x', kleur: C.amber, kant: 'boven' },
+                { van: [0, H], tot: [0, H - hh], tekst: `${hh}`, kleur: '#64748b', kant: 'links' },
+                { van: [0, H - hh], tot: [0, 0], tekst: getallen ? `y = ${fmt(y, 1)}` : 'y', kleur: FUCHSIA, kant: 'links' },
+            ],
+            letters: [
+                { x: 0, y: H, t: 'D', dx: -7, dy: -5 }, { x: W, y: H, t: 'C', dx: 9, dy: -5 },
+                { x: 0, y: 0, t: 'A', dx: -8, dy: 15 }, { x: W, y: 0, t: 'B', dx: 9, dy: 15 },
+            ],
+        };
+    }
+
+    // Figuur 14.7: weiland van x (onder) bij y (rechts), schuur van 10 m in de bovenkant: daar geen hek.
+    function schuurScene(x, y, getallen = true) {
+        const W = x, H = y, links = 0.55 * (W - 10), diep = Math.min(6, H);
+        return {
+            W, H,
+            gebouwen: [{ x: links, y: H - diep, w: 10, h: diep, naam: 'schuur' }],
+            hek: [[0, H, links, H], [links + 10, H, W, H], [W, H, W, 0], [W, 0, 0, 0], [0, 0, 0, H]],
+            geenHek: [[links, H, links + 10, H]],
+            maten: [
+                { van: [links, H], tot: [links + 10, H], tekst: '10 m', kleur: '#64748b', kant: 'boven' },
+                { van: [0, 0], tot: [W, 0], tekst: getallen ? `x = ${fmt(x, 1)}` : 'x m', kleur: C.amber, kant: 'onder' },
+                { van: [W, H], tot: [W, 0], tekst: getallen ? `y = ${fmt(y, 1)}` : 'y m', kleur: FUCHSIA, kant: 'rechts' },
+            ],
+        };
+    }
+
+    // Figuur 14.6: AD = 2x, AB = 2y, met EF (midden AB naar midden CD) en GH (midden AD naar midden EF).
+    function scene146(x, y, getallen = true) {
+        const W = 2 * y, H = 2 * x;
+        return {
+            W, H,
+            hek: [[0, 0, W, 0], [W, 0, W, H], [W, H, 0, H], [0, H, 0, 0], [W / 2, 0, W / 2, H], [0, H / 2, W / 2, H / 2]],
+            maten: [
+                { van: [0, H], tot: [W / 2, H], tekst: getallen ? `y = ${fmt(y, 1)}` : 'y meter', kleur: FUCHSIA, kant: 'boven' },
+                { van: [0, H], tot: [0, H / 2], tekst: getallen ? `x = ${fmt(x, 1)}` : 'x meter', kleur: C.amber, kant: 'links' },
+            ],
+            letters: [
+                { x: 0, y: H, t: 'D', dx: -7, dy: -5 }, { x: W / 2, y: H, t: 'F', dx: 8, dy: -5 }, { x: W, y: H, t: 'C', dx: 9, dy: -5 },
+                { x: 0, y: H / 2, t: 'G', dx: -10, dy: 5 }, { x: W / 2, y: H / 2, t: 'H', dx: 10, dy: -6 },
+                { x: 0, y: 0, t: 'A', dx: -8, dy: 15 }, { x: W / 2, y: 0, t: 'E', dx: 0, dy: 16 }, { x: W, y: 0, t: 'B', dx: 9, dy: 15 },
+            ],
+        };
+    }
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-theorie': () => renderTheorie(),
+        'tab-werk': () => renderStap(),
+        'tab-kosten': () => renderKosten(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN (verkenner: hetzelfde hek) ====================
+    // Figuur 14.5 (opgave 1): huis 10 × 6, hek 2x + 2y + 16 = 120 → y = 52 − x; O = (10 + x)(6 + y) = −x² + 48x + 580.
+    // Figuur 14.7 (opgave 3): schuur 10 m, hek 2x + 2y − 10 = 150 → y = 80 − x; O = xy = −x² + 80x.
+    // Figuur 14.8 (opgave 4): huis 14 × 6, hek 2x + 2y + 20 = 200 → y = 90 − x; O = (14 + x)(6 + y) = −x² + 82x + 1344.
+    const basisPresets = [
+        {
+            dom: [0, 52], start: 10, top: 24, maxW: 62, maxH: 58,
+            y: x => 52 - x, O: x => (10 + x) * (58 - x), dO: x => -2 * x + 48,
+            scene: (x, y) => huisScene(x, y, 10, 6),
+            graf: { xMax: 55, xStep: 5, yMax: 1200, yStep: 200 },
+            hek: 'het hek is 120 m',
+            hekRegel: (x, y) => `2x + 2y + 16 = 2 · ${fmt(x, 1)} + 2 · ${fmt(y, 1)} + 16 = ${fmt(2 * x + 2 * y + 16, 1)}`,
+            yRegel: (x, y) => `y = −x + 52 = ${fmt(y, 1)}`,
+            ORegel: (x, y) => `O = (10 + x)(6 + y) = ${fmt(10 + x, 1)} · ${fmt(6 + y, 1)} = ${fmtG((10 + x) * (6 + y), 2)} m²`,
+            dRegel: x => `{dO|dx} = −2x + 48 = ${fmt(-2 * x + 48, 1)}`,
+            zijden: (x, y) => `${fmt(10 + x, 1)} bij ${fmt(6 + y, 1)} m`,
+        },
+        {
+            dom: [10, 80], start: 20, top: 40, maxW: 80, maxH: 70,
+            y: x => 80 - x, O: x => x * (80 - x), dO: x => -2 * x + 80,
+            scene: (x, y) => schuurScene(x, y),
+            graf: { xMax: 80, xStep: 10, yMax: 1800, yStep: 300 },
+            hek: 'het hek is 150 m',
+            hekRegel: (x, y) => `2x + 2y − 10 = 2 · ${fmt(x, 1)} + 2 · ${fmt(y, 1)} − 10 = ${fmt(2 * x + 2 * y - 10, 1)}`,
+            yRegel: (x, y) => `y = −x + 80 = ${fmt(y, 1)}`,
+            ORegel: (x, y) => `O = x · y = ${fmt(x, 1)} · ${fmt(y, 1)} = ${fmtG(x * y, 2)} m²`,
+            dRegel: x => `{dO|dx} = −2x + 80 = ${fmt(-2 * x + 80, 1)}`,
+            zijden: (x, y) => `${fmt(x, 1)} bij ${fmt(y, 1)} m`,
+        },
+        {
+            dom: [0, 90], start: 15, top: 41, maxW: 104, maxH: 96,
+            y: x => 90 - x, O: x => (14 + x) * (96 - x), dO: x => -2 * x + 82,
+            scene: (x, y) => huisScene(x, y, 14, 6),
+            graf: { xMax: 90, xStep: 10, yMax: 3500, yStep: 500 },
+            hek: 'het hek is 200 m',
+            hekRegel: (x, y) => `2x + 2y + 20 = 2 · ${fmt(x, 1)} + 2 · ${fmt(y, 1)} + 20 = ${fmt(2 * x + 2 * y + 20, 1)}`,
+            yRegel: (x, y) => `y = −x + 90 = ${fmt(y, 1)}`,
+            ORegel: (x, y) => `O = (14 + x)(6 + y) = ${fmt(14 + x, 1)} · ${fmt(6 + y, 1)} = ${fmtG((14 + x) * (6 + y), 2)} m²`,
+            dRegel: x => `{dO|dx} = −2x + 82 = ${fmt(-2 * x + 82, 1)}`,
+            zijden: (x, y) => `${fmt(14 + x, 1)} bij ${fmt(6 + y, 1)} m`,
+        },
+    ];
+    let basisIdx = 0, basisX = 10, basisPlaying = true, basisRichting = 1, basisDoel = null, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        const slider = $('basis-x-slider');
+        slider.min = pr.dom[0];
+        slider.max = pr.dom[1];
+        basisX = pr.start;
+        basisRichting = 1;
+        basisDoel = null;
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        basisDoel = null;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function stopBasis() {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+    }
+
+    function manualBasisSlider(val) {
+        stopBasis();
+        basisDoel = null;
+        basisX = parseFloat(val);
+        renderBasis();
+    }
+
+    function naarTop() {
+        stopBasis();
+        basisDoel = basisPresets[basisIdx].top;
+        $('chk-top').checked = true;
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        // Rekenen met x op 0,1 nauwkeurig: dan kloppen de getallen in de uitleg precies met wat er staat.
+        const x = Math.round(basisX * 10) / 10, y = pr.y(x), O = pr.O(x), d = pr.dO(x);
+        const opTop = Math.abs(x - pr.top) < 1e-9;
+        const showTop = $('chk-top').checked, showRaak = $('chk-raak').checked;
+
+        tekenTerrein('canvas-basis-land', pr.scene(x, y), pr.maxW, pr.maxH);
+
+        const g = drawGraph('canvas-basis-graf', {
+            xMin: 0, xMax: pr.graf.xMax, yMin: 0, yMax: pr.graf.yMax, xStep: pr.graf.xStep, yStep: pr.graf.yStep,
+            xLabel: 'x', yLabel: 'O', xCaption: 'x in meter', pad: { l: 46, r: 22 },
+            vLines: showTop ? [{ x: pr.top, color: C.emerald, width: 1.5 }] : [],
+            curves: [{ f: pr.O, color: DONKER, width: 3, domain: pr.dom }],
+            points: showTop ? [{ x: pr.top, y: pr.O(pr.top), color: C.emerald, r: 6 }] : [],
+        });
+        if (showRaak) raaklijn(g, x, O, d, C.rose, 60);
+        stip(g.ctx, g.mapX(x), g.mapY(O), C.indigo, 6.5);
+        if (showTop) {
+            const tx = g.mapX(pr.top), ty = g.mapY(pr.O(pr.top));
+            tekst(g.ctx, `top (${fmt(pr.top)}, ${fmtG(pr.O(pr.top))})`, tx, ty - 12, C.emerald, 'center', 11);
+        }
+        if (showRaak) {
+            const links = g.mapX(x) > g.box.x1 - 130;
+            tekst(g.ctx, `helling ${fmt(d, 1)}`, g.mapX(x) + (links ? -12 : 12), g.mapY(O) + 22, C.rose, links ? 'right' : 'left', 11);
+        }
+
+        $('basis-x-slider').value = x;
+        $('basis-x-label').innerText = `x = ${fmt(x, 1)}`;
+        let status;
+        if (opTop || Math.abs(d) < 1e-9) status = `<div class="font-semibold text-emerald-700">De afgeleide is 0: de raaklijn ligt horizontaal. Dit is de top, O is maximaal. Het perceel is dan ${pr.zijden(x, y)}.</div>`;
+        else if (d > 0) status = `<div class="text-rose-700">De afgeleide is positief: O neemt nog toe. Schuif x verder naar rechts.</div>`;
+        else status = `<div class="text-rose-700">De afgeleide is negatief: O neemt af. Schuif x terug naar links.</div>`;
+        $('basis-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900">Het verband: ${pr.hek}</div>
+            <div class="mono">${pr.hekRegel(x, y)} ✓</div>
+            <div class="mono text-fuchsia-700 font-semibold">${pr.yRegel(x, y)}</div>
+            <div class="mono text-slate-800 font-semibold">${pr.ORegel(x, y)}</div>
+            <div class="mono text-rose-700 font-semibold">${fm(pr.dRegel(x))}</div>
+            ${status}`;
+    }
+
+    // Animatie: x loopt heen en weer over het domein; "Schuif naar de top" laat x naar de top glijden.
+    function animateLoop(ts) {
+        if (lastTs !== null && !$('tab-basis').classList.contains('hidden')) {
+            const pr = basisPresets[basisIdx], dt = Math.min(0.1, (ts - lastTs) / 1000), span = pr.dom[1] - pr.dom[0];
+            if (basisDoel !== null) {
+                const stap = span / 3 * dt;
+                if (Math.abs(basisDoel - basisX) <= stap) { basisX = basisDoel; basisDoel = null; }
+                else basisX += Math.sign(basisDoel - basisX) * stap;
+                renderBasis();
+            } else if (basisPlaying) {
+                basisX += basisRichting * span / 8 * dt;
+                if (basisX >= pr.dom[1]) { basisX = pr.dom[1]; basisRichting = -1; }
+                if (basisX <= pr.dom[0]) { basisX = pr.dom[0]; basisRichting = 1; }
+                renderBasis();
+            }
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: OPPERVLAKTE EN INHOUD (THEORIE A, herleidingsladder) ====================
+    // Elke regel is { e, l, r }: bij de x van de slider (en de y of h die daar via het verband bij hoort)
+    // moet links gelijk zijn aan rechts. teken(v) tekent de situatie bij die x.
+    const theoriePresets = [
+        {
+            // Voorbeeld p. 96, figuur 14.6: AD = EF = BC = 2x, AB = CD = 2y, GH = y; hekwerk 480 m.
+            vraag: 'Een rechthoekig stuk land wordt afgezet zoals in figuur 14.6. De totale lengte van het hekwerk is 480 meter. Druk de oppervlakte O van het stuk land uit in x.',
+            x: { min: 2, max: 78, step: 1, start: 30 },
+            vals: x => { const y = 96 - 1.2 * x; return { x, y, O: 2 * y * 2 * x, hek: 2 * x + 2 * x + 2 * x + 2 * y + 2 * y + y }; },
+            yNaam: 'y', G: 'O', eenheid: 'm²',
+            teken: v => tekenPassend(scene146(v.x, v.y), 192, 160),
+            rows: [
+                { e: 'AD + EF + BC + AB + CD + GH = 480', l: v => v.hek, r: () => 480, u: 'Druk y uit in x. Schrijf elk stuk hek in x en y.', k: 'fuchsia' },
+                { e: '2x + 2x + 2x + 2y + 2y + y = 480', l: v => 6 * v.x + 5 * v.y, r: () => 480, u: 'Neem de x-en en de y-en samen.', k: 'fuchsia' },
+                { e: '6x + 5y = 480', l: v => 6 * v.x + 5 * v.y, r: () => 480, u: 'Breng 6x naar het rechterlid.', k: 'fuchsia' },
+                { e: '5y = −6x + 480', l: v => 5 * v.y, r: v => -6 * v.x + 480, u: 'Deel beide leden door 5.', k: 'fuchsia' },
+                { e: 'y = −1,2x + 96', l: v => v.y, r: v => -1.2 * v.x + 96, u: 'y is uitgedrukt in x. Druk nu O uit in x en y.', k: 'g' },
+                { e: 'O = AB · BC = 2y · 2x = 4xy', l: v => v.O, r: v => 4 * v.x * v.y, u: 'Vul y = −1,2x + 96 in.', k: 'g' },
+                { e: 'O = 4x(−1,2x + 96)', l: v => v.O, r: v => 4 * v.x * (-1.2 * v.x + 96), u: 'Werk de haakjes weg.', k: 'g' },
+                { e: 'O = −4,8x² + 384x', l: v => v.O, r: v => -4.8 * v.x ** 2 + 384 * v.x },
+            ],
+            fout: { bij: 1, e: '2x + 2x + 2x + 2y + 2y = 480', l: v => 6 * v.x + 4 * v.y, r: () => 480, u: 'Fout: GH vergeten. Loop de figuur langs: ook GH = y is hek.' },
+        },
+        {
+            // Opgave 1, figuur 14.5: DC = 10 + x, DA = 6 + y; langs het huis (10 en 6) geen hek.
+            vraag: 'In figuur 14.5 staat een huis op een rechthoekig perceel. De totale lengte van de omheining is 120 meter. Druk de oppervlakte O van het perceel uit in x.',
+            x: { min: 0, max: 52, step: 1, start: 10 },
+            vals: x => { const y = 52 - x; return { x, y, O: (10 + x) * (6 + y), hek: x + (6 + y) + (10 + x) + y }; },
+            yNaam: 'y', G: 'O', eenheid: 'm²',
+            teken: v => tekenPassend(huisScene(v.x, v.y, 10, 6), 62, 58),
+            rows: [
+                { e: 'x + (6 + y) + (10 + x) + y = 120', l: v => v.hek, r: () => 120, u: 'Neem de x-en, de y-en en de getallen samen.', k: 'fuchsia' },
+                { e: '2x + 2y + 16 = 120', l: v => 2 * v.x + 2 * v.y + 16, r: () => 120, u: 'Breng 2x en 16 naar het rechterlid.', k: 'fuchsia' },
+                { e: '2y = −2x + 104', l: v => 2 * v.y, r: v => -2 * v.x + 104, u: 'Deel beide leden door 2.', k: 'fuchsia' },
+                { e: 'y = −x + 52', l: v => v.y, r: v => -v.x + 52, u: 'Druk O uit in x en y. De zijden zijn 10 + x en 6 + y.', k: 'g' },
+                { e: 'O = (10 + x)(6 + y)', l: v => v.O, r: v => (10 + v.x) * (6 + v.y), u: 'Vul y = −x + 52 in.', k: 'g' },
+                { e: 'O = (10 + x)(58 − x)', l: v => v.O, r: v => (10 + v.x) * (58 - v.x), u: 'Werk de haakjes weg.', k: 'g' },
+                { e: 'O = 580 − 10x + 58x − x²', l: v => v.O, r: v => 580 - 10 * v.x + 58 * v.x - v.x ** 2, u: 'Neem de termen met x samen.', k: 'g' },
+                { e: 'O = −x² + 48x + 580', l: v => v.O, r: v => -(v.x ** 2) + 48 * v.x + 580 },
+            ],
+            fout: { bij: 4, e: 'O = x · y', l: v => v.O, r: v => v.x * v.y, u: 'Fout: x en y zijn niet de zijden van het perceel. De zijden zijn 10 + x en 6 + y.' },
+        },
+        {
+            // Opgave 4, figuur 14.8: huis 14 × 6, zijden 14 + x en 6 + y; omheining 200 m.
+            vraag: 'Op een rechthoekig stuk land staat een huis van 14 bij 6 meter (figuur 14.8). De totale omheining is 200 meter lang. Druk de oppervlakte O uit in x.',
+            x: { min: 0, max: 90, step: 1, start: 20 },
+            vals: x => { const y = 90 - x; return { x, y, O: (14 + x) * (6 + y), hek: x + (6 + y) + (14 + x) + y }; },
+            yNaam: 'y', G: 'O', eenheid: 'm²',
+            teken: v => tekenPassend(huisScene(v.x, v.y, 14, 6), 104, 96),
+            rows: [
+                { e: 'x + (6 + y) + (14 + x) + y = 200', l: v => v.hek, r: () => 200, u: 'Neem de x-en, de y-en en de getallen samen.', k: 'fuchsia' },
+                { e: '2x + 2y + 20 = 200', l: v => 2 * v.x + 2 * v.y + 20, r: () => 200, u: 'Breng 2x en 20 naar het rechterlid.', k: 'fuchsia' },
+                { e: '2y = −2x + 180', l: v => 2 * v.y, r: v => -2 * v.x + 180, u: 'Deel beide leden door 2.', k: 'fuchsia' },
+                { e: 'y = −x + 90', l: v => v.y, r: v => -v.x + 90, u: 'Druk O uit in x en y. De zijden zijn 14 + x en 6 + y.', k: 'g' },
+                { e: 'O = (14 + x)(6 + y)', l: v => v.O, r: v => (14 + v.x) * (6 + v.y), u: 'Vul y = −x + 90 in.', k: 'g' },
+                { e: 'O = (14 + x)(96 − x)', l: v => v.O, r: v => (14 + v.x) * (96 - v.x), u: 'Werk de haakjes weg.', k: 'g' },
+                { e: 'O = 1344 − 14x + 96x − x²', l: v => v.O, r: v => 1344 - 14 * v.x + 96 * v.x - v.x ** 2, u: 'Neem de termen met x samen.', k: 'g' },
+                { e: 'O = −x² + 82x + 1344', l: v => v.O, r: v => -(v.x ** 2) + 82 * v.x + 1344 },
+            ],
+            fout: { bij: 0, e: '2(14 + x) + 2(6 + y) = 200', l: v => 2 * (14 + v.x) + 2 * (6 + v.y), r: () => 200, u: 'Fout: dit is de hele omtrek. Langs de muren van het huis (14 m en 6 m) staat geen hek.' },
+        },
+        {
+            // Terugblik p. 103: doos zonder deksel, bodem 3x bij x dm, hoogte h; ribben samen L = 24 dm.
+            vraag: 'Van een doos zonder deksel is de bodem een rechthoek van 3x bij x dm. De hoogte is h dm. De totale lengte L van de ribben is 24 dm. Druk de inhoud I uit in x.',
+            x: { min: 0.1, max: 1.4, step: 0.05, start: 0.7 },
+            vals: x => { const h = -4 * x + 6; return { x, h, I: 3 * x * x * h, L: 4 * 3 * x + 4 * x + 4 * h }; },
+            yNaam: 'h', G: 'I', eenheid: 'dm³',
+            teken: v => tekenDoos('canvas-theorie', {
+                L: 3 * v.x, B: v.x, H: v.h, open: true,
+                maten: { L: [`3x = ${fmt(3 * v.x, 2)}`, C.amber], B: [`x = ${fmt(v.x, 2)}`, C.amber], H: [`h = ${fmt(v.h, 2)}`, FUCHSIA] },
+                onderschrift: `ribben samen: 4 · ${fmt(3 * v.x, 2)} + 4 · ${fmt(v.x, 2)} + 4 · ${fmt(v.h, 2)} = ${fmt(v.L, 2)} dm`,
+            }),
+            rows: [
+                { e: 'L = 4 · 3x + 4 · x + 4 · h = 24', l: v => v.L, r: () => 24, u: 'Neem de termen met x samen.', k: 'fuchsia' },
+                { e: '16x + 4h = 24', l: v => 16 * v.x + 4 * v.h, r: () => 24, u: 'Breng 16x naar het rechterlid.', k: 'fuchsia' },
+                { e: '4h = −16x + 24', l: v => 4 * v.h, r: v => -16 * v.x + 24, u: 'Deel beide leden door 4.', k: 'fuchsia' },
+                { e: 'h = −4x + 6', l: v => v.h, r: v => -4 * v.x + 6, u: 'Druk I uit in x en h: lengte · breedte · hoogte.', k: 'g' },
+                { e: 'I = 3x · x · h = 3x²h', l: v => v.I, r: v => 3 * v.x ** 2 * v.h, u: 'Vul h = −4x + 6 in.', k: 'g' },
+                { e: 'I = 3x²(−4x + 6)', l: v => v.I, r: v => 3 * v.x ** 2 * (-4 * v.x + 6), u: 'Werk de haakjes weg.', k: 'g' },
+                { e: 'I = −12x³ + 18x²', l: v => v.I, r: v => -12 * v.x ** 3 + 18 * v.x ** 2 },
+            ],
+            fout: { bij: 3, e: 'h = −16x + 6', l: v => v.h, r: v => -16 * v.x + 6, u: 'Fout: deel álle termen door 4. Dan wordt −16x ook −4x.' },
+        },
+    ];
+    let theorieX = 30;
+    const theorie = maakLadder(theoriePresets, animeer => renderTheorie(animeer));
+
+    /** Tekening in tab 2: zo groot mogelijk, maar nooit kleiner dan bijna de helft van de grootste vorm. */
+    function tekenPassend(sc, maxW, maxH) {
+        tekenTerrein('canvas-theorie', sc, Math.max(sc.W, 0.45 * maxW), Math.max(sc.H, 0.45 * maxH));
+    }
+
+    function setTheoriePreset(i) {
+        theorie.kies(i);
+        const pr = theoriePresets[i];
+        const s = $('theorie-slider');
+        s.min = pr.x.min;
+        s.max = pr.x.max;
+        s.step = pr.x.step;
+        s.value = pr.x.start;
+        theorieX = pr.x.start;
+        $('theorie-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Vraag</span>${pr.vraag}`;
+        setActiveButton('theorie-preset-', theoriePresets.length, i);
+        renderTheorie(true);
+    }
+
+    function setTheorieX(val) {
+        theorieX = parseFloat(val);
+        renderTheorie();
+    }
+
+    function renderTheorie(animeer = false) {
+        const pr = theorie.pr();
+        const v = pr.vals(theorieX);
+        const klaar = theorie.klaar();
+        $('theorie-ladder').innerHTML = ladderHTML(theorie.lijst(), v, klaar, animeer);
+        $('theorie-teller').innerText = theorie.teller();
+        $('btn-theorie-fout').innerText = theorie.fout ? '✓ Goede uitwerking' : '⚠ Klassieke fout';
+        const d = pr.x.step < 1 ? 2 : 0;
+        $('theorie-label').innerText = `x = ${fmt(theorieX, d)}`;
+        pr.teken(v);
+
+        const yv = v[pr.yNaam];
+        let html = `<div class="font-bold text-indigo-900">Controle met getallen</div>`;
+        html += `<div>Bij <span class="mono font-bold text-amber-700">x = ${fmt(theorieX, d)}</span> hoort <span class="mono font-bold text-fuchsia-700">${pr.yNaam} = ${fmt(yv, 2)}</span>, want het verband moet kloppen. Dan is <span class="mono font-bold">${pr.G} = ${fmtG(v[pr.G], 2)} ${pr.eenheid}</span>.</div>`;
+        const toevallig = theorie.fout && gelijk(pr.fout.l(v), pr.fout.r(v));
+        html += !theorie.fout
+            ? `<div>Elke regel klopt voor deze x: links = rechts. Schuif aan x: dat blijft zo.</div>`
+            : toevallig
+                ? `<div class="text-amber-700">Bij deze x klopt de foute regel toevallig. Schuif aan x: bij andere waarden gaat het mis.</div>`
+                : `<div class="text-red-700">De foute regel klopt niet bij deze getallen: links en rechts zijn niet gelijk.</div>`;
+        if (klaar) {
+            html += `<div class="text-indigo-800 font-semibold">Klaar: ${pr.G} hangt alleen nog van x af. Nu kun je differentiëren en de top berekenen. Dat doe je met het werkschema in tab 3.</div>`;
+        } else if (!theorie.fout) {
+            html += `<div class="text-slate-500">Werk de stappen af. De laatste regel is een formule waarin alleen x nog voorkomt.</div>`;
+        }
+        $('theorie-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 3: WERKSCHEMA (THEORIE B) ====================
+    // Voorbeeld p. 99 (figuur 14.11): bodem x bij x cm, h + 4x = 300, I = 300x² − 4x³, top bij x = 50.
+    // Terugblik p. 103: doos 3x bij x bij h dm. L = 24 → I = −12x³ + 18x², top bij x = 1.
+    //                   I = 24 → K = 240x² + 3200/x (centen), minimum bij x = ∛(20/3) = 1,882…
+    //                   (het boek drukt h ≈ 2,56; 8 / 1,882…² = 2,26).
+    const XK = Math.cbrt(20 / 3);
+    const werkPresets = [
+        {
+            G: 'I', eenheid: 'cm³', soort: 'max', nulpunt0: true,
+            doos: x => ({ L: x, B: x, H: 300 - 4 * x }), xSchets: 40, xOpt: 50,
+            maten: (stap, x, h) => stap === 5
+                ? { L: ['50 cm', C.amber], B: ['50 cm', C.amber], H: ['100 cm', FUCHSIA] }
+                : { L: ['x cm', C.amber], B: ['x cm', C.amber], H: [stap >= 3 ? 'h = 300 − 4x' : 'h cm', FUCHSIA] },
+            graf: { xMax: 80, xStep: 10, yMax: 300000, yStep: 50000, xCaption: 'x in cm', f: x => 300 * x * x - 4 * x ** 3, domain: [0, 75], pad: { l: 64 } },
+            stappen: [
+                `<p>In figuur 14.11 zie je een doos met een <strong>vierkante bodem</strong>. De som van de hoogte en de omtrek van de bodem is 300 cm.</p>
+                 <p>De variabelen zijn de zijde van de bodem <span class="mono font-bold text-amber-700">x</span> en de hoogte <span class="mono font-bold text-fuchsia-700">h</span>. De grootheid die je optimaliseert is de inhoud I.</p>`,
+                `<p>De inhoud is bodem · hoogte:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">I = x² · h</div>
+                 <p class="text-xs text-slate-600">I hangt nog van twee variabelen af. Daarom heb je stap 3 nodig.</p>`,
+                `<p>Het gegeven <em>hoogte + omtrek bodem = 300 cm</em> is het verband:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-fuchsia-200 text-fuchsia-800 space-y-1"><div>h + 4x = 300</div><div>h = 300 − 4x</div></div>`,
+                `<p>Vul h = 300 − 4x in bij I = x²h:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">I = x²(300 − 4x) = 300x² − 4x³</div>
+                 <p class="text-xs text-slate-600">Domein: x &gt; 0 en h &gt; 0, dus 0 &lt; x &lt; 75. Nu kun je de grafiek tekenen.</p>`,
+                `<div class="mono text-sm bg-white p-3 rounded-xl border border-rose-200 text-rose-800 space-y-1">
+                    <div>${fm('{dI|dx} = 600x − 12x²')}</div>
+                    <div>${fm('{dI|dx} = 0')} geeft 600x − 12x² = 0</div>
+                    <div>x(600 − 12x) = 0</div>
+                    <div>x = 0 of x = 50</div>
+                 </div>
+                 <p>x = 0 geeft geen doos. Uit de schets volgt dat <span class="text-emerald-700 font-bold">I maximaal is voor x = 50</span>.</p>
+                 <p>x = 50 geeft h = 300 − 4 · 50 = 100. De afmetingen zijn <strong>50 bij 50 bij 100 cm</strong>.</p>`,
+            ],
+        },
+        {
+            G: 'I', eenheid: 'dm³', soort: 'max', nulpunt0: true,
+            doos: x => ({ L: 3 * x, B: x, H: -4 * x + 6 }), xSchets: 0.75, xOpt: 1,
+            maten: (stap) => stap === 5
+                ? { L: ['3 dm', C.amber], B: ['1 dm', C.amber], H: ['2 dm', FUCHSIA] }
+                : { L: ['3x dm', C.amber], B: ['x dm', C.amber], H: [stap >= 3 ? 'h = −4x + 6' : 'h dm', FUCHSIA] },
+            graf: { xMax: 1.6, xStep: 0.2, yMax: 7, yStep: 1, xCaption: 'x in dm', f: x => -12 * x ** 3 + 18 * x * x, domain: [0, 1.5], pad: { l: 44 } },
+            stappen: [
+                `<p>Een doos zonder deksel heeft een bodem van <strong>3x bij x dm</strong> en een hoogte van h dm. De totale lengte van de ribben is 24 dm.</p>
+                 <p>De variabelen zijn <span class="mono font-bold text-amber-700">x</span> en <span class="mono font-bold text-fuchsia-700">h</span>. Je optimaliseert de inhoud I.</p>`,
+                `<div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">I = 3x · x · h = 3x²h</div>`,
+                `<p>De ribben samen zijn 24 dm:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-fuchsia-200 text-fuchsia-800 space-y-1"><div>L = 4 · 3x + 4 · x + 4 · h = 16x + 4h</div><div>16x + 4h = 24</div><div>h = −4x + 6</div></div>`,
+                `<div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">I = 3x²(−4x + 6) = −12x³ + 18x²</div>
+                 <p class="text-xs text-slate-600">Domein: 0 &lt; x &lt; 1,5, want h = −4x + 6 moet positief zijn.</p>`,
+                `<div class="mono text-sm bg-white p-3 rounded-xl border border-rose-200 text-rose-800 space-y-1">
+                    <div>${fm('{dI|dx} = −36x² + 36x')}</div>
+                    <div>${fm('{dI|dx} = 0')} geeft −36x² + 36x = 0</div>
+                    <div>x = 0 of x = 1</div>
+                 </div>
+                 <p>Uit de schets volgt dat <span class="text-emerald-700 font-bold">de inhoud maximaal is als x = 1 dm</span>.</p>
+                 <p>Bij x = 1 hoort h = −4 + 6 = 2, dus de afmetingen zijn <strong>3 bij 1 bij 2 dm</strong> (I = 6 dm³).</p>`,
+            ],
+        },
+        {
+            G: 'K', eenheid: 'cent', soort: 'min', nulpunt0: false,
+            doos: x => ({ L: 3 * x, B: x, H: 8 / (x * x) }), xSchets: 1.5, xOpt: XK,
+            maten: (stap) => stap === 5
+                ? { L: ['5,65 dm', C.amber], B: ['1,88 dm', C.amber], H: ['2,26 dm', FUCHSIA] }
+                : { L: ['3x dm', C.amber], B: ['x dm', C.amber], H: [stap >= 3 ? 'h = 8/x²' : 'h dm', FUCHSIA] },
+            graf: { xMax: 4, xStep: 0.5, yMax: 6000, yStep: 1000, xCaption: 'x in dm', f: x => 240 * x * x + 3200 / x, domain: [0.2, 4], pad: { l: 50 } },
+            stappen: [
+                `<p>Dezelfde doos zonder deksel (bodem 3x bij x dm, hoogte h dm), maar nu is de <strong>inhoud 24 dm³</strong>. De bodem kost 80 cent per dm², de opstaande zijwanden 50 cent per dm².</p>
+                 <p>De variabelen zijn <span class="mono font-bold text-amber-700">x</span> en <span class="mono font-bold text-fuchsia-700">h</span>. Je zoekt de minimale kosten K (in centen).</p>`,
+                `<p>Bodem: 3x · x = 3x². Zijwanden: 2 · 3x · h + 2 · x · h = 8xh.</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">K = 3x² · 80 + 8xh · 50 = 240x² + 400xh</div>`,
+                `<p>De inhoud is 24 dm³:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-fuchsia-200 text-fuchsia-800 space-y-1"><div>I = 3x²h = 24</div><div>${fm('h = {8|x²}')}</div></div>`,
+                `<p>Vul ${fm('h = {8|x²}')} in bij K = 240x² + 400xh:</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-slate-300">${fm('K = 240x² + 400x · {8|x²} = 240x² + {3200|x}')}</div>`,
+                `<p>Schrijf K eerst als macht: ${fm('K = 240x² + 3200x^[−1]')}.</p>
+                 <div class="mono text-sm bg-white p-3 rounded-xl border border-rose-200 text-rose-800 space-y-1">
+                    <div>${fm('{dK|dx} = 480x − 3200x^[−2] = 480x − {3200|x²}')}</div>
+                    <div>${fm('{dK|dx} = 0')} geeft (GR) x = 1,882…</div>
+                 </div>
+                 <p>Uit de schets volgt dat <span class="text-emerald-700 font-bold">K minimaal is voor x = 1,882…</span></p>
+                 <p>Dan is 3x ≈ 5,65 en ${fm('h = {8|1,882…²} ≈ 2,26')}. De afmetingen zijn <strong>5,65 bij 1,88 bij 2,26 dm</strong>.</p>
+                 <p class="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2">In het boek staat h ≈ 2,56. Reken het na: 1,882…² ≈ 3,542 en 8 : 3,542 ≈ 2,26.</p>`,
+            ],
+        },
+    ];
+    const STAP_TITELS = [
+        'Verdiep je in de situatie en kijk welke variabelen een rol spelen',
+        'Druk G uit in de variabelen',
+        'Zoek een verband en druk de ene variabele uit in de andere',
+        'Druk G uit in één variabele',
+        'Gebruik de afgeleide van G om de vraag te beantwoorden',
+    ];
+    const AANTAL_STAPPEN = 5;
+    let werkIdx = 0, huidigeStap = 1;
+
+    function setWerkPreset(i) {
+        werkIdx = i;
+        setActiveButton('werk-ex-', werkPresets.length, i);
+        setStap(1);
+    }
+
+    function setStap(s) {
+        huidigeStap = s;
+        for (let i = 1; i <= AANTAL_STAPPEN; i++) {
+            $('stap-btn-' + i).className = i === s
+                ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
+                : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+        }
+        renderStap();
+    }
+
+    function renderStap() {
+        const ex = werkPresets[werkIdx];
+        const stap = huidigeStap;
+        // Situatie: de doos bij een voorbeeld-x, en in stap 5 bij het optimum
+        const xd = stap === 5 ? ex.xOpt : ex.xSchets;
+        const dm = ex.doos(xd);
+        tekenDoos('canvas-werk-fig', {
+            ...dm, open: true, maten: ex.maten(stap, xd, dm.H),
+            marge: { l: 150, r: 150 },
+            onderschrift: stap >= 2 ? (ex.G === 'I' ? 'G = de inhoud I' : 'G = de kosten K: bodem 80 ct/dm², wanden 50 ct/dm²') : '',
+        });
+
+        // Grafiek: pas vanaf stap 4 hangt G van één variabele af
+        const gr = ex.graf;
+        const yTick = v => fmtG(v);
+        const opt = {
+            xMin: 0, xMax: gr.xMax, yMin: 0, yMax: gr.yMax, xStep: gr.xStep, yStep: gr.yStep,
+            xLabel: 'x', yLabel: ex.G, xCaption: gr.xCaption, yTick, pad: gr.pad,
+            curves: [], vLines: [], points: [],
+        };
+        if (stap >= 4) opt.curves.push({ f: gr.f, color: DONKER, width: 3, domain: gr.domain });
+        if (stap >= 5) opt.vLines.push({ x: ex.xOpt, color: C.emerald, width: 1.5 });
+        const g = drawGraph('canvas-werk-graf', opt);
+        const { ctx, mapX, mapY, box } = g;
+        if (stap < 4) {
+            ctx.font = '600 13px Inter, sans-serif';
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Vanaf stap 4 hangt ${ex.G} alleen van x af.`, (box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2 - 8);
+            ctx.fillText('Dan kun je de grafiek tekenen.', (box.x0 + box.x1) / 2, (box.y0 + box.y1) / 2 + 12);
+        }
+        if (stap >= 5) {
+            const yOpt = gr.f(ex.xOpt);
+            raaklijn(g, ex.xOpt, yOpt, 0, C.rose, 46);
+            stip(ctx, mapX(ex.xOpt), mapY(yOpt), C.emerald, 7);
+            const lab = ex.soort === 'max' ? `maximum bij x = ${fmt(ex.xOpt, 3)}` : `minimum bij x = ${fmt(ex.xOpt, 3)}…`;
+            tekst(ctx, lab, mapX(ex.xOpt) + 10, ex.soort === 'max' ? mapY(yOpt) + 22 : mapY(yOpt) - 14, C.emerald, 'left', 11);
+            tekst(ctx, 'helling 0', mapX(ex.xOpt), ex.soort === 'max' ? mapY(yOpt) - 12 : mapY(yOpt) + 24, C.rose, 'center', 11);
+            if (ex.nulpunt0) {
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(mapX(0), mapY(0), 6, 0, Math.PI * 2);
+                ctx.stroke();
+                tekst(ctx, 'x = 0: geen doos', mapX(0) + 10, mapY(0) - 10, '#64748b', 'left', 11);
+            }
+        }
+
+        $('stap-uitleg').innerHTML = `
+            <div class="font-bold text-indigo-900 text-base">Stap ${stap}: ${STAP_TITELS[stap - 1]}</div>
+            ${ex.stappen[stap - 1]}`;
+    }
+
+    // ==================== TAB 4: MINIMALE KOSTEN (KOSTEN-LAB) ====================
+    // Parkeerterrein (variant op opgave 9): x aan de straat (beton), y = A / x; hout langs x + 2y.
+    //   K = ph(x + 2y) + pb · x = (ph + pb)x + 2·ph·A / x  → minimum bij x = √(2·ph·A / (ph + pb)).
+    //   Met A = 600, ph = 70, pb = 140 is dat K = 210x + 84 000/x (opgave 9).
+    // Doos (Terugblik): bodem 3x bij x, h = I / (3x²); K = 3·pb·x² + 8xh·pw = 3·pb·x² + (8·pw·I/3) / x.
+    //   Met I = 24, pb = 80, pw = 50 is dat K = 240x² + 3200/x  → minimum bij x = ∛(4·pw·I / (9·pb)).
+    const kostenPresets = [
+        {
+            xNaam: 'x = de zijde aan de straat (m)', x: { min: 4, max: 60, step: 0.5, start: 12 },
+            params: [
+                { id: 'A', naam: 'oppervlakte', eenheid: 'm²', min: 300, max: 1200, step: 50, start: 800 },
+                { id: 'ph', naam: 'houten paaltjes', eenheid: 'euro per m', min: 40, max: 120, step: 5, start: 70 },
+                { id: 'pb', naam: 'betonnen paaltjes', eenheid: 'euro per m', min: 80, max: 200, step: 5, start: 140 },
+            ],
+            delen: p => [x => (p.ph + p.pb) * x, x => 2 * p.ph * p.A / x],
+            deelNamen: p => [`${fmt(p.ph + p.pb)}x`, `${fmtG(2 * p.ph * p.A)}/x`],
+            dDelen: p => [() => p.ph + p.pb, x => -2 * p.ph * p.A / (x * x)],
+            xMin: p => Math.sqrt(2 * p.ph * p.A / (p.ph + p.pb)),
+            formule: p => `K = ${fmt(p.ph + p.pb)}x + {${fmtG(2 * p.ph * p.A)}|x}`,
+            afgeleide: p => `{dK|dx} = ${fmt(p.ph + p.pb)} − {${fmtG(2 * p.ph * p.A)}|x²}`,
+            graf: { xMax: 60, xStep: 10, yMax: 24000, yStep: 4000, xCaption: 'x in meter', eenheid: 'euro' },
+            afm: (p, x) => `${fmt(x, 2)} m aan de straat bij ${fmt(p.A / x, 2)} m`,
+            teken: (p, x) => tekenPark(x, p.A / x),
+        },
+        {
+            xNaam: 'x = de breedte van de bodem (dm)', x: { min: 0.4, max: 4, step: 0.02, start: 1 },
+            params: [
+                { id: 'I', naam: 'inhoud', eenheid: 'dm³', min: 8, max: 60, step: 1, start: 24 },
+                { id: 'pb', naam: 'bodem', eenheid: 'cent per dm²', min: 40, max: 150, step: 5, start: 80 },
+                { id: 'pw', naam: 'zijwanden', eenheid: 'cent per dm²', min: 20, max: 100, step: 5, start: 50 },
+            ],
+            delen: p => [x => 3 * p.pb * x * x, x => 8 * p.pw * p.I / 3 / x],
+            deelNamen: p => [`${fmt(3 * p.pb)}x²`, `${fmtG(8 * p.pw * p.I / 3, 1)}/x`],
+            dDelen: p => [x => 6 * p.pb * x, x => -8 * p.pw * p.I / 3 / (x * x)],
+            xMin: p => Math.cbrt(4 * p.pw * p.I / (9 * p.pb)),
+            formule: p => `K = ${fmt(3 * p.pb)}x² + {${fmtG(8 * p.pw * p.I / 3, 1)}|x}`,
+            afgeleide: p => `{dK|dx} = ${fmt(6 * p.pb)}x − {${fmtG(8 * p.pw * p.I / 3, 1)}|x²}`,
+            graf: { xMax: 4, xStep: 0.5, yMax: 10000, yStep: 2000, xCaption: 'x in dm', eenheid: 'cent' },
+            afm: (p, x) => `${fmt(3 * x, 2)} bij ${fmt(x, 2)} bij ${fmt(p.I / (3 * x * x), 2)} dm`,
+            teken: (p, x) => tekenDoos('canvas-kosten-fig', {
+                L: 3 * x, B: x, H: p.I / (3 * x * x), open: true, marge: { l: 80, r: 80, t: 30, b: 46 },
+                maten: { L: [`3x = ${fmt(3 * x, 2)}`, C.amber], B: [`x = ${fmt(x, 2)}`, C.amber], H: [`h = ${fmt(p.I / (3 * x * x), 2)}`, FUCHSIA] },
+                onderschrift: `bodem ${p.pb} ct/dm², wanden ${p.pw} ct/dm²`,
+            }),
+        },
+    ];
+    let kostenIdx = 0;
+    const kostenP = {};
+
+    function setKostenPreset(i) {
+        kostenIdx = i;
+        const pr = kostenPresets[i];
+        setActiveButton('kosten-preset-', kostenPresets.length, i);
+        $('kosten-x-naam').innerText = pr.xNaam;
+        const s = $('kosten-x');
+        s.min = pr.x.min;
+        s.max = pr.x.max;
+        s.step = pr.x.step;
+        s.value = pr.x.start;
+        $('kosten-params').innerHTML = pr.params.map(p => `
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <label for="kp-${p.id}" class="flex justify-between text-xs font-bold text-slate-700">
+                    <span>${p.naam} (${p.eenheid})</span>
+                    <span id="kp-${p.id}-label" class="mono text-sm"></span>
+                </label>
+                <input id="kp-${p.id}" type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.start}" class="w-full mt-1" oninput="renderKosten()" />
+            </div>`).join('');
+        renderKosten();
+    }
+
+    function resetKosten() {
+        setKostenPreset(kostenIdx);
+    }
+
+    function renderKosten() {
+        const pr = kostenPresets[kostenIdx];
+        pr.params.forEach(p => {
+            kostenP[p.id] = parseFloat($('kp-' + p.id).value);
+            $('kp-' + p.id + '-label').innerText = fmtG(kostenP[p.id]);
+        });
+        const p = kostenP;
+        const x = parseFloat($('kosten-x').value);
+        const dec = pr.x.step < 0.1 ? 2 : 1;
+        $('kosten-x-label').innerText = `x = ${fmt(x, dec)}`;
+        const [f1, f2] = pr.delen(p), [d1, d2] = pr.dDelen(p);
+        const K = t => f1(t) + f2(t), dK = t => d1(t) + d2(t);
+        const xm = pr.xMin(p);
+        const showDelen = $('chk-k-delen').checked, showRaak = $('chk-k-raak').checked, showMin = $('chk-k-min').checked;
+        $('kosten-formule').innerHTML = fm(pr.formule(p));
+
+        pr.teken(p, x);
+        const gr = pr.graf;
+        const [n1, n2] = pr.deelNamen(p);
+        const g = drawGraph('canvas-kosten-graf', {
+            xMin: 0, xMax: gr.xMax, yMin: 0, yMax: gr.yMax, xStep: gr.xStep, yStep: gr.yStep,
+            xLabel: 'x', yLabel: 'K', xCaption: gr.xCaption, yTick: v => fmtG(v), pad: { l: 52, r: 20 },
+            curves: [
+                ...(showDelen ? [
+                    { f: f1, color: '#94a3b8', width: 2, dash: [6, 4] },
+                    { f: f2, color: '#94a3b8', width: 2, dash: [2, 4] },
+                ] : []),
+                { f: K, color: DONKER, width: 3 },
+            ],
+            vLines: showMin ? [{ x: xm, color: C.emerald, width: 1.5 }] : [],
+        });
+        const { ctx, mapX, mapY, box } = g;
+        if (showDelen) {
+            // Labels bij de twee delen, rechts en links in beeld
+            const xr = gr.xMax * 0.86, xl = gr.xMax * 0.12;
+            if (f1(xr) < gr.yMax) tekst(ctx, n1, mapX(xr), mapY(f1(xr)) - 8, '#64748b', 'center', 11);
+            else tekst(ctx, n1, box.x1 - 4, box.y0 + 14, '#64748b', 'right', 11);
+            if (f2(xl) < gr.yMax) tekst(ctx, n2, mapX(xl) + 8, mapY(f2(xl)), '#64748b', 'left', 11);
+        }
+        if (showMin) {
+            stip(ctx, mapX(xm), mapY(K(xm)), C.emerald, 6.5);
+            tekst(ctx, `minimum x = ${fmt(xm, 2)}`, mapX(xm) + 8, mapY(K(xm)) + 22, C.emerald, 'left', 11);
+        }
+        if (showRaak) raaklijn(g, x, K(x), dK(x), C.rose, 55);
+        if (K(x) <= gr.yMax) stip(ctx, mapX(x), mapY(K(x)), C.indigo, 6.5);
+
+        const eenheid = gr.eenheid;
+        const s1 = d1(x), s2 = d2(x), som = s1 + s2;
+        const status = Math.abs(som) < 0.005 * Math.abs(s1)
+            ? '<span class="text-emerald-700 font-semibold">De hellingen heffen elkaar op: dit is het minimum.</span>'
+            : som < 0
+                ? '<span class="text-rose-700">Het dalende deel wint: K daalt nog. Maak x groter.</span>'
+                : '<span class="text-rose-700">Het stijgende deel wint: K stijgt. Maak x kleiner.</span>';
+        $('kosten-uitleg').innerHTML = `
+            <div class="space-y-1">
+                <div class="font-bold text-indigo-900">Bij x = ${fmt(x, dec)}</div>
+                <div class="mono">stijgend deel ${n1} = ${fmtG(f1(x), 0)}</div>
+                <div class="mono">dalend deel ${n2} = ${fmtG(f2(x), 0)}</div>
+                <div class="mono font-bold text-slate-800">K = ${fmtG(K(x), 0)} ${eenheid}</div>
+            </div>
+            <div class="space-y-1">
+                <div class="font-bold text-rose-800">De hellingen</div>
+                <div class="mono">helling stijgend deel: ${fmt(s1, 1)}</div>
+                <div class="mono">helling dalend deel: ${fmt(s2, 1)}</div>
+                <div class="mono font-bold text-rose-700">${fm(pr.afgeleide(p))} = ${fmt(som, 1)}</div>
+                <div>${status}</div>
+            </div>
+            <div class="space-y-1">
+                <div class="font-bold text-emerald-800">Het minimum</div>
+                ${showMin
+                    ? `<div><span class="mono">${fm('{dK|dx} = 0')}</span> geeft x = ${fmt(xm, 2)}.</div>
+                       <div>Afmetingen: ${pr.afm(p, xm)}.</div>
+                       <div class="mono font-bold text-emerald-700">K = ${fmtG(K(xm), 0)} ${eenheid}</div>`
+                    : '<div class="text-slate-500">Zoek het minimum eerst zelf met de schuifbalk van x. Zet daarna "Minimum" aan om te controleren.</div>'}
+            </div>`;
+    }
+
+    /** Parkeerterrein van bovenaf: x langs de straat (beton), de andere drie zijden hout. */
+    function tekenPark(x, y) {
+        const { ctx, w, h } = setupCanvas($('canvas-kosten-fig'));
+        const m = { l: 30, r: 70, t: 26, b: 88 };
+        const s = Math.min((w - m.l - m.r) / x, (h - m.t - m.b) / y);
+        const x0 = m.l + ((w - m.l - m.r) - x * s) / 2, yb = h - m.b, x1 = x0 + x * s, yt = yb - y * s;
+        // straat
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillRect(0, yb + 6, w, 28);
+        ctx.strokeStyle = '#f8fafc';
+        ctx.setLineDash([12, 10]);
+        ctx.lineWidth = 2;
+        strokeLine(ctx, 0, yb + 20, w, yb + 20);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.fillRect(x0, yt, x * s, y * s);
+        // hout (drie zijden) en beton (straatkant)
+        ctx.strokeStyle = '#a8a29e';
+        ctx.lineWidth = 3;
+        strokeLine(ctx, x0, yb, x0, yt); strokeLine(ctx, x0, yt, x1, yt); strokeLine(ctx, x1, yt, x1, yb);
+        ctx.strokeStyle = '#1f2937';
+        ctx.lineWidth = 6;
+        strokeLine(ctx, x0, yb, x1, yb);
+        maatlijn(ctx, x0, yb + 46, x1, yb + 46, `x = ${fmt(x, 1)}`, C.amber, (x0 + x1) / 2, yb + 66);
+        ctx.font = '600 10px Inter, sans-serif';
+        ctx.fillStyle = '#f8fafc';
+        ctx.textAlign = 'left';
+        ctx.fillText('straat', 6, yb + 31);
+        maatlijn(ctx, x1 + 14, yb, x1 + 14, yt, `y = ${fmt(y, 1)}`, FUCHSIA, x1 + 20, (yb + yt) / 2 + 5, 'left');
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.fillStyle = '#475569';
+        ctx.textAlign = 'center';
+        ctx.fillText('beton', (x0 + x1) / 2, yb - 8);
+        ctx.fillText('hout', (x0 + x1) / 2, yt + 14);
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    const O6 = x => (194 - 2 * x) * (x + 6);   // opgave 6: y = 194 − 2x, O = y(x + 6) = −2x² + 182x + 1164
+    const A13_X = 10000 / Math.sqrt(1725);     // opgave A13: 65x = 50√(x² + 40 000) → x ≈ 240,77
+
+    const exercises = {
+        q1: {
+            fields: { 'q1-ab': 96, 'q1-bc': 80, 'q1-o': 7680 },
+            hint: 'Los dO/dx = 0 op (werkschema, tab 3). Kijk daarna in de figuur hoe AB en BC van x en y afhangen.',
+            goed: 'Goed: 96 bij 80 meter!',
+            uitwerking: `${fm('{dO|dx} = −9,6x + 384')}. ${fm('{dO|dx} = 0')} geeft −9,6x = −384, dus x = 40.<br>
+                Dan is y = −1,2 · 40 + 96 = 48. Uit de schets van de bergparabool volgt dat O maximaal is.<br>
+                AB = 2y = 96 m en BC = AD = 2x = 80 m. De maximale oppervlakte is 96 · 80 = 7680 m².<br>
+                Wie x = 40 en y = 48 als afmetingen geeft, vergeet dat x en y halve zijden zijn.`,
+        },
+        q2: {
+            fields: { 'q2-x': 0.5, 'q2-h': 0.75, 'q2-i': 0.375 },
+            tol: 0.005,
+            hint: 'Differentieer I en los dI/dx = 0 op. Welke oplossing geeft een doosje? (Let op in tab 3.)',
+            uitwerking: `a. Ribben: 4 · 2x + 4 · x + 4h = 12x + 4h = 9, dus h = 2¼ − 3x.<br>
+                b. I = 2x · x · h = 2x²(2¼ − 3x) = 4½x² − 6x³.<br>
+                c. ${fm('{dI|dx} = 9x − 18x²')}. ${fm('{dI|dx} = 0')} geeft 9x(1 − 2x) = 0, dus x = 0 of x = ½.<br>
+                x = 0 geeft geen doosje; uit de schets volgt dat I maximaal is voor x = ½.<br>
+                Dan is h = 2¼ − 1½ = ¾ dm en I = 4½ · ¼ − 6 · ⅛ = ⅜ = 0,375 dm³. Het doosje is 1 bij ½ bij ¾ dm.`,
+        },
+        q3: {
+            fields: { 'q3-o': 21600, 'q3-ab': 180, 'q3-ad': 120 },
+            hint: 'Los dO/dx = 0 op. Lees in figuur 14.12 af hoe vaak x in AD past en y in AB.',
+            uitwerking: `a. Hekwerk: AD + BC = 6x, AB + CD = 6y, de twee lange lijnen binnen 6x, EH + FG = 2y. Samen 12x + 8y = 960, dus y = 120 − 1½x.<br>
+                O = AB · AD = 3y · 3x = 9xy = 9x(120 − 1½x) = −13½x² + 1080x.<br>
+                b. ${fm('{dO|dx} = −27x + 1080')}. ${fm('{dO|dx} = 0')} geeft x = 40, en dan y = 120 − 60 = 60.<br>
+                O = 9 · 40 · 60 = 21 600 m². De lengte is AB = 3y = 180 m en de breedte AD = 3x = 120 m.`,
+        },
+        q4: {
+            fields: { 'q4-i': 1008, 'q4-x': [3.9, (50 - Math.sqrt(700)) / 6] },
+            tol: 0.05,
+            hint: 'Lees in de figuur af hoe lang en breed de bodem wordt. Kijk bij dI/dx = 0 welke oplossing in het domein ligt (tab 3).',
+            uitwerking: `De bodem is (20 − 2x) bij (30 − 2x) cm en de hoogte x cm, dus I = x(20 − 2x)(30 − 2x) = 4x³ − 100x² + 600x.<br>
+                a. x = 3 geeft I = 3 · 14 · 24 = 1008 cm³.<br>
+                b. ${fm('{dI|dx} = 12x² − 200x + 600')}. ${fm('{dI|dx} = 0')} geeft (GR of abc-formule) x ≈ 3,92 of x ≈ 12,74.<br>
+                Het domein is 0 &lt; x &lt; 10 (anders blijft er geen bodem over), dus x ≈ 12,74 valt af.<br>
+                Uit de schets volgt dat de inhoud maximaal is voor x ≈ 3,9 (I ≈ 1056 cm³).`,
+        },
+        q5: {
+            fields: { 'q5-x': 20, 'q5-y': 30 },
+            hint: 'Schrijf K als 210x + 84 000x⁻¹ en los dK/dx = 0 op (Let op in tab 3 en 4). De andere zijde volgt uit de oppervlakte.',
+            uitwerking: `a. Hout langs x + 2y, beton langs x: K = 70(x + 2y) + 140x = 210x + 140y. Met xy = 600 is ${fm('y = {600|x}')}, dus ${fm('K = 210x + {84 000|x}')}.<br>
+                b. ${fm('K = 210x + 84 000x^[−1]')} geeft ${fm('{dK|dx} = 210 − 84 000x^[−2] = 210 − {84 000|x²}')}.<br>
+                ${fm('{dK|dx} = 0')} geeft x² = 400, dus x = 20 (x = −20 valt af). Uit de schets volgt dat K minimaal is.<br>
+                De andere zijde is ${fm('{600|20}')} = 30 m. Het terrein is 20 m (straatkant) bij 30 m; dan is K = 8400 euro.`,
+        },
+        q6: {
+            fields: { 'q6-b': 3, 'q6-l': 6, 'q6-h': 4 },
+            hint: 'Los dK/dx = 0 op (zoals bij de Terugblik in tab 3). De hoogte volgt uit de inhoud van 72 dm³.',
+            uitwerking: `a. Inhoud: 2x · x · h = 72, dus ${fm('h = {36|x²}')}. Onderkant: 0,40 · 2x² = 0,8x². Zijkanten: 0,20 · (2 · 2xh + 2 · xh) = 1,2xh.<br>
+                ${fm('K = 0,8x² + 1,2x · {36|x²} = 0,8x² + {43,2|x} = 0,8x² + {216|5x}')}.<br>
+                b. ${fm('K = 0,8x² + 43,2x^[−1]')} geeft ${fm('{dK|dx} = 1,6x − {43,2|x²}')}.<br>
+                ${fm('{dK|dx} = 0')} geeft 1,6x³ = 43,2, dus x³ = 27 en x = 3. Uit de schets volgt dat K minimaal is.<br>
+                De doos is 3 dm breed, 6 dm lang en ${fm('{36|9}')} = 4 dm hoog. De kosten zijn dan € 21,60.`,
+        },
+        q7: {
+            fields: { 'q7-1': 150, 'q7-2': 1800, 'q7-x': [3.46, Math.sqrt(12)], 'q7-b': [6.93, 36 / Math.sqrt(12) - Math.sqrt(12)] },
+            tol: 0.006,
+            hint: 'Noem de breedte y. Druk y uit in x met de 72 m² materiaal, en tel de kosten van de drie lijsten op (werkschema, tab 3).',
+            uitwerking: `Zijkanten 2 · x², achterkant x · y en dak x · y: 2x² + 2xy = 72, dus ${fm('y = {36|x} − x')}.<br>
+                De lijsten: K = 50y + 2 · 100x = ${fm('{1800|x} − 50x + 200x = 150x + {1800|x}')}.<br>
+                ${fm('{dK|dx} = 150 − {1800|x²}')}. ${fm('{dK|dx} = 0')} geeft x² = 12, dus x = √12 ≈ 3,46 m.<br>
+                Dan is ${fm('y = {36|√12} − √12 ≈ 6,93')} m. De overkapping is 6,93 m breed en 3,46 m hoog en diep (K ≈ 1039 euro).`,
+        },
+        q8: {
+            fields: { 'q8-x': 2, 'q8-y': 4 / 3, 'q8-i': 16 / 3 },
+            tol: 0.006,
+            hint: 'Differentieer I = 4x − ⅓x³ en los dI/dx = 0 op. De hoogte volgt uit de 288 euro voor het materiaal.',
+            uitwerking: `a. Bodem 24x², zijkanten 18 · 4xy = 72xy: 24x² + 72xy = 288, dus ${fm('y = {4|x} − ⅓x')}, en I = x²y = 4x − ⅓x³.<br>
+                b. ${fm('{dI|dx} = 4 − x²')}. ${fm('{dI|dx} = 0')} geeft x² = 4, dus x = 2 (x = −2 valt af).<br>
+                Dan is y = 2 − ⅔ = 1⅓ ≈ 1,33 m en I = 8 − 2⅔ = 5⅓ ≈ 5,33 m³. De kist is 2 bij 2 bij 1⅓ meter.`,
+        },
+        q9: {
+            fields: { 'q9-x': 3, 'q9-i': 18, 'q9-a': 162 },
+            hint: 'Vul a in bij x = √(a/72) en daarna x en a in de formule voor I. Bij de laatste vraag reken je terug.',
+            uitwerking: `c. 24x² + 72xy = a geeft ${fm('y = {a − 24x²|72x}')}, dus ${fm('I = x²y = {1|72}ax − {1|3}x³')}.<br>
+                d. ${fm('{dI|dx} = {1|72}a − x² = 0')} geeft ${fm('x = √[{1|72}a]')}.<br>
+                a = 648: ${fm('x = √[{648|72}] = √9 = 3')} m, en ${fm('I = {648 · 3|72} − {27|3} = 27 − 9 = 18')} m³.<br>
+                x = 1,5: ${fm('{a|72} = 1,5² = 2,25')}, dus a = 72 · 2,25 = 162 euro.`,
+        },
+        q10: {
+            fields: { 'q10-1': 65, 'q10-2': 50, 'q10-x': [241, A13_X] },
+            tol: 0.5,
+            hint: 'In de rivier ligt EP, over land PF = 2000 − x. Differentieer de wortel met de kettingregel en los dK/dx = 0 op met de GR.',
+            uitwerking: `In de rivier ligt EP, over land PF = 2000 − x: ${fm('K = 65√[x² + 40 000] + 50(2000 − x)')}.<br>
+                Kettingregel: de binnenste functie is <span class="text-orange-700 font-semibold">u = x² + 40 000</span> met <span class="text-orange-700 font-semibold">${fm('{du|dx} = 2x')}</span>, dus ${fm('{d|dx}√[u] = {1|2√[u]} · 2x = {x|√[x² + 40 000]}')}.<br>
+                ${fm('{dK|dx} = {65x|√[x² + 40 000]} − 50')}. ${fm('{dK|dx} = 0')} geeft (GR) x ≈ 240,77.<br>
+                Uit de schets volgt dat K minimaal is: AP ≈ 241 m. De kosten zijn dan ongeveer 108 307 euro.`,
+        },
+        q11: {
+            choice: 'C',
+            hint: 'Y1 is de afgeleide, niet K. Waar is K minimaal, als je naar de afgeleide kijkt? (GR-callout in tab 3.)',
+            uitwerking: `K is minimaal waar ${fm('{dK|dx} = 0')}, dus waar de grafiek van Y1 de x-as snijdt: het <strong>nulpunt</strong> van Y1 (C). De GR geeft X = 1.8820721.<br>
+                B is de klassieke fout: "minimale kosten" betekent het minimum van K, niet het minimum van Y1. Y1 = 480X − 3200/X² is voor x &gt; 0 stijgend en heeft daar zelfs geen minimum.<br>
+                Daarna: 3x ≈ 5,65 en ${fm('h = {8|1,882…²} ≈ 2,26')}, dus de doos is 5,65 bij 1,88 bij 2,26 dm.`,
+        },
+        q12: {
+            // Figuur 14.10: hek = y + x + (x + 6) = 200 → y = 194 − 2x; O = y(x + 6) = −2x² + 182x + 1164
+            check: () => {
+                const a = parseNum($('q12-a').value), b = parseNum($('q12-b').value), c = parseNum($('q12-c').value);
+                if (!isFinite(a) || !isFinite(b) || !isFinite(c)) return false;
+                for (let x = 0; x <= 97; x += 1) {
+                    if (Math.abs(a * x * x + b * x + c - O6(x)) > 10) return false;
+                }
+                return true;
+            },
+            hint: 'Welke zijden krijgen een hek? Druk O uit in x en y, druk y uit in x met de 200 meter, en werk de haakjes weg (tab 2).',
+            uitwerking: `a. De variabelen zijn x en y (en de oppervlakte O).<br>
+                b. Het stuk land is y bij x + 6 meter, dus O = y(x + 6) = xy + 6y.<br>
+                c. Hek: de bovenkant y, links alleen x (de onderste 6 meter grenst aan de sloot) en rechts x + 6. Dus y + x + x + 6 = 200 en y = 194 − 2x.<br>
+                d. O = (194 − 2x)(x + 6) = 194x + 1164 − 2x² − 12x = −2x² + 182x + 1164, dus a = −2, b = 182 en c = 1164.<br>
+                Extra: ${fm('{dO|dx} = −4x + 182 = 0')} geeft x = 45,5. Het stuk land is dan 103 bij 51,5 m en O = 5304,5 m².`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Grafieken en figuren bij de opdrachten — zoals in het boek.
+    function drawQ12() {
+        const a = parseNum($('q12-a').value), b = parseNum($('q12-b').value), c = parseNum($('q12-c').value);
+        const ok = isFinite(a) && isFinite(b) && isFinite(c);
+        const stippen = [];
+        for (let x = 0; x <= 95; x += 5) stippen.push({ x, y: O6(x), color: DONKER, r: 3.5 });
+        drawGraph('canvas-q12', {
+            xMin: 0, xMax: 100, yMin: 0, yMax: 6000, xStep: 10, yStep: 1000,
+            xLabel: 'x', yLabel: 'O', xCaption: 'x in meter', yTick: v => fmtG(v), pad: { l: 50 },
+            curves: ok ? [{ f: x => a * x * x + b * x + c, color: C.indigo, width: 3 }] : [],
+            points: stippen,
+        });
+        const coef = v => v === 1 ? '' : v === -1 ? '−' : fmt(v, 2);
+        $('q12-live').innerHTML = ok ? `O = ${coef(a)}x² ${b < 0 ? '−' : '+'} ${coef(Math.abs(b))}x ${c < 0 ? '−' : '+'} ${fmt(Math.abs(c), 2)}` : '';
+    }
+
+    function drawQ12Fig() {
+        // Figuur 14.10 (schets, niet op schaal, net als in het boek): sloot langs de onderkant en
+        // langs de onderste 6 m van de linkerkant. De maten staan binnen het land, zoals in de figuur.
+        const x = 6.5, y = 19, H = x + 6;
+        tekenTerrein('canvas-q12-fig', {
+            W: y, H,
+            water: [{ x: -3.5, y: -2.5, w: y + 6, h: 2.5 }, { x: -3.5, y: 0, w: 3.5, h: 6 }],
+            hek: [[0, H, y, H], [0, H, 0, 6], [y, H, y, 0]],
+            geenHek: [[0, 6, 0, 0], [0, 0, y, 0]],
+            maten: [
+                { van: [0, H], tot: [y, H], tekst: 'y meter', kleur: FUCHSIA, kant: 'boven' },
+                { van: [0, H], tot: [0, 6], tekst: 'x meter', kleur: C.amber, kant: 'rechts', off: 12 },
+                { van: [0, 6], tot: [0, 0], tekst: '6 meter', kleur: '#475569', kant: 'rechts', off: 12 },
+            ],
+        }, y + 2, H + 3, { l: 46, r: 16, t: 40, b: 30 });
+    }
+
+    function drawQ1() {
+        tekenTerrein('canvas-q1', scene146(40, 48, false), 96, 80, { l: 90, r: 90, t: 40, b: 30 });
+    }
+
+    function drawQ3() {
+        // Figuur 14.12: AB = 3y, AD = 3x; twee lijnen evenwijdig aan AD, en EH en FG van y lang.
+        const x = 1, y = 1.5, W = 3 * y, H = 3 * x;
+        tekenTerrein('canvas-q3', {
+            W, H,
+            hek: [[0, 0, W, 0], [W, 0, W, H], [W, H, 0, H], [0, H, 0, 0], [y, 0, y, H], [2 * y, 0, 2 * y, H], [0, 2 * x, y, 2 * x], [0, x, y, x]],
+            maten: [
+                { van: [0, H], tot: [y, H], tekst: 'y m', kleur: FUCHSIA, kant: 'boven' },
+                { van: [y, H], tot: [y, 2 * x], tekst: 'x m', kleur: C.amber, kant: 'rechts', off: 10 },
+            ],
+            letters: [
+                { x: 0, y: H, t: 'D', dx: -9, dy: -5 }, { x: W, y: H, t: 'C', dx: 9, dy: -5 },
+                { x: 0, y: 0, t: 'A', dx: -9, dy: 15 }, { x: W, y: 0, t: 'B', dx: 9, dy: 15 },
+                { x: 0, y: 2 * x, t: 'E', dx: -11, dy: 5 }, { x: 0, y: x, t: 'F', dx: -11, dy: 5 },
+                { x: y, y: 2 * x, t: 'H', dx: 10, dy: 16 }, { x: y, y: x, t: 'G', dx: 10, dy: 16 },
+            ],
+        }, W, H, { l: 80, r: 80, t: 40, b: 28 });
+    }
+
+    function drawQ4() {
+        // Figuur 14.13: karton van 20 bij 30 cm, in elke hoek een vierkant met zijde x weggeknipt.
+        const { ctx, w, h } = setupCanvas($('canvas-q4'));
+        const s = 6.4, xk = 4.5, bw = 20 * s, bh = 30 * s;
+        const x0 = (w - bw) / 2 - 20, y0 = (h - bh) / 2 - 6, k = xk * s;
+        ctx.fillStyle = '#eef4e4';
+        ctx.fillRect(x0, y0, bw, bh);
+        ctx.strokeStyle = '#475569';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(x0, y0, bw, bh);
+        // gearceerde hoeken
+        [[x0, y0], [x0 + bw - k, y0], [x0, y0 + bh - k], [x0 + bw - k, y0 + bh - k]].forEach(([hx, hy]) => {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(hx, hy, k, k);
+            ctx.clip();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(hx, hy, k, k);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            for (let t = -k; t < k; t += 5) strokeLine(ctx, hx + t, hy + k, hx + t + k, hy);
+            ctx.restore();
+            ctx.strokeRect(hx, hy, k, k);
+        });
+        strokeLine(ctx, x0 + k, y0, x0 + k, y0 + bh);
+        strokeLine(ctx, x0 + bw - k, y0, x0 + bw - k, y0 + bh);
+        strokeLine(ctx, x0, y0 + k, x0 + bw, y0 + k);
+        strokeLine(ctx, x0, y0 + bh - k, x0 + bw, y0 + bh - k);
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.fillStyle = '#334155';
+        ctx.textAlign = 'center';
+        ctx.fillText('zijvlak', x0 + bw / 2, y0 + k / 2 + 4);
+        ctx.fillText('zijvlak', x0 + bw / 2, y0 + bh - k / 2 + 4);
+        ctx.fillText('bodem', x0 + bw / 2, y0 + bh / 2 + 4);
+        ctx.save();
+        ctx.translate(x0 + k / 2 + 4, y0 + bh / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('zijvlak', 0, 0);
+        ctx.restore();
+        ctx.save();
+        ctx.translate(x0 + bw - k / 2 + 4, y0 + bh / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('zijvlak', 0, 0);
+        ctx.restore();
+        maatlijn(ctx, x0, y0 + bh + 14, x0 + bw, y0 + bh + 14, '20 cm', C.rose, x0 + bw / 2, y0 + bh + 30);
+        maatlijn(ctx, x0 + bw + 16, y0, x0 + bw + 16, y0 + bh, '30 cm', C.rose, x0 + bw + 22, y0 + bh / 2 + 5, 'left');
+        maatlijn(ctx, x0 + bw - k, y0 + bh + 6, x0 + bw, y0 + bh + 6, '', C.amber);
+        tekst(ctx, 'x cm', x0 + bw + 8, y0 + bh + 2, C.amber, 'left', 11);
+        maatlijn(ctx, x0 + bw + 6, y0 + bh - k, x0 + bw + 6, y0 + bh, '', C.amber);
+    }
+
+    function drawQ10() {
+        // Figuur 14.17 (schets van bovenaf): A recht tegenover E, P op de oever van A, F 2000 m verderop.
+        const { ctx, w, h } = setupCanvas($('canvas-q10'));
+        const top = 70, bot = 140, xA = 50, xP = 120, xF = w - 30;
+        ctx.fillStyle = '#e3f0d4';
+        ctx.fillRect(0, 0, w, top);
+        ctx.fillRect(0, bot, w, h - bot);
+        ctx.fillStyle = '#a9d2ef';
+        ctx.fillRect(0, top, w, bot - top);
+        // kabel: E → P door de rivier, P → F over land
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 2.5;
+        strokeLine(ctx, xA, bot, xP, top);
+        strokeLine(ctx, xP, top, xF, top);
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 1.2;
+        strokeLine(ctx, xA, top, xA, bot);
+        strokeLine(ctx, xF, top, xF, bot);
+        ctx.setLineDash([]);
+        [[xA, top, 'A', -12, -8], [xP, top, 'P', 0, -10], [xF, top, 'F', 0, -10], [xA, bot, 'E', -12, 18]].forEach(([px, py, t, dx, dy]) => {
+            stip(ctx, px, py, C.rose, 4.5);
+            ctx.font = 'italic 700 13px Inter, sans-serif';
+            ctx.fillStyle = '#334155';
+            ctx.textAlign = 'center';
+            ctx.fillText(t, px + dx, py + dy);
+        });
+        maatlijn(ctx, xA, top - 22, xP, top - 22, 'x', C.amber, (xA + xP) / 2, top - 28);
+        tekst(ctx, '200 m', xA + 6, (top + bot) / 2 + 4, '#475569', 'left', 11);
+        maatlijn(ctx, xA, bot + 22, xF, bot + 22, '2000 m', '#475569', (xA + xF) / 2, bot + 40);
+        tekst(ctx, 'in de rivier: 65 euro per m', (xP + xF) / 2 + 20, (top + bot) / 2 + 4, '#1e3a5f', 'center', 11);
+        tekst(ctx, 'over land: 50 euro per m', (xP + xF) / 2 + 10, top - 26, '#475569', 'center', 11);
+        tekst(ctx, 'centrale', xA + 8, bot + 14, '#475569', 'left', 10);
+        tekst(ctx, 'fabriek', xF - 8, top - 6, '#475569', 'right', 10);
+    }
+
+    function renderOpdrachten() {
+        drawQ1();
+        tekenDoos('canvas-q2', {
+            L: 2, B: 1, H: 1.1, open: false,
+            maten: { L: ['2x dm', C.amber], B: ['x dm', C.amber], H: ['h dm', FUCHSIA] },
+        });
+        drawQ3();
+        drawQ4();
+        tekenDoos('canvas-q8', {
+            L: 2, B: 2, H: 1.4, open: true,
+            maten: { L: ['x meter', C.amber], B: ['x meter', C.amber], H: ['y meter', FUCHSIA] },
+        });
+        drawQ10();
+        drawQ12Fig();
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    setTheoriePreset(0);
+    setWerkPreset(0);
+    setKostenPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

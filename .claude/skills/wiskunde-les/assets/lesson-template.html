@@ -82,6 +82,14 @@
             font-size: 0.6em;
             margin-right: -0.3em;
         }
+        /* Nieuwe regel in een herleidingsladder (ladderHTML) */
+        .verschijn {
+            animation: verschijn 0.35s ease-out;
+        }
+        @keyframes verschijn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         /* Invulvakje in een opdracht: #1 → [1] */
         .vak {
             display: inline-flex;
@@ -173,7 +181,9 @@
             </div>
         </div>
 
-        <!-- COMPONENT: verkenner (explorer). Canvas links, bediening rechts. Presets = figuren uit het boek. -->
+        <!-- COMPONENT: verkenner (explorer). Canvas links, bediening rechts. Presets = figuren uit het boek.
+             Elke kolom in een lg:grid-cols-12 houdt min-w-0: zonder die klasse maakt een lange formule
+             (nowrap) de pagina op een telefoon breder dan het scherm. -->
         <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                 <div>
@@ -191,11 +201,11 @@
             </div>
 
             <div class="grid lg:grid-cols-12 gap-6 items-center">
-                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="lg:col-span-8 min-w-0 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
                 </div>
 
-                <div class="lg:col-span-4 space-y-4">
+                <div class="lg:col-span-4 min-w-0 space-y-4">
                     <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
                         ⏸ Pauzeer animatie
                     </button>
@@ -253,7 +263,7 @@
             </div>
 
             <div class="grid lg:grid-cols-12 gap-6 mt-5 items-center">
-                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="lg:col-span-8 min-w-0 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <canvas id="canvas-lab" width="720" height="380" class="w-full h-auto"></canvas>
                     <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
                         <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-slate-400 inline-block"></span> Standaard <span class="mono">y = x²</span></span>
@@ -263,7 +273,7 @@
                 </div>
 
                 <!-- Eén slider-paneel per parameter, in de conceptkleur van die parameter -->
-                <div class="lg:col-span-4 space-y-4">
+                <div class="lg:col-span-4 min-w-0 space-y-4">
                     <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
                         <div class="flex justify-between text-xs font-bold text-sky-800">
                             <span>a = {{vorm / opening}}</span>
@@ -302,7 +312,7 @@
 
         <!-- COMPONENT: GR-callout (TI-84 Plus CE). Alleen waar het boek de GR gebruikt. -->
         <div class="grid lg:grid-cols-12 gap-6 items-start">
-            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+            <div class="lg:col-span-7 min-w-0 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
                 <div class="flex items-center justify-between mb-3">
                     <div class="font-bold">🧮 Op de TI-84 Plus CE: {{handeling}}</div>
                     <div class="text-xs font-bold tracking-wider uppercase text-slate-400">{{Opgave x}}</div>
@@ -320,7 +330,7 @@
                     <li>{{Volgende stap}}</li>
                 </ol>
             </div>
-            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+            <div class="lg:col-span-5 min-w-0 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
                 <div class="font-bold text-amber-900">{{Waar gaat het vaak mis?}}</div>
                 <p class="text-xs leading-relaxed">{{Typische GR-fout en hoe je hem herkent op het scherm.}}</p>
             </div>
@@ -362,10 +372,10 @@
             </div>
 
             <div class="grid lg:grid-cols-12 gap-6 items-center">
-                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div class="lg:col-span-7 min-w-0 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <canvas id="canvas-stappen" width="640" height="340" class="w-full h-auto"></canvas>
                 </div>
-                <div class="lg:col-span-5 space-y-4">
+                <div class="lg:col-span-5 min-w-0 space-y-4">
                     <div id="stap-uitleg" class="p-5 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-3 text-sm text-slate-800"></div>
                     <div class="flex justify-between">
                         <button onclick="setStap(Math.max(1, huidigeStap - 1))" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm">
@@ -484,7 +494,7 @@
 
 <!-- Terug naar de landingspagina (vast) -->
 <div class="max-w-6xl mx-auto px-4 mt-10 text-center">
-    <a href="../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+    <a href="../../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
 </div>
 
 <script>
@@ -770,6 +780,156 @@
         return parse('');
     }
 
+    // ==================== OPTIONELE HULPFUNCTIES (vast; verwijder wat de les niet gebruikt) ====================
+    // Ontstaan in §13.3–§14.5 en daar steeds opnieuw gekopieerd. Gebruik je ze, neem ze dan ongewijzigd over.
+
+    /** Twee uitkomsten gelijk (relatief), of allebei niet gedefinieerd. */
+    function gelijk(a, b) {
+        if (!isFinite(a) || !isFinite(b)) return !isFinite(a) && !isFinite(b);
+        return Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+    }
+
+    /** Vast aantal decimalen, Nederlandse notatie: 1 → "1,000". Voor een slider-parameter in een formule. */
+    const fmtF = (v, d) => v.toFixed(d).replace('.', ',').replace('-', '−');
+
+    // Kleur van een herleidingsstap: rand + achtergrond van de regel, en de kleur van de uitleg.
+    const KLEUR = {
+        amber: { rij: 'border-amber-400 bg-amber-50/70', tekst: 'text-amber-800' },
+        rose: { rij: 'border-rose-400 bg-rose-50/70', tekst: 'text-rose-800' },
+        sky: { rij: 'border-sky-400 bg-sky-50/70', tekst: 'text-sky-800' },
+        emerald: { rij: 'border-emerald-400 bg-emerald-50/70', tekst: 'text-emerald-800' },
+        violet: { rij: 'border-violet-400 bg-violet-50/70', tekst: 'text-violet-800' },
+        orange: { rij: 'border-orange-400 bg-orange-50/70', tekst: 'text-orange-800' },
+        slate: { rij: 'border-slate-300 bg-slate-50', tekst: 'text-slate-600' },
+    };
+
+    /**
+     * Herleidingsladder: de regels onder elkaar, zoals in het boek, met achter elke regel de controle
+     * met ingevulde getallen. Een regel is { e, l, r, u, k, afgerond }: e = de regel (fm-notatie),
+     * l/r = linker- en rechterlid als functie van vals, u = de stap naar de volgende regel (de blauwe
+     * tekst in het boek), k = kleur van de regel die je toepast, afgerond = het boek rondt hier af (≈ is goed).
+     */
+    function ladderHTML(lijst, vals, klaar, animeer) {
+        return lijst.map((row, i) => {
+            const laatste = i === lijst.length - 1;
+            const L = row.l(vals), R = row.r(vals);
+            let tekst, teken;
+            if (!isFinite(L) || !isFinite(R)) {
+                tekst = 'bestaat niet';
+                teken = '–';
+            } else if (gelijk(L, R)) {
+                tekst = `${fmt(L, 3)} = ${fmt(R, 3)}`;
+                teken = '✓';
+            } else if (row.afgerond && Math.abs(L - R) < 0.03 * Math.abs(R)) {
+                tekst = `${fmt(L, 3)} ≈ ${fmt(R, 3)}`;
+                teken = '≈';
+            } else {
+                tekst = `${fmt(L, 3)} ≠ ${fmt(R, 3)}`;
+                teken = '✗';
+            }
+            const tekenKlasse = { '✓': 'text-emerald-600', '≈': 'text-amber-600', '✗': 'text-red-600', '–': 'text-slate-400' }[teken];
+            let rij, uitleg;
+            if (row.isFout) {
+                rij = 'border-red-500 bg-red-50';
+                uitleg = `<span class="font-semibold text-red-700">✗ ${fm(row.u)}</span>`;
+            } else if (laatste && klaar) {
+                rij = 'border-indigo-500 bg-indigo-50';
+                uitleg = '<span class="font-semibold text-indigo-700">Klaar!</span>';
+            } else {
+                const kl = KLEUR[row.k || 'slate'];
+                rij = kl.rij;
+                uitleg = !row.u ? '' : laatste
+                    ? `<span class="${kl.tekst} opacity-80">Volgende stap: ${fm(row.u)}</span>`
+                    : `<span class="${kl.tekst}">${fm(row.u)}</span>`;
+            }
+            return `
+                <div class="${animeer && laatste ? 'verschijn ' : ''}flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 px-3 py-2.5 rounded-xl border-l-4 ${rij}">
+                    <div class="mono text-base text-slate-900 md:w-5/12 overflow-x-auto">${fm(row.e)}</div>
+                    <div class="text-xs md:flex-1 leading-snug">${uitleg}</div>
+                    <div class="mono text-[11px] text-slate-500 whitespace-nowrap md:text-right">${tekst} <span class="font-bold text-sm ${tekenKlasse}">${teken}</span></div>
+                </div>`;
+        }).join('');
+    }
+
+    /**
+     * Bediening van een ladder: presets[i] = { rows, fout: { bij, e, l, r, u } }. render(animeer) tekent opnieuw.
+     * Knoppen: onclick="naam.volgende()", .vorige(), .alles(), .toggleFout(). Klassieke fout = de regel op
+     * plek fout.bij vervangen door een foute regel (rood, met ✗ achter de getallen).
+     */
+    function maakLadder(presets, render) {
+        const s = { idx: 0, stap: 1, fout: false };
+        s.pr = () => presets[s.idx];
+        s.kies = i => { s.idx = i; s.stap = 1; s.fout = false; };
+        s.volgende = () => { s.fout = false; s.stap = Math.min(s.pr().rows.length, s.stap + 1); render(true); };
+        s.vorige = () => { s.fout = false; s.stap = Math.max(1, s.stap - 1); render(false); };
+        s.alles = () => { s.fout = false; s.stap = s.pr().rows.length; render(false); };
+        s.toggleFout = () => { if (!s.pr().fout) return; s.fout = !s.fout; render(true); };
+        s.klaar = () => !s.fout && s.stap === s.pr().rows.length;
+        s.lijst = () => s.fout
+            ? [...s.pr().rows.slice(0, s.pr().fout.bij), { ...s.pr().fout, isFout: true }]
+            : s.pr().rows.slice(0, s.stap);
+        s.teller = () => s.fout ? 'klassieke fout' : `regel ${s.stap} van ${s.pr().rows.length}`;
+        return s;
+    }
+
+    /** Gestippelde pijl van (x1, y1) naar (x2, y2) in pixels. */
+    function pijl(ctx, x1, y1, x2, y2, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        strokeLine(ctx, x1, y1, x2, y2);
+        ctx.setLineDash([]);
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+        ctx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function stip(ctx, x, y, color, r = 6) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /** Label met een lichte achtergrond, zodat het leesbaar blijft boven een lijn of grafiek. */
+    function tekst(ctx, s, x, y, color, align = 'left') {
+        ctx.font = '700 12px Inter, sans-serif';
+        ctx.textAlign = align;
+        const w = ctx.measureText(s).width;
+        const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fillRect(x0 - 3, y - 12, w + 6, 16);
+        ctx.fillStyle = color;
+        ctx.fillText(s, x, y);
+    }
+
+    /**
+     * Raaklijn aan f in x0, getekend in het resultaat g van drawGraph (binnen het grafiekvlak).
+     * De helling komt uit een kleine stap, zoals nDeriv op de GR. Geeft de helling terug.
+     */
+    function tekenRaaklijn(g, f, x0, color = C.rose, halveBreedte = 1) {
+        const h = 1e-5, y0 = f(x0), rc = (f(x0 + h) - f(x0 - h)) / (2 * h);
+        if (!isFinite(y0) || !isFinite(rc)) return NaN;
+        const { ctx, mapX, mapY, box } = g;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        strokeLine(ctx, mapX(x0 - halveBreedte), mapY(y0 - rc * halveBreedte), mapX(x0 + halveBreedte), mapY(y0 + rc * halveBreedte));
+        ctx.restore();
+        stip(ctx, mapX(x0), mapY(y0), color, 5);
+        return rc;
+    }
+
     // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
     // ✏️ Eén entry per tab: wat er getekend moet worden zodra de tab zichtbaar wordt.
     const tabRenderers = {
@@ -905,9 +1065,11 @@
     function setStap(s) {
         huidigeStap = s;
         for (let i = 1; i <= AANTAL_STAPPEN; i++) {
-            $('stap-btn-' + i).className = i === s
+            const btn = $('stap-btn-' + i);
+            btn.className = i === s
                 ? 'p-3 rounded-xl border text-left transition bg-indigo-50 border-indigo-500'
                 : 'p-3 rounded-xl border text-left transition bg-slate-50 border-slate-200 hover:bg-slate-100';
+            btn.firstElementChild.className = i === s ? 'text-xs font-bold text-indigo-600' : 'text-xs font-bold text-slate-500';
         }
         renderStap();
     }
@@ -943,6 +1105,8 @@
     // ==================== TAB 4: OEFENOPDRACHTEN ====================
     // ✏️ Eén entry per opdrachtkaart (sleutel = data-q van de kaart).
     //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //               { inputId: { t: antwoord(en), tol: 0.5 } }        — eigen tolerantie voor dit ene veld
+    //               { selectId: 'toenemend stijgend' }               — keuzelijst: tekst = value van de goede <option>
     //   choice:     'B'                                              — meerkeuze, radio name = sleutel
     //   check:      () => true/false                                 — eigen controle (bv. grafiek-matcher)
     //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
@@ -993,9 +1157,12 @@
             ok = !!sel && sel.value === ex.choice;
         } else {
             ok = true;
-            Object.entries(ex.fields).forEach(([id, target]) => {
+            Object.entries(ex.fields).forEach(([id, spec]) => {
                 const input = $(id);
-                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                const { t, tol } = spec !== null && typeof spec === 'object' && !Array.isArray(spec) ? spec : { t: spec };
+                const fieldOk = [].concat(t).some(v => typeof v === 'string'
+                    ? input.value === v
+                    : approx(parseNum(input.value), v, tol ?? ex.tol ?? 0.01));
                 input.classList.toggle('border-emerald-400', fieldOk);
                 input.classList.toggle('border-rose-400', !fieldOk);
                 ok = ok && fieldOk;

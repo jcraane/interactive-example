@@ -97,6 +97,65 @@
       background: linear-gradient(90deg, rgba(148,163,184,0.28), transparent);
     }
 
+    /* Wiskunde: een blok per niveau (VWO 6, MAVO 4), daarbinnen een raster per hoofdstuk */
+    .level-nav {
+      max-width: 980px;
+      margin: -4px auto 22px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .level-nav a {
+      color: #c7d2fe;
+      text-decoration: none;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.10);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      transition: background 0.18s ease;
+    }
+    .level-nav a:hover { background: rgba(99, 102, 241, 0.24); }
+
+    .level { scroll-margin-top: 24px; }
+    .level + .level { margin-top: 44px; }
+    .level-head {
+      max-width: 980px;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .level-head h3 {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 5px 14px;
+      border-radius: 999px;
+      color: #c7d2fe;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      white-space: nowrap;
+    }
+    .level-head .count {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .chapter-head {
+      max-width: 980px;
+      margin: 0 auto 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+    .level .grid + .chapter-head { margin-top: 28px; }
+
     .card {
       position: relative;
       display: flex;
@@ -381,8 +440,10 @@
       category: 'Kennisbank',
     },
     {
-      file: 'wiskunde/lineaire-en-exponentiele-groei.html',
-      paragraaf: 'H12 Voorkennis',
+      file: 'wiskunde/vwo6/lineaire-en-exponentiele-groei.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H12 Rijen',
+      paragraaf: 'Voorkennis',
       icon: '📈',
       title: 'Lineaire en exponentiële groei',
       tagline: 'Plus of keer? Zie aan een tabel of de groei lineair of exponentieel is, reken een groeifactor per 3 uur om naar per uur en stel de formule op. Met stappenplan, GR-hulp en 7 oefenopdrachten.',
@@ -390,7 +451,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/rekenkundige-en-meetkundige-rijen.html',
+      file: 'wiskunde/vwo6/rekenkundige-en-meetkundige-rijen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H12 Rijen',
       paragraaf: '12.1',
       icon: '🪜',
       title: 'Rekenkundige en meetkundige rijen',
@@ -399,7 +462,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/notaties-en-rijen-op-de-gr.html',
+      file: 'wiskunde/vwo6/notaties-en-rijen-op-de-gr.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H12 Rijen',
       paragraaf: '12.2',
       icon: '🔢',
       title: 'Notaties en rijen op de GR',
@@ -408,7 +473,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/toepassingen-van-rijen.html',
+      file: 'wiskunde/vwo6/toepassingen-van-rijen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H12 Rijen',
       paragraaf: '12.3',
       icon: '🏦',
       title: 'Toepassingen van rijen',
@@ -417,7 +484,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/somrijen.html',
+      file: 'wiskunde/vwo6/somrijen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H12 Rijen',
       paragraaf: '12.4',
       icon: '🌷',
       title: 'Somrijen',
@@ -426,7 +495,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/periodieke_verschijnselen.html',
+      file: 'wiskunde/vwo6/periodieke_verschijnselen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H13 Allerlei formules',
       paragraaf: '13.1',
       icon: '🎡',
       title: 'Periodieke verschijnselen & sinusoïden',
@@ -435,7 +506,9 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/toepassingen-van-sinusoiden.html',
+      file: 'wiskunde/vwo6/toepassingen-van-sinusoiden.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H13 Allerlei formules',
       paragraaf: '13.2',
       icon: '🌡️',
       title: 'Toepassingen van sinusoïden',
@@ -444,12 +517,91 @@
       category: 'Wiskunde',
     },
     {
-      file: 'wiskunde/formules-herschrijven.html',
+      file: 'wiskunde/vwo6/formules-herschrijven.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H13 Allerlei formules',
       paragraaf: '13.3',
       icon: '✏️',
       title: 'Formules herschrijven',
       tagline: 'Breuken samennemen, uitdelen, een variabele vrijmaken en formules combineren — elke stap rekent live mee, zodat je ziet dat de vorm verandert maar de uitkomst niet. Met stappenplannen, GR-hulp en 12 oefenopdrachten.',
       accent: '#10b981',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/omvormen-exponenten-en-logaritmen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H13 Allerlei formules',
+      paragraaf: '13.4',
+      icon: '🔄',
+      title: 'Omvormen van formules met exponenten en logaritmen',
+      tagline: 'Elke stap is één rekenregel: maak t vrij uit 2 · log(t) − 3, schuif een nieuw grondtal tot de grafieken samenvallen en zie een exponentiële formule een rechte lijn worden op een logaritmische as. Met stappenplannen, GR-hulp en 12 oefenopdrachten.',
+      accent: '#f97316',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/de-afgeleide-functie.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: 'Voorkennis',
+      icon: '⛷️',
+      title: 'De afgeleide functie',
+      tagline: 'Schuif een raaklijn over de grafiek en zie de hellinggrafiek ontstaan; met regels die de raaklijn controleert, het werkschema voor een maximum of minimum en 12 oefenopdrachten, tot en met de Beginopdracht van de drukkerij.',
+      accent: '#e11d48',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/optimaliseren.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: '14.1',
+      icon: '📦',
+      title: 'Optimaliseren',
+      tagline: 'Hetzelfde hek, een andere tuin: de oppervlakte is maximaal waar de raaklijn horizontaal ligt. Met herleidingsladder, het werkschema in vijf stappen, een kosten-lab en 12 oefenopdrachten.',
+      accent: '#059669',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/regels-voor-de-afgeleide.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: '14.2',
+      icon: '🧩',
+      title: 'Regels voor de afgeleide',
+      tagline: 'Ontdek met de numerieke afgeleide dat ln(x) helling 1/x heeft, zie waarom de productregel twee termen geeft en welke quotiëntregel de grafiek echt raakt; met een stappenplan voor contextopgaven en 12 oefenopdrachten.',
+      accent: '#ea580c',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/redeneren-met-formules.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: '14.3',
+      icon: '🔭',
+      title: 'Redeneren met formules',
+      tagline: 'Zonder getallen in te vullen zie je waar een groeiformule naartoe gaat en of de grafiek stijgt: een ≈-ladder voor de grenswaarde, een toe/af-redeneerketting met meelopende grafiekjes, een Formule-Lab en 12 oefenopdrachten.',
+      accent: '#0284c7',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/redeneren-met-de-afgeleide.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: '14.4',
+      icon: '🧭',
+      title: 'Redeneren met de afgeleide',
+      tagline: 'Ligt de grafiek van de afgeleide geheel boven de x-as, dan stijgt de grafiek, en zijn top laat zien waar het het snelst of het minst snel gaat: met redeneerladder, stappenplan en 12 oefenopdrachten.',
+      accent: '#d97706',
+      category: 'Wiskunde',
+    },
+    {
+      file: 'wiskunde/vwo6/de-afgeleide-en-soorten-van-stijgen-en-dalen.html',
+      niveau: 'VWO 6',
+      hoofdstuk: 'H14 Toepassingen van de differentiaalrekening',
+      paragraaf: '14.5',
+      icon: '⛰️',
+      title: 'De afgeleide en soorten van stijgen en dalen',
+      tagline: 'Loop met de raaklijn over de grafiek en zie aan de grafiek van dy/dx of hij toenemend of afnemend stijgt of daalt, met een redeneerketting, stappenplan en 12 oefenopdrachten.',
+      accent: '#7c3aed',
       category: 'Wiskunde',
     },
   ];
@@ -462,17 +614,95 @@
     'Wiskunde':   { tag: 'Uitleg & oefenen', icon: '📐' },
   };
 
-  // Groepeer per categorie (eerste-gezien-volgorde); voorbeelden zonder categorie vallen onder 'Animaties'.
-  const sections = document.getElementById('sections');
-  const order = [];
-  const groups = {};
-  examples.forEach(ex => {
-    const cat = ex.category || 'Animaties';
-    if (!groups[cat]) { groups[cat] = []; order.push(cat); }
-    groups[cat].push(ex);
-  });
+  // Groepeer op een sleutel, in eerste-gezien-volgorde: [[sleutel, [voorbeelden]], …].
+  function groupBy(items, keyOf) {
+    const groups = new Map();
+    items.forEach(ex => {
+      const key = keyOf(ex);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(ex);
+    });
+    return [...groups];
+  }
 
-  order.forEach(cat => {
+  // Anker van een niveau, gelijk aan de submap: 'VWO 6' → 'vwo6', zodat index.html#vwo6 er direct heen springt.
+  const levelId = niveau => niveau.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  function makeCard(ex) {
+    const card = document.createElement('a');
+    card.className = 'card';
+    card.href = ex.file;
+    card.style.setProperty('--accent', ex.accent);
+
+    const icon = document.createElement('div');
+    icon.className = 'icon';
+    icon.textContent = ex.icon;
+
+    // Bovenrij: icoon, en rechts het paragraafnummer als het voorbeeld er een heeft (Wiskunde).
+    // Een nummer krijgt een §-teken ('13.3' → '§ 13.3'); een label als 'Voorkennis' blijft zoals het is.
+    const top = document.createElement('div');
+    top.className = 'card-top';
+    top.appendChild(icon);
+    if (ex.paragraaf) {
+      const para = document.createElement('span');
+      para.className = 'para';
+      para.textContent = /^\d/.test(ex.paragraaf) ? '§ ' + ex.paragraaf : ex.paragraaf;
+      top.appendChild(para);
+    }
+
+    const cardTitle = document.createElement('h2');
+    cardTitle.textContent = ex.title;
+
+    const p = document.createElement('p');
+    p.textContent = ex.tagline;
+
+    const go = document.createElement('span');
+    go.className = 'go';
+    go.textContent = 'Bekijk voorbeeld →';
+
+    card.append(top, cardTitle, p, go);
+    return card;
+  }
+
+  function makeGrid(items) {
+    const grid = document.createElement('div');
+    grid.className = 'grid';
+    items.forEach(ex => grid.appendChild(makeCard(ex)));
+    return grid;
+  }
+
+  // Eén blok per niveau (VWO 6, MAVO 4) met daarin een raster per hoofdstuk, in boekvolgorde.
+  function makeLevel(niveau, items) {
+    const level = document.createElement('section');
+    level.className = 'level';
+    level.id = levelId(niveau);
+
+    const head = document.createElement('div');
+    head.className = 'level-head';
+    const h3 = document.createElement('h3');
+    h3.textContent = niveau;
+    const count = document.createElement('span');
+    count.className = 'count';
+    count.textContent = items.length === 1 ? '1 les' : items.length + ' lessen';
+    head.append(h3, count);
+    level.appendChild(head);
+
+    groupBy(items, ex => ex.hoofdstuk).forEach(([hoofdstuk, chapterItems]) => {
+      if (hoofdstuk) {
+        const h4 = document.createElement('h4');
+        h4.className = 'chapter-head';
+        h4.textContent = hoofdstuk;
+        level.appendChild(h4);
+      }
+      level.appendChild(makeGrid(chapterItems));
+    });
+    return level;
+  }
+
+  // Groepeer per categorie (eerste-gezien-volgorde); voorbeelden zonder categorie vallen onder 'Animaties'.
+  // Voorbeelden met een `niveau` (de Wiskunde-lessen) krijgen binnen hun categorie een blok per niveau.
+  const sections = document.getElementById('sections');
+  groupBy(examples, ex => ex.category || 'Animaties').forEach(([cat, items]) => {
     const meta = categoryMeta[cat] || {};
 
     const head = document.createElement('div');
@@ -491,45 +721,30 @@
     head.appendChild(rule);
     sections.appendChild(head);
 
-    const grid = document.createElement('div');
-    grid.className = 'grid';
-    groups[cat].forEach(ex => {
-      const card = document.createElement('a');
-      card.className = 'card';
-      card.href = ex.file;
-      card.style.setProperty('--accent', ex.accent);
+    const levels = groupBy(items, ex => ex.niveau);
+    const named = levels.filter(([niveau]) => niveau);
 
-      const icon = document.createElement('div');
-      icon.className = 'icon';
-      icon.textContent = ex.icon;
+    // Snelkoppelingen naar elk niveau, zodra er meer dan één is.
+    if (named.length > 1) {
+      const nav = document.createElement('nav');
+      nav.className = 'level-nav';
+      nav.append('Ga naar:');
+      named.forEach(([niveau]) => {
+        const a = document.createElement('a');
+        a.href = '#' + levelId(niveau);
+        a.textContent = niveau;
+        nav.appendChild(a);
+      });
+      sections.appendChild(nav);
+    }
 
-      // Bovenrij: icoon, en rechts het paragraafnummer als het voorbeeld er een heeft (Wiskunde).
-      // Een nummer krijgt een §-teken ('13.3' → '§ 13.3'); een label als 'H12 Voorkennis' blijft zoals het is.
-      const top = document.createElement('div');
-      top.className = 'card-top';
-      top.appendChild(icon);
-      if (ex.paragraaf) {
-        const para = document.createElement('span');
-        para.className = 'para';
-        para.textContent = /^\d/.test(ex.paragraaf) ? '§ ' + ex.paragraaf : ex.paragraaf;
-        top.appendChild(para);
-      }
-
-      const cardTitle = document.createElement('h2');
-      cardTitle.textContent = ex.title;
-
-      const p = document.createElement('p');
-      p.textContent = ex.tagline;
-
-      const go = document.createElement('span');
-      go.className = 'go';
-      go.textContent = 'Bekijk voorbeeld →';
-
-      card.append(top, cardTitle, p, go);
-      grid.appendChild(card);
+    levels.forEach(([niveau, levelItems]) => {
+      sections.appendChild(niveau ? makeLevel(niveau, levelItems) : makeGrid(levelItems));
     });
-    sections.appendChild(grid);
   });
+
+  // De blokken bestaan pas na het script: spring alsnog naar een anker als index.html#mavo4.
+  if (location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
 </script>
 </body>
 </html>

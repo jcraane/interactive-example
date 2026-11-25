@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 14: Redeneren met formules</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Nieuwe regel in een redenering */
+        .verschijn {
+            animation: verschijn 0.35s ease-out;
+        }
+        /* Fout gekozen in de redeneerketting */
+        .schud {
+            animation: schud 0.35s ease-in-out;
+        }
+        @keyframes verschijn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes schud {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 14</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">14.3 Redeneren met formules</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-grens')" id="btn-tab-grens" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. De grenswaarde
+            </button>
+            <button onclick="switchTab('tab-ketting')" id="btn-tab-ketting" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Stijgend of dalend
+            </button>
+            <button onclick="switchTab('tab-lab')" id="btn-tab-lab" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Groeiformules in context
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Wat is redeneren met formules?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In opgave 29 kijk je naar de formule A = 100 − 90 · 0,8<sup>t</sup>. Zonder getallen in te vullen en zonder de grafiek te plotten kun je al zien dat A steeds dichter bij <strong>100</strong> komt, en dat de grafiek <strong>stijgend</strong> is. Bij een <strong>redenering</strong> werk je stap voor stap toe naar zo'n conclusie over de formule of de grafiek. In deze les leer je de twee soorten redeneringen uit het boek: wat de <strong>grenswaarde</strong> is als t heel groot wordt, en of de grafiek <strong>stijgend of dalend</strong> is.
+            </p>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">1. De variabele</div>
+                    <div class="font-bold text-slate-900 mt-1">Je begint altijd bij t (of x)</div>
+                    <p class="text-sm text-slate-600 mt-1">Een redenering begint met "als t toeneemt" of "als t heel groot wordt". In deze paragraaf is steeds t ≥ 0, en bij Theorie B is x &gt; 0.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold">
+                        t ≥ 0 · x &gt; 0
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-600">2. De bouwsteen</div>
+                    <div class="font-bold text-slate-900 mt-1">Hoe g<sup>t</sup> zich gedraagt</div>
+                    <p class="text-sm text-slate-600 mt-1">Bij 0 &lt; g &lt; 1 neemt g<sup>t</sup> af en nadert hij tot 0. Bij g &gt; 1 neemt g<sup>t</sup> toe en wordt hij heel groot.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-slate-200 mt-2 text-slate-700 font-semibold">
+                        <span data-f="e^[−0,3t] = (e^[−0,3])^[t] ≈ 0,74^[t]"></span>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. Grenswaarde</div>
+                    <div class="font-bold text-slate-900 mt-1">Waar N naartoe gaat</div>
+                    <p class="text-sm text-slate-600 mt-1">De waarde die N nadert als t heel groot wordt. Bij een groeiformule heet die ook het <strong>verzadigingsniveau</strong>. In de grafiek is het een stippellijn.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold">
+                        N ≈ 80 als t heel groot wordt
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">4. Stijgend of dalend</div>
+                    <div class="font-bold text-slate-900 mt-1">Neemt N toe of af?</div>
+                    <p class="text-sm text-slate-600 mt-1">Je redeneert van binnen naar buiten: elke stap neemt toe of af. De laatste stap zegt of de grafiek stijgend of dalend is.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-violet-200 mt-2 text-violet-800 font-semibold">
+                        t ↑ ⇒ 0,9<sup>t</sup> ↓ ⇒ 1 − 0,9<sup>t</sup> ↑ ⇒ N ↑
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: de bouwsteen gᵗ. Schuif g en zie wat er gebeurt als t toeneemt. -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-md">
+                    <h3 class="text-lg font-bold text-slate-800">Verkenner: wat doet g<sup>t</sup> als t toeneemt?</h3>
+                    <p class="text-sm text-slate-500">Schuif aan g en kijk hoe de stip meeloopt als t toeneemt. Bij de twee e-machten ligt een grijze band: schuif g tot jouw lijn in de band valt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setBasisPreset(0)" id="basis-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Figuur 14.18: 0 &lt; g &lt; 1</button>
+                    <button onclick="setBasisPreset(1)" id="basis-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie A: 1,6<sup>t</sup></button>
+                    <button onclick="setBasisPreset(2)" id="basis-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld: e<sup>−0,3t</sup></button>
+                    <button onclick="setBasisPreset(3)" id="basis-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: e<sup>−0,9x</sup></button>
+                </div>
+            </div>
+
+            <div id="basis-pil" class="mb-4 px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> <span>Jouw g<sup>t</sup></span></span>
+                        <span id="basis-legenda-band" class="flex items-center gap-1.5"><span class="w-5 h-2.5 bg-slate-300 inline-block rounded"></span> De e-macht uit het boek</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-500 inline-block"></span> Grenswaarde</span>
+                        <span class="flex items-center gap-1.5"><span class="w-0.5 h-3 bg-amber-500 inline-block"></span> Waar t nu is</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <button onclick="toggleBasisPlay()" id="btn-basis-play" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-sm transition text-sm">
+                        ⏸ Pauzeer animatie
+                    </button>
+                    <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200">
+                        <label for="basis-g" class="flex justify-between text-xs font-bold text-indigo-800">
+                            <span>Grondtal g</span>
+                            <span id="basis-g-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="basis-g" type="range" min="0.1" max="2" step="0.01" value="0.8" class="w-full mt-1.5" oninput="setBasisG(this.value)" />
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="basis-t" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span id="basis-t-naam">t zelf verschuiven</span>
+                            <span id="basis-t-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="basis-t" type="range" min="0" max="20" step="0.1" value="0" class="w-full mt-1.5" oninput="manualBasisT(this.value)" />
+                    </div>
+                    <div id="basis-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie A)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Redeneren is geen getallen invullen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Het boek vraagt je stap voor stap toe te werken naar een conclusie, "zonder getallenvoorbeelden te gebruiken of de grafiek te plotten". Een tabel met een paar waarden is dus géén redenering: hij laat alleen zien wat er bij die getallen gebeurt. In deze les zie je wel getallen, maar alleen om je redenering te controleren.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Voorbeeld en Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een e-macht met een minteken: maak er eerst g<sup>t</sup> van</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Aan e<sup>−0,3t</sup> zie je niet meteen wat er gebeurt. Met de rekenregel voor een macht van een macht schrijf je <span class="mono" data-f="e^[−0,3t] = (e^[−0,3])^[t] ≈ 0,74^[t]"></span>. Nu is het grondtal 0,74: tussen 0 en 1, dus de macht neemt af en nadert tot 0. Zo ook <span class="mono" data-f="e^[−0,9x] ≈ 0,4^[x]"></span> in de Terugblik.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: DE GRENSWAARDE (THEORIE A, TYPE 1) ==================== -->
+    <section id="tab-grens" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A: beredeneer wat N ongeveer zal zijn als t heel groot wordt</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In de figuur bij N = 80(1 − 0,9<sup>t</sup>) geeft een stippellijn aan dat de <strong class="text-sky-700">grenswaarde</strong> gelijk is aan 80. We zeggen ook dat 80 het <strong class="text-sky-700">verzadigingsniveau</strong> is. Je vindt de grenswaarde door de formule van binnen naar buiten af te lopen. Bij elke stap schrijf je op waar dat deel ongeveer gelijk aan wordt als t heel groot wordt. Je begint bij de macht g<sup>t</sup>.
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5 text-sm">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-sm font-bold text-slate-600">g<sup>t</sup> met 0 &lt; g &lt; 1</div>
+                    <p class="text-slate-700 mt-1">Als t heel groot wordt, dan <strong class="text-sky-700">nadert g<sup>t</sup> tot 0</strong>.</p>
+                    <p class="text-xs text-slate-500 mt-1">Bijvoorbeeld 0,9<sup>t</sup>, 0,8<sup>t</sup> en e<sup>−0,3t</sup> ≈ 0,74<sup>t</sup>.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-sm font-bold text-slate-600">g<sup>t</sup> met g &gt; 1</div>
+                    <p class="text-slate-700 mt-1">Als t heel groot wordt, dan <strong class="text-sky-700">wordt g<sup>t</sup> heel groot</strong>.</p>
+                    <p class="text-xs text-slate-500 mt-1">Deel je een getal door een heel groot getal, dan krijg je ongeveer 0.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: de redenering als ladder van ≈-regels, met de waarden bij de gekozen t -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Verkenner: maak t heel groot</h2>
+                    <p class="text-sm text-slate-600">Kies een formule uit het boek en klik de redenering regel voor regel door. Schuif daarna t naar rechts: achter elke regel zie je dat het deel steeds dichter bij zijn waarde komt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end lg:max-w-xl">
+                    <button onclick="setGrensPreset(0)" id="grens-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Figuur 14.19: N = 80(1 − 0,9<sup>t</sup>)</button>
+                    <button onclick="setGrensPreset(1)" id="grens-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Opgave 29: A = 100 − 90 · 0,8<sup>t</sup></button>
+                    <button onclick="setGrensPreset(2)" id="grens-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie A: B met 1,6<sup>t</sup></button>
+                    <button onclick="setGrensPreset(3)" id="grens-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Figuur 14.20: de vissen</button>
+                    <button onclick="setGrensPreset(4)" id="grens-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: N met 0,6<sup>t</sup></button>
+                    <button onclick="setGrensPreset(5)" id="grens-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: y = 1200(1 + e<sup>−0,9x</sup>)</button>
+                </div>
+            </div>
+
+            <div id="grens-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-2">
+                    <div id="grens-ladder" class="space-y-2"></div>
+                    <div id="grens-conclusie"></div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-grens" width="460" height="320" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Grafiek uit het boek</span>
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-500 inline-block"></span> Grenswaarde</span>
+                            <span class="flex items-center gap-1.5"><span class="w-0.5 h-3 bg-amber-500 inline-block"></span> Gekozen t</span>
+                        </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="grens-t" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>Maak <span id="grens-t-naam">t</span> groter:</span>
+                            <span id="grens-t-label" class="mono text-sm"></span>
+                        </label>
+                        <input id="grens-t" type="range" min="0" max="100" step="0.5" value="10" class="w-full mt-1.5" oninput="setGrensT(this.value)" />
+                        <div class="text-[11px] text-amber-800 mt-0.5">Verder dan het venster? Dan wijst een pijl naar rechts.</div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="grensVorige()" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm whitespace-nowrap">← Vorige</button>
+                        <span id="grens-teller" class="text-xs font-semibold text-slate-500 whitespace-nowrap"></span>
+                        <button onclick="grensVolgende()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm whitespace-nowrap">Volgende →</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="grensAlles()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Toon alle stappen</button>
+                        <button onclick="grensToggleFout()" id="btn-grens-fout" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (grenswaarde of beginwaarde)</div>
+                <h4 class="font-bold text-slate-800 mt-1">t = 0 invullen geeft de beginwaarde, niet de grenswaarde</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij t = 0 is elke g<sup>t</sup> gelijk aan 1. Zo vind je bij de vissen N = <span data-f="{5000|2 + 5,5} ≈ 667"></span>: het aantal vissen op 1 januari 2010. De grenswaarde hoort bij het andere eind van de grafiek, als t heel groot wordt. Kies "Figuur 14.20" en klik op de klassieke fout: de rode lijn ligt bij het begin van de grafiek, niet bij de stippellijn.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie A, formule van B)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Kijk eerst of g kleiner of groter dan 1 is</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij <span class="mono" data-f="B = {120|1 + 0,5 · 1,6^[t]}"></span> wordt 1,6<sup>t</sup> niet 0 maar heel groot. Dan wordt de hele noemer heel groot. Deel je 120 door een heel groot getal, dan krijg je ongeveer 0. De grenswaarde van B is dus 0, en niet 120. Bij een e-macht kijk je naar het teken in de exponent: e<sup>−0,3t</sup> ≈ 0,74<sup>t</sup> nadert tot 0, maar e<sup>t</sup> wordt heel groot.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: STIJGEND OF DALEND (THEORIE A TYPE 2 + THEORIE B) ==================== -->
+    <section id="tab-ketting" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A en B: beredeneer of de grafiek stijgend of dalend is</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Je begint bij de variabele en loopt de formule van binnen naar buiten af. Bij elke stap zeg je of dat deel <strong class="text-violet-700">toeneemt</strong> of <strong class="text-violet-700">afneemt</strong>. Zo krijg je een ketting: "Als t toeneemt, dan neemt 0,9<sup>t</sup> af, dus neemt 1 − 0,9<sup>t</sup> toe, dus dan neemt 80(1 − 0,9<sup>t</sup>) toe." De laatste schakel is de formule zelf: neemt N toe, dan is de grafiek van N <strong class="text-violet-700">stijgend</strong>.
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5 text-sm">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-600">Bouwstenen (Theorie A en B)</div>
+                    <ul class="mt-2 space-y-1 text-slate-700 text-sm">
+                        <li>• als t toeneemt, dan neemt g<sup>t</sup> <strong class="text-violet-700">af</strong> als 0 &lt; g &lt; 1</li>
+                        <li>• als t toeneemt, dan neemt g<sup>t</sup> <strong class="text-violet-700">toe</strong> als g &gt; 1</li>
+                        <li>• als x toeneemt, dan neemt ax <strong class="text-violet-700">toe</strong> als a &gt; 0</li>
+                        <li>• als x toeneemt, dan neemt ax <strong class="text-violet-700">af</strong> als a &lt; 0</li>
+                        <li>• als x toeneemt, dan neemt x<sup>n</sup> <strong class="text-violet-700">toe</strong> als n &gt; 0</li>
+                        <li>• als x toeneemt, dan neemt √x <strong class="text-violet-700">toe</strong></li>
+                    </ul>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">Zo gaat de ketting verder (uit de uitwerkingen)</div>
+                    <ul class="mt-2 space-y-1.5 text-slate-700 text-sm">
+                        <li>• Een getal erbij optellen of een positief getal ervoor zetten: <strong>dezelfde richting</strong>. <span class="text-xs text-slate-500">(1 + 0,5 · 1,6<sup>t</sup> neemt toe)</span></li>
+                        <li>• Het deel aftrekken van een getal: <strong>omgekeerde richting</strong>. <span class="text-xs text-slate-500">(1 − 0,9<sup>t</sup> neemt toe)</span></li>
+                        <li>• Een positief getal delen door het deel: <strong>omgekeerde richting</strong>. "Deel je 5000 door een steeds kleiner positief getal, dan krijg je een steeds grotere uitkomst."</li>
+                        <li>• Teller neemt af en noemer neemt toe: de breuk neemt <strong>af</strong>. Andersom neemt de breuk toe.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: de redeneerketting. Kies per schakel toe of af; daarna verschijnt de grafiek van die schakel. -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Redeneerketting: toe of af?</h2>
+                    <p class="text-sm text-slate-600">Kies een formule en beslis per schakel: neemt dit deel toe of af? Eerst redeneren, dan kijken. Pas na jouw keuze verschijnt het grafiekje van die schakel. De verticale stippellijn laat zien waar t is: alle stippen lopen tegelijk mee.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end lg:max-w-xl">
+                    <button onclick="setKettingPreset(0)" id="ketting-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie A: N = 80(1 − 0,9<sup>t</sup>)</button>
+                    <button onclick="setKettingPreset(1)" id="ketting-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie A: B met 1,6<sup>t</sup></button>
+                    <button onclick="setKettingPreset(2)" id="ketting-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld: de vissen</button>
+                    <button onclick="setKettingPreset(3)" id="ketting-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld a (Theorie B)</button>
+                    <button onclick="setKettingPreset(4)" id="ketting-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld b</button>
+                    <button onclick="setKettingPreset(5)" id="ketting-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld c</button>
+                    <button onclick="setKettingPreset(6)" id="ketting-preset-6" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: y = 200 − 50/(x√x)</button>
+                </div>
+            </div>
+
+            <div id="ketting-pil" class="mb-4 px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-ketting" width="720" height="380" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-violet-600 inline-block rounded"></span> Schakel (na jouw keuze)</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> De formule zelf</span>
+                        <span class="flex items-center gap-1.5"><span class="w-0.5 h-3 bg-amber-500 inline-block"></span> <span>Waar <span id="ketting-legenda-v">t</span> nu is</span></span>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 space-y-3">
+                    <div id="ketting-lijst" class="space-y-2"></div>
+                    <div id="ketting-conclusie"></div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="toggleKettingPlay()" id="btn-ketting-play" class="py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs">⏸ Pauzeer</button>
+                        <button onclick="setKettingPreset(kettingIdx)" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">↺ Opnieuw</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgave 36a)</div>
+                <h4 class="font-bold text-slate-800 mt-1">x<sup>n</sup> neemt alleen toe als n &gt; 0</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij y = 5x<sup>−3</sup> mag je de regel voor x<sup>n</sup> niet gebruiken, want n = −3 is negatief. Schrijf eerst met <span class="mono" data-f="a^[−p] = {1|a^[p]}"></span> de formule als <span class="mono" data-f="y = {5|x³}"></span>. Nu neemt x³ toe, en deel je 5 door een steeds groter getal. Dus y neemt af.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Voorbeeld c)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Bij een breuk kijk je naar teller én noemer</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij <span class="mono" data-f="y = {50 · 0,8^[x]|√x}"></span> neemt de teller af en de noemer toe. Allebei maken ze de breuk kleiner, dus de breuk neemt af. Nemen teller en noemer allebei toe, dan kun je op deze manier niets concluderen: de breuk kan dan toenemen of afnemen.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: GROEIFORMULES IN CONTEXT (FORMULE-LAB + GR) ==================== -->
+    <section id="tab-lab" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div class="lg:max-w-md">
+                    <h2 class="text-xl font-bold text-slate-800">Formule-Lab: groeiformules met een verzadigingsniveau</h2>
+                    <p class="text-sm text-slate-600 mt-1">De vissen in het Voorbeeld, de zonnebloem in opgave 30 en de fruitvliegjes in opgave A33 hebben allemaal een formule van de vorm <span class="mono" data-f="N = {c|a + b · g^[t]}"></span>. Schuif aan de getallen en kijk welke getallen de grenswaarde bepalen en welke niet.</p>
+                </div>
+                <div id="lab-formule" class="px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-lg md:text-xl font-bold shadow-inner text-center"></div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">Voorbeelden uit het boek:</span>
+                <button onclick="setLabPreset(0)" id="lab-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Voorbeeld: de vissen (figuur 14.20)</button>
+                <button onclick="setLabPreset(1)" id="lab-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie A: B met 1,6<sup>t</sup></button>
+                <button onclick="setLabPreset(2)" id="lab-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: N met 0,6<sup>t</sup></button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-8 space-y-3">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-lab" width="720" height="360" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Jouw grafiek</span>
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-0.5 bg-sky-500 inline-block"></span> Grenswaarde</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Beginwaarde (t = 0)</span>
+                        </div>
+                    </div>
+                    <div id="lab-uitleg" class="grid md:grid-cols-3 gap-3 text-xs"></div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <label for="lab-c" class="flex justify-between text-xs font-bold text-sky-800">
+                            <span>c = de teller</span>
+                            <span id="val-c" class="mono text-sm"></span>
+                        </label>
+                        <input id="lab-c" type="range" min="100" max="6000" step="50" value="5000" class="w-full mt-1.5" oninput="updateLab()" />
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-200">
+                        <label for="lab-a" class="flex justify-between text-xs font-bold text-sky-800">
+                            <span>a = het losse getal in de noemer</span>
+                            <span id="val-a" class="mono text-sm"></span>
+                        </label>
+                        <input id="lab-a" type="range" min="0.5" max="10" step="0.5" value="2" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-sky-700 mt-0.5">c en a samen bepalen de grenswaarde.</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <label for="lab-b" class="flex justify-between text-xs font-bold text-amber-900">
+                            <span>b = het getal voor g<sup>t</sup></span>
+                            <span id="val-b" class="mono text-sm"></span>
+                        </label>
+                        <input id="lab-b" type="range" min="0" max="40" step="0.5" value="5.5" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-amber-800 mt-0.5">b telt alleen mee zolang g<sup>t</sup> niet bijna 0 is: bij het begin.</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-violet-50/70 border border-violet-200">
+                        <label for="lab-g" class="flex justify-between text-xs font-bold text-violet-800">
+                            <span>g = het grondtal</span>
+                            <span id="val-g" class="mono text-sm"></span>
+                        </label>
+                        <input id="lab-g" type="range" min="0.1" max="2" step="0.01" value="0.74" class="w-full mt-1.5" oninput="updateLab()" />
+                        <div class="text-[11px] text-violet-700 mt-0.5" id="lab-g-uitleg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GR-callout: plotten met het venster uit opgave 29d en een snijpunt berekenen -->
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: plotten en een snijpunt berekenen</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Opgave 29d • Variant op het Voorbeeld</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="text-[11px] font-bold border-b border-slate-400/50 pb-1 mb-2">NORM DRIJF AUTO REËEL RAD WN</div>
+                    <div>Y1=5000/(2+5.5e<sup>−0.3X</sup>)</div>
+                    <div>Y2=2000</div>
+                    <div class="mt-3 pt-1 border-t border-slate-400/50 flex justify-between"><span>X=7.9929842</span><span>Y=2000</span></div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Opgave 29d: druk <span class="key">Y=</span> en typ achter <span class="mono">Y1=</span> de formule 100 <span class="key">−</span> 90 <span class="key">×</span> 0.8 <span class="key">^</span> <span class="key">X,T,θ,n</span>. Druk <span class="key">WINDOW</span> en zet <span class="mono">Xmin=0</span>, <span class="mono">Xmax=20</span>, <span class="mono">Ymin=0</span> en <span class="mono">Ymax=100</span>, zoals het boek zegt. Druk <span class="key">GRAPH</span>.</li>
+                    <li>Variant op het Voorbeeld: wanneer zijn er 2000 vissen? Typ achter <span class="mono">Y1=</span> de formule met haakjes om de hele noemer. De e-macht maak je met <span class="key">2nd</span> <span class="key">LN</span> (e<sup>x</sup>), en het minteken in de exponent met <span class="key">(−)</span>. Typ achter <span class="mono">Y2=</span> het getal 2000.</li>
+                    <li>Kies een venster waarin het snijpunt te zien is, bijvoorbeeld <span class="mono">Xmin=0</span>, <span class="mono">Xmax=20</span>, <span class="mono">Ymin=0</span>, <span class="mono">Ymax=3000</span>.</li>
+                    <li>Druk <span class="key">2nd</span> <span class="key">TRACE</span> (CALC) en kies de optie voor het snijpunt (Engelstalige GR: <span class="key">5:intersect</span>). Druk drie keer <span class="key">ENTER</span>: eerste grafiek, tweede grafiek, gok.</li>
+                    <li>Onderaan staat <span class="mono">X=7.9929842</span>. Na ongeveer 8,0 maanden zijn er 2000 vissen: rond 1 september 2010.</li>
+                </ol>
+                <p class="text-xs text-slate-400 mt-3">Schrijf in je uitwerking op wat je invoert, bijvoorbeeld: voer in y<sub>1</sub> = 5000/(2 + 5,5e<sup>−0,3x</sup>) en y<sub>2</sub> = 2000; de optie snijpunt geeft x = 7,99….</p>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                <p class="text-xs leading-relaxed">Haakjes om de noemer vergeten. 5000/2+5.5e<sup>−0.3X</sup> rekent de GR uit als 2500 + 5,5e<sup>−0,3x</sup>: een dalende grafiek die nadert tot 2500, in plaats van een stijgende.</p>
+                <p class="text-xs leading-relaxed">Het minteken. In de exponent typ je <span class="key">(−)</span>, niet de aftrek-toets <span class="key">−</span>. Anders krijg je een foutmelding over de syntax.</p>
+                <p class="text-xs leading-relaxed">Het snijpunt ligt buiten het venster. Kies Ymax groter dan de waarde die je zoekt, en kies de gok in de buurt van het snijpunt.</p>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgaven 30, 31, A33 en A34)</div>
+            <h4 class="font-bold text-slate-800 mt-1">Lees eerst wat t en N betekenen, en vertaal je antwoord terug</h4>
+            <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                De GR geeft alleen een getal. Is h in cm, dan is 2,5 meter h = 250. Is t in uren met t = 0 om 9:00 uur, dan is t = 2,5 het tijdstip 11:30 uur: 0,5 uur is 30 minuten. Is t in minuten, dan reken je voor seconden het antwoord maal 60. En is t = 0 op 1 april om 0:00 uur, dan is 2 april om 0:00 uur t = 1. Tel dus goed welke t bij een datum hoort.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen, breuken als 1/2 of ½ en negatieve getallen met een minteken.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 12 opgaven uit §14.3 die samen alle theorie behandelen. Bij een redeneervraag kies je hier het antwoord; de redenering zelf schrijf je in je schrift. Vergelijk hem daarna met de uitwerking. Bij een genummerd vakje <span class="mono" data-f="#1"></span> typ je alleen het getal dat erin hoort.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: opgave O29a–c -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave O29b en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Vul in: toe of af</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">We bekijken de formule A = 100 − 90 · 0,8<sup>t</sup>. Als t heel groot wordt, dan nadert 90 · 0,8<sup>t</sup> tot 0, dus A ≈ 100.</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Als t toeneemt, dan neemt 0,8<sup>t</sup> <span class="mono" data-f="#1"></span>, dus dan neemt 90 · 0,8<sup>t</sup> <span class="mono" data-f="#2"></span>, dus dan neemt 100 − 90 · 0,8<sup>t</sup> <span class="mono" data-f="#3"></span>.<br>c. Is de grafiek van A stijgend of dalend?</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q1-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <select id="q1-1" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">toe</option><option value="af">af</option></select>
+                        </div>
+                        <div>
+                            <label for="q1-2" class="font-semibold text-slate-700">vakje 2</label>
+                            <select id="q1-2" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">toe</option><option value="af">af</option></select>
+                        </div>
+                        <div>
+                            <label for="q1-3" class="font-semibold text-slate-700">vakje 3</label>
+                            <select id="q1-3" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">toe</option><option value="af">af</option></select>
+                        </div>
+                        <div>
+                            <label for="q1-c" class="font-semibold text-slate-700">c. grafiek</label>
+                            <select id="q1-c" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave 30b–d (figuur 14.21) -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 30b, c en d (Figuur 14.21)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🌻 De zonnebloem</h3>
+                    <canvas id="canvas-q2" width="380" height="200" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">Bij de groei van een zonnebloem is de hoogte h gegeven door de formule <span class="mono" data-f="h = {260|1 + 32 · 0,5^[t]}"></span>. Hierin is h de hoogte in cm en t de tijd in weken.</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Hoe hoog is de zonnebloem op t = 3?<br>c. Beredeneer wat de grenswaarde is.<br>d. Bereken in één decimaal vanaf welke t de zonnebloem hoger dan 2,5 meter is.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q2-h" class="font-semibold text-slate-700">b. h (cm)</label>
+                            <input id="q2-h" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-g" class="font-semibold text-slate-700">c. grenswaarde</label>
+                            <input id="q2-g" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-t" class="font-semibold text-slate-700">d. t (één dec.)</label>
+                            <input id="q2-t" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave 31b–c (figuur 14.22) -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 31b en c (Figuur 14.22)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">📣 Nieuws op school</h3>
+                    <canvas id="canvas-q3" width="380" height="200" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">Belangrijk nieuws verspreidt zich razendsnel in een school. Het aantal leerlingen N dat op een zeker tijdstip t van een belangrijk feit op de hoogte is, wordt gegeven door de formule N = 1200(1 − 0,7<sup>t</sup>) met t in uren en t = 0 om 9:00 uur.</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Bij de grafiek van N hoort een lijn die het verzadigingsniveau aangeeft. Welke lijn is dat?<br>c. Hoe laat hebben 950 leerlingen het nieuws gehoord? Rond af op minuten.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q3-n" class="font-semibold text-slate-700">b. de lijn N =</label>
+                            <input id="q3-n" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-uur" class="font-semibold text-slate-700">c. tijdstip: uur</label>
+                            <input id="q3-uur" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-min" class="font-semibold text-slate-700">c. minuten</label>
+                            <input id="q3-min" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 32a–d -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 32</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Vier groeiformules</h3>
+                    <div class="text-xs text-slate-600 mt-1 mb-2 space-y-1.5">
+                        <div>a. Beredeneer bij de formule <span class="mono" data-f="N = {500|20 + 13 · 2^[−0,23t]}"></span> wat het verzadigingsniveau is.</div>
+                        <div>b. Is de grafiek van <span class="mono" data-f="N = {720|8 + 2,1 · e^[t]}"></span> stijgend of dalend?</div>
+                        <div>c. Is de grafiek van N = 8000(1 + 1,5<sup>t</sup>) stijgend of dalend?</div>
+                        <div>d. Beredeneer bij N = 160 − 50 · 0,8<sup>t</sup> wat de grenswaarde is.</div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q4-a" class="font-semibold text-slate-700">a. N ≈</label>
+                            <input id="q4-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q4-b" class="font-semibold text-slate-700">b. grafiek</label>
+                            <select id="q4-b" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                        </div>
+                        <div>
+                            <label for="q4-c" class="font-semibold text-slate-700">c. grafiek</label>
+                            <select id="q4-c" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                        </div>
+                        <div>
+                            <label for="q4-d" class="font-semibold text-slate-700">d. N ≈</label>
+                            <input id="q4-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave A33b–d (figuur 14.23) -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave A33b, c en d (Figuur 14.23)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🪰 Fruitvliegjes</h3>
+                    <canvas id="canvas-q5" width="380" height="220" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <p class="text-xs text-slate-600 mb-2">Een bioloog telt het aantal fruitvliegjes N in een afgesloten ruimte. De tijd t is in dagen met t = 0 op 1 april om 0:00 uur. Tot t = 30 gaat de bioloog uit van exponentiële groei met een groeipercentage van 16% per dag. Later benadert hij het groeiproces met de groeiformule</p>
+                    <div class="mono text-sm text-center mb-2 text-slate-800" data-f="N = {1035|1 + 210 · e^[−0,175t]}"></div>
+                    <p class="text-xs text-slate-600 mb-2">b. Bereken, uitgaande van de metingen op t = 15 en t = 25, het groeipercentage per dag. Rond af op één decimaal.<br>c. Gebruik het groeipercentage 16% om het aantal fruitvliegjes op 23 april om 0:00 uur te berekenen.<br>d. Hoeveel procent wijkt op t = 45 het aantal volgens de formule af van de telling?</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q5-p" class="font-semibold text-slate-700">b. groei (% per dag)</label>
+                            <input id="q5-p" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-n" class="font-semibold text-slate-700">c. aantal (gehelen)</label>
+                            <input id="q5-n" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-afw" class="font-semibold text-slate-700">d. afwijking (%)</label>
+                            <input id="q5-afw" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave A34b–d -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave A34b, c en d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🧠 Woorden onthouden</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Deelnemers aan een experiment kregen een groot aantal woorden in paren te zien. Later moesten ze bij één woord het bijbehorende woord geven. De onderzoekers vonden de formule <span class="mono" data-f="P = {92|2,39^[t]} + {32|1,04^[t]} + 10"></span>. Hierin is P het percentage woorden dat correct wordt herinnerd en t de tijd in minuten vanaf het zien van de paren woorden.</p>
+                    <p class="text-xs text-slate-600 mb-2">b. Hoelang duurt het tot de helft van de woorden nog correct wordt herinnerd? Rond af op gehele seconden.<br>c. Beredeneer wat de grenswaarde is.<br>d. De formule is te schrijven in de vorm P = 92 · a<sup>t</sup> + 32 · b<sup>t</sup> + 10. Bereken a en b. Rond af op drie decimalen.</p>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                        <div>
+                            <label for="q6-s" class="font-semibold text-slate-700">b. seconden</label>
+                            <input id="q6-s" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-g" class="font-semibold text-slate-700">c. grenswaarde</label>
+                            <input id="q6-g" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-a" class="font-semibold text-slate-700">d. a (3 dec.)</label>
+                            <input id="q6-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-b" class="font-semibold text-slate-700">d. b (3 dec.)</label>
+                            <input id="q6-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave O35 -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave O35</span>
+                    <h3 class="font-bold text-slate-800 mt-1">y neemt toe of y neemt af?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">In de volgende formules is x &gt; 0. Wat weet je van y als x toeneemt?</p>
+                    <div class="grid grid-cols-2 gap-3 text-xs">
+                        <div>
+                            <label for="q7-a" class="font-semibold text-slate-700">a. <span class="mono text-sm" data-f="y = 1 − 0,9^[x]"></span></label>
+                            <select id="q7-a" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">y neemt toe</option><option value="af">y neemt af</option></select>
+                        </div>
+                        <div>
+                            <label for="q7-b" class="font-semibold text-slate-700">b. <span class="mono text-sm" data-f="y = {20|2x + 1}"></span></label>
+                            <select id="q7-b" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">y neemt toe</option><option value="af">y neemt af</option></select>
+                        </div>
+                        <div>
+                            <label for="q7-c" class="font-semibold text-slate-700">c. <span class="mono text-sm" data-f="y = 10 + {1|x²}"></span></label>
+                            <select id="q7-c" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">y neemt toe</option><option value="af">y neemt af</option></select>
+                        </div>
+                        <div>
+                            <label for="q7-d" class="font-semibold text-slate-700">d. <span class="mono text-sm" data-f="y = {3√[x + 1]|10}"></span></label>
+                            <select id="q7-d" class="w-full mt-1 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="toe">y neemt toe</option><option value="af">y neemt af</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave 36a (meerkeuze, Let op xⁿ met n < 0) -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 36a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke redenering is juist?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">In de theorie staat "als x toeneemt, dan neemt x<sup>n</sup> toe als n &gt; 0". Vier leerlingen beredeneren of de grafiek van y = 5x<sup>−3</sup> stijgend of dalend is (x &gt; 0). Welke redenering is juist?</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q8" value="A" class="mt-0.5" /> <span><strong>A</strong> Als x toeneemt, dan neemt x<sup>−3</sup> toe, want x<sup>n</sup> neemt toe. Dus 5x<sup>−3</sup> neemt toe: stijgend.</span></label>
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q8" value="B" class="mt-0.5" /> <span><strong>B</strong> <span data-f="y = {5|x³}"></span>. Als x toeneemt, dan neemt x³ toe, dus <span data-f="{5|x³}"></span> neemt af: dalend.</span></label>
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q8" value="C" class="mt-0.5" /> <span><strong>C</strong> Als x toeneemt, dan neemt −3x af, dus 5x<sup>−3</sup> neemt af: dalend.</span></label>
+                        <label class="flex items-start gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q8" value="D" class="mt-0.5" /> <span><strong>D</strong> <span data-f="y = {5|x³}"></span>. Als x toeneemt, dan neemt x³ toe, dus <span data-f="{5|x³}"></span> neemt ook toe: stijgend.</span></label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: opgave 38 -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 38</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Stijgend of dalend, en de grenswaarde</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Beredeneer of bij de formule een stijgende of dalende grafiek hoort en beredeneer wat de grenswaarde is.</p>
+                    <div class="space-y-2.5 text-xs">
+                        <div class="grid grid-cols-12 gap-2 items-end">
+                            <div class="col-span-12 sm:col-span-5 font-semibold text-slate-700">a. <span class="mono text-sm" data-f="y = 25 + {12|x²}"></span></div>
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="q9-ar" class="text-slate-500">grafiek</label>
+                                <select id="q9-ar" class="w-full mt-0.5 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                            </div>
+                            <div class="col-span-6 sm:col-span-3">
+                                <label for="q9-ag" class="text-slate-500">grenswaarde</label>
+                                <input id="q9-ag" type="text" placeholder="..." class="w-full mt-0.5 px-2.5 py-1.5 border rounded-lg mono" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-12 gap-2 items-end">
+                            <div class="col-span-12 sm:col-span-5 font-semibold text-slate-700">b. <span class="mono text-sm" data-f="y = 40 − {80|2 + √x}"></span></div>
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="q9-br" class="text-slate-500">grafiek</label>
+                                <select id="q9-br" class="w-full mt-0.5 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                            </div>
+                            <div class="col-span-6 sm:col-span-3">
+                                <label for="q9-bg" class="text-slate-500">grenswaarde</label>
+                                <input id="q9-bg" type="text" placeholder="..." class="w-full mt-0.5 px-2.5 py-1.5 border rounded-lg mono" />
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-12 gap-2 items-end">
+                            <div class="col-span-12 sm:col-span-5 font-semibold text-slate-700">c. <span class="mono text-sm" data-f="N = {18 000|250 + 333 · 0,65^[t]}"></span></div>
+                            <div class="col-span-6 sm:col-span-4">
+                                <label for="q9-cr" class="text-slate-500">grafiek</label>
+                                <select id="q9-cr" class="w-full mt-0.5 px-2 py-1.5 border rounded-lg mono bg-white"><option value="">kies…</option><option value="stijgend">stijgend</option><option value="dalend">dalend</option></select>
+                            </div>
+                            <div class="col-span-6 sm:col-span-3">
+                                <label for="q9-cg" class="text-slate-500">grenswaarde</label>
+                                <input id="q9-cg" type="text" placeholder="..." class="w-full mt-0.5 px-2.5 py-1.5 border rounded-lg mono" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: opgave A40c–e -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Opgave A40c, d en e</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🚗 De remweg</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Uit de lengte L van de remweg van een auto kan met de vuistregel <span class="mono" data-f="L = {v²|25f}"></span> de snelheid worden bepaald waarmee gereden is. Hierin is L in meters en v de snelheid in km/uur. Verder is f een positief getal dat afhangt van het wegdek, de weersomstandigheden en de autobanden.</p>
+                    <p class="text-xs text-slate-600 mb-2">c. Druk voor remwegen van 38 meter f uit in v. Vul het vakje in: <span class="mono" data-f="f = {v²|#1}"></span><br>d. Met hoeveel procent neemt de lengte van de remweg toe bij een 20% hogere snelheid?<br>e. Met zomerbanden is bij een bepaalde snelheid de remweg 40 meter. Met winterbanden neemt f met 8,4% toe. Daardoor heb je bij een hogere snelheid een remweg van 40 meter. Bereken hoeveel procent hoger. Rond af op één decimaal.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q10-1" class="font-semibold text-slate-700">c. vakje 1</label>
+                            <input id="q10-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-d" class="font-semibold text-slate-700">d. toename (%)</label>
+                            <input id="q10-d" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q10-e" class="font-semibold text-slate-700">e. hoger (%)</label>
+                            <input id="q10-e" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: opgave A42a–b -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Opgave A42a en b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🌬️ De gevoelstemperatuur</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Een van de oudste methoden om de gevoelstemperatuur te berekenen is de methode van Siple en Passel. De formule die hierbij hoort, is G = 33 + (T − 33) · W met <span class="mono" data-f="W = 0,474 + 0,454√[w] · (1 − 0,1√[w])"></span>. Hierin is G de gevoelstemperatuur in °C, T de luchttemperatuur in °C en w de windsnelheid in m/s. De formule geldt voor windsnelheden tussen 0 en 25 m/s.</p>
+                    <p class="text-xs text-slate-600 mb-2">a. Uit de formule van G volgt dat er een luchttemperatuur is die bij elke windsnelheid dezelfde gevoelstemperatuur oplevert. Welke luchttemperatuur is dat?<br>b. Welke soort van stijgen of dalen heeft de grafiek van W voor w tussen 0 en 25?</p>
+                    <div class="grid grid-cols-12 gap-2 text-xs items-start">
+                        <div class="col-span-12 sm:col-span-4">
+                            <label for="q11-T" class="font-semibold text-slate-700">a. T (in °C)</label>
+                            <input id="q11-T" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div class="col-span-12 sm:col-span-8 grid grid-cols-2 gap-1.5">
+                            <div class="col-span-2 font-semibold text-slate-700">b. De grafiek van W is …</div>
+                            <label class="flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer hover:bg-slate-50"><input type="radio" name="q11" value="TS" /> toenemend stijgend</label>
+                            <label class="flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer hover:bg-slate-50"><input type="radio" name="q11" value="AS" /> afnemend stijgend</label>
+                            <label class="flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer hover:bg-slate-50"><input type="radio" name="q11" value="TD" /> toenemend dalend</label>
+                            <label class="flex items-center gap-1.5 p-2 rounded-lg border cursor-pointer hover:bg-slate-50"><input type="radio" name="q11" value="AD" /> afnemend dalend</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: einduitdaging op figuur 14.23 (opgave A33e) -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging (opgave A33e, figuur 14.23)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw groeiformule door de tellingen van de bioloog gaan</h3>
+                    <p class="text-xs text-slate-600 mt-1">De bioloog verwacht dat het aantal fruitvliegjes op den duur vrijwel 1035 zal worden: dat is de stippellijn. Zoek een formule <span class="mono" data-f="N = {c|1 + b · g^[t]}"></span> waarvan de grafiek door de vijf gelabelde tellingen gaat (hooguit 35 ernaast). Begin bij c: welk getal moet de grenswaarde zijn?</p>
+                    <canvas id="canvas-q12" width="760" height="300" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs items-end">
+                        <div>
+                            <label for="q12-c" class="font-semibold text-slate-700">c (grenswaarde)</label>
+                            <input id="q12-c" type="number" step="5" value="800" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-b" class="font-semibold text-slate-700">b</label>
+                            <input id="q12-b" type="number" step="5" value="50" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-g" class="font-semibold text-slate-700">g (tussen 0 en 1)</label>
+                            <input id="q12-g" type="number" step="0.01" value="0.9" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div id="q12-live" class="col-span-2 md:col-span-1 text-indigo-700 font-bold mono"></div>
+                    </div>
+                    <div id="q12-afw" class="mt-2 text-[11px] text-slate-600 mono"></div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== HULPFUNCTIES VOOR DEZE LES ====================
+    const ln = Math.log;
+    const DONKER = '#334155';   // een gegeven grafiek uit het boek
+
+    /** Vast aantal decimalen, in Nederlandse notatie: 0.8 → "0,80" (voor een slider-parameter in een formule). */
+    const fmtF = (v, d) => v.toFixed(d).replace('.', ',').replace('-', '−');
+
+    // Superscript-cijfers voor machten van 10: 10⁻⁷, 10²⁰.
+    const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+    const sup = k => String(k).split('').map(c => SUP[c] ?? c).join('');
+
+    /** Waarde in een live-uitleg: ongeveer vier cijfers; heel groot of heel klein als macht van 10. */
+    function fmtW(v) {
+        if (!isFinite(v)) return '–';
+        const a = Math.abs(v);
+        if (a !== 0 && (a >= 1e6 || a < 1e-4)) {
+            let e = Math.floor(Math.log10(a));
+            let m = v / 10 ** e;
+            if (Math.abs(m) >= 9.995) { m /= 10; e += 1; }
+            return `${fmt(m, 2)} · 10${sup(e)}`;
+        }
+        return fmt(v, a >= 1000 ? 0 : a >= 100 ? 1 : a >= 10 ? 2 : a >= 1 ? 3 : 4);
+    }
+
+    /** Mooie rasterstap (1, 2, 2,5 of 5 maal een macht van 10) voor een bereik. */
+    function mooieStap(bereik, maxStappen = 7) {
+        const p = 10 ** Math.floor(Math.log10(bereik / maxStappen));
+        return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => bereik / s <= maxStappen) || 10 * p;
+    }
+
+    function stip(ctx, x, y, color, r = 6) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /** Label met een lichte achtergrond, zodat het leesbaar blijft boven een lijn of grafiek. */
+    function tekst(ctx, s, x, y, color, align = 'left', size = 12) {
+        ctx.font = `700 ${size}px Inter, sans-serif`;
+        ctx.textAlign = align;
+        const w = ctx.measureText(s).width;
+        const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fillRect(x0 - 3, y - size, w + 6, size + 4);
+        ctx.fillStyle = color;
+        ctx.fillText(s, x, y);
+    }
+
+    /** Pijl van (x1, y1) naar (x2, y2) in pixels. */
+    function pijl(ctx, x1, y1, x2, y2, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        strokeLine(ctx, x1, y1, x2, y2);
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+        ctx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /** Formule op een canvas: ^[…] wordt een kleinere, verhoogde exponent. Geeft de breedte terug. */
+    function canvasFormule(ctx, src, x, y, { size = 13, color = DONKER, align = 'left', bold = false } = {}) {
+        const delen = src.split(/(\^\[[^\]]*\])/).filter(Boolean)
+            .map(s => s.startsWith('^[') ? { t: s.slice(2, -1), sup: true } : { t: s, sup: false });
+        const font = d => `${bold ? 700 : 600} ${d.sup ? Math.round(size * 0.72) : size}px Inter, sans-serif`;
+        let breed = 0;
+        delen.forEach(d => { ctx.font = font(d); d.w = ctx.measureText(d.t).width; breed += d.w; });
+        let px = align === 'right' ? x - breed : align === 'center' ? x - breed / 2 : x;
+        ctx.fillStyle = color;
+        ctx.textAlign = 'left';
+        delen.forEach(d => {
+            ctx.font = font(d);
+            ctx.fillText(d.t, px, d.sup ? y - size * 0.4 : y);
+            px += d.w;
+        });
+        return breed;
+    }
+
+    /** Invulvelden met elk een eigen tolerantie: [[id, antwoord | [antwoorden], tol], …]. Kleurt de rand zoals checkExercise. */
+    function veldenOk(spec) {
+        return spec.map(([id, target, tol]) => {
+            const input = $(id);
+            const ok = [].concat(target).some(t => approx(parseNum(input.value), t, tol));
+            input.classList.toggle('border-emerald-400', ok);
+            input.classList.toggle('border-rose-400', !ok);
+            return ok;
+        }).every(Boolean);
+    }
+
+    /** Keuzelijsten: { id: 'goede waarde' }. Kleurt de rand. */
+    function keuzesOk(spec) {
+        return Object.entries(spec).map(([id, goed]) => {
+            const el = $(id);
+            const ok = el.value === goed;
+            el.classList.toggle('border-emerald-400', ok);
+            el.classList.toggle('border-rose-400', !ok);
+            return ok;
+        }).every(Boolean);
+    }
+
+    const radioWaarde = name => document.querySelector(`input[name="${name}"]:checked`)?.value;
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderBasis(),
+        'tab-grens': () => renderGrens(),
+        'tab-ketting': () => renderKetting(),
+        'tab-lab': () => updateLab(),
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN (de bouwsteen gᵗ) ====================
+    // Figuur 14.18 heeft geen getallen: N = b · gᵗ met 0 < g < 1. Hier b = 1 en g = 0,8 (de 0,8ᵗ uit opgave 29).
+    // Theorie A: de 1,6ᵗ uit B = 120 / (1 + 0,5 · 1,6ᵗ). Voorbeeld p. 112 en Terugblik p. 118: de e-macht als band,
+    // exact = het grondtal waarbij gᵗ precies de band is, boek = hoe het boek dat grondtal afrondt.
+    const basisPresets = [
+        { v: 't', g: 0.8, tMax: 20, band: null },
+        { v: 't', g: 1.6, tMax: 20, band: null },
+        { v: 't', g: 0.9, tMax: 20, band: { f: t => Math.exp(-0.3 * t), k: '−0,3', exact: Math.exp(-0.3), boek: '0,74' } },
+        { v: 'x', g: 0.9, tMax: 10, band: { f: x => Math.exp(-0.9 * x), k: '−0,9', exact: Math.exp(-0.9), boek: '0,4' } },
+    ];
+    let basisIdx = 0, basisG = 0.8, basisT = 0, basisPlaying = true, lastTs = null;
+
+    function setBasisPreset(i) {
+        basisIdx = i;
+        const pr = basisPresets[i];
+        basisG = pr.g;
+        basisT = 0;
+        $('basis-g').value = pr.g;
+        const ts = $('basis-t');
+        ts.max = pr.tMax;
+        ts.step = pr.tMax / 200;
+        $('basis-t-naam').innerText = `${pr.v} zelf verschuiven`;
+        $('basis-legenda-band').classList.toggle('hidden', !pr.band);
+        setActiveButton('basis-preset-', basisPresets.length, i);
+        renderBasis();
+    }
+
+    function setBasisG(val) {
+        basisG = parseFloat(val);
+        renderBasis();
+    }
+
+    function toggleBasisPlay() {
+        basisPlaying = !basisPlaying;
+        $('btn-basis-play').innerText = basisPlaying ? '⏸ Pauzeer animatie' : '▶ Start animatie';
+    }
+
+    function manualBasisT(val) {
+        basisPlaying = false;
+        $('btn-basis-play').innerText = '▶ Start animatie';
+        basisT = parseFloat(val);
+        renderBasis();
+    }
+
+    function renderBasis() {
+        const pr = basisPresets[basisIdx];
+        const g = basisG, v = pr.v, t = basisT;
+        const f = x => g ** x;
+        const groot = g > 1;
+        const yMax = groot ? 10 : 1.2, yStep = groot ? 2 : 0.2;
+        const yt = f(t);
+        const gT = fmtF(g, 2);
+        const r = drawGraph('canvas-basis', {
+            xMin: 0, xMax: pr.tMax, yMin: 0, yMax, xStep: pr.tMax / 10, yStep,
+            xLabel: v, yLabel: 'y',
+            hLines: g < 1 ? [{ y: 0, color: C.sky, width: 3, label: 'grenswaarde 0' }] : [],
+            vLines: [{ x: t, color: C.amber, width: 1.5, dash: [4, 4] }],
+            curves: [
+                ...(pr.band ? [{ f: pr.band.f, color: '#cbd5e1', width: 16 }] : []),
+                { f, color: C.indigo, width: 3 },
+            ],
+            points: yt <= yMax ? [{ x: t, y: yt, color: C.indigo, r: 7 }] : [],
+        });
+        const { ctx, mapX, mapY, box } = r;
+        const px = mapX(t), rechts = px > box.x1 - 120;
+        if (yt <= yMax) {
+            tekst(ctx, `y = ${fmtW(yt)}`, rechts ? px - 12 : px + 12, mapY(yt) - 10, C.indigo, rechts ? 'right' : 'left');
+        } else {
+            tekst(ctx, `↑ y = ${fmtW(yt)} (buiten beeld)`, rechts ? px - 8 : px + 8, box.y0 + 16, C.indigo, rechts ? 'right' : 'left');
+        }
+        stip(ctx, px, box.y1, C.amber, 5);
+
+        $('basis-pil').innerHTML = fm(`y = ${gT}^[${v}]`) + (pr.band ? `<span class="text-slate-400 font-normal text-sm ml-3">band: ${fm(`y = e^[${pr.band.k}${v}]`)}</span>` : '');
+        $('basis-g-label').innerText = `g = ${gT}`;
+        $('basis-t').value = t;
+        $('basis-t-label').innerText = `${v} = ${fmt(t, 1)}`;
+
+        let html = `<div class="font-bold text-indigo-900">g = ${gT} ${g < 1 ? '(0 &lt; g &lt; 1)' : g > 1 ? '(g &gt; 1)' : '(g = 1)'}</div>`;
+        html += `<div class="mono"><span class="text-amber-700">${v} = ${fmt(t, 1)}</span> → y = ${fmtW(yt)}</div>`;
+        const macht = fm(`${gT}^[${v}]`);
+        if (g < 1) {
+            html += `<div class="text-violet-800">Als ${v} toeneemt, dan neemt ${macht} <strong>af</strong>.</div>`;
+            html += `<div class="text-sky-800">Als ${v} heel groot wordt, dan <strong>nadert ${macht} tot 0</strong>.</div>`;
+        } else if (g > 1) {
+            html += `<div class="text-violet-800">Als ${v} toeneemt, dan neemt ${macht} <strong>toe</strong>.</div>`;
+            html += `<div class="text-sky-800">Als ${v} heel groot wordt, dan <strong>wordt ${macht} heel groot</strong>.</div>`;
+        } else {
+            html += `<div>${fm(`1^[${v}]`)} = 1 voor elke ${v}: de grafiek is een horizontale lijn, niet stijgend en niet dalend.</div>`;
+        }
+        html += `<div class="grid grid-cols-2 gap-1 mt-2 text-center mono">${[10, 20, 50, 100].map(tt =>
+            `<div class="bg-white rounded border border-indigo-100 px-1 py-0.5"><div class="text-[10px] text-amber-700">${v} = ${tt}</div><div class="font-bold text-[11px]">${fmtW(g ** tt)}</div></div>`).join('')}</div>`;
+        if (pr.band) {
+            const b = pr.band;
+            const inBand = Math.abs(g - b.exact) < 0.0071;
+            html += inBand
+                ? `<div class="mt-2 p-2 rounded-lg bg-white border border-indigo-200"><strong class="text-indigo-700">✓ Je lijn ligt in de band.</strong> Er geldt ${fm(`e^[${b.k}${v}] = (e^[${b.k}])^[${v}]`)} en ${fm(`e^[${b.k}]`)} = ${fmt(b.exact, 4)}. Het boek schrijft ${fm(`e^[${b.k}${v}] ≈ ${b.boek}^[${v}]`)}: een macht met een grondtal tussen 0 en 1.</div>`
+                : `<div class="mt-2 text-slate-500">Schuif g tot jouw lijn overal in de grijze band ${fm(`e^[${b.k}${v}]`)} ligt.</div>`;
+        }
+        $('basis-uitleg').innerHTML = html;
+    }
+
+    // Eén animatielus voor tab 1 (de stip op gᵗ) en tab 3 (t in de redeneerketting); tekent alleen als de tab zichtbaar is.
+    function animateLoop(ts) {
+        if (lastTs !== null) {
+            const dt = Math.min(0.1, (ts - lastTs) / 1000);
+            if (basisPlaying && !$('tab-basis').classList.contains('hidden')) {
+                const pr = basisPresets[basisIdx];
+                basisT += dt * pr.tMax / 7;
+                if (basisT > pr.tMax) basisT = 0;
+                renderBasis();
+            }
+            if (kettingPlaying && !$('tab-ketting').classList.contains('hidden')) {
+                const [d0, d1] = kettingPresets[kettingIdx].dom;
+                kettingT += dt * (d1 - d0) / 6;
+                if (kettingT > d1) kettingT = d0;
+                renderKettingCanvas();
+            }
+        }
+        lastTs = ts;
+        requestAnimationFrame(animateLoop);
+    }
+
+    // ==================== TAB 2: DE GRENSWAARDE (THEORIE A, TYPE 1) ====================
+    // Elke regel: e = de ≈-regel zoals in het boek, f = dat deel als functie van t, doel = de waarde waar het naartoe gaat
+    // (Infinity = "wordt heel groot"), u = de uitleg. fout = de klassieke fout; hij komt na de eerste "bij" regels.
+    // De vensters zijn gekozen bij de figuren in het boek (die zelf geen schaalverdeling hebben, behalve 14.19).
+    const grensPresets = [
+        {
+            // Fig 14.19: stippellijn bij 80; halverwege het venster zit de grafiek op ±90% → t van 0 tot 45 (0,9²² ≈ 0,1).
+            vraag: 'Theorie A (figuur 14.19): beredeneer wat N ongeveer zal zijn als t heel groot wordt. N = 80(1 − 0,9^[t]).',
+            v: 't', y: 'N', f: t => 80 * (1 - 0.9 ** t), grens: 80,
+            x: { max: 45, step: 5 }, yr: { max: 100, step: 20 },
+            rows: [
+                { e: '0,9^[t] ≈ 0', f: t => 0.9 ** t, doel: 0, u: 'Als t heel groot wordt, dan nadert 0,9^[t] tot 0, want 0 < 0,9 < 1.' },
+                { e: '1 − 0,9^[t] ≈ 1', f: t => 1 - 0.9 ** t, doel: 1, u: 'Van 1 trek je bijna niets af.' },
+                { e: '80(1 − 0,9^[t]) ≈ 80', f: t => 80 * (1 - 0.9 ** t), doel: 80, u: '80 keer bijna 1 is bijna 80.' },
+            ],
+            conclusie: 'Hieruit volgt N ≈ 80 als t heel groot wordt. De grenswaarde is 80: dat is het verzadigingsniveau.',
+            fout: { bij: 0, e: 'N = 80(1 − 0,9^[0]) = 80 · 0 = 0', waarde: 0, nul: true, u: 'Fout: met t = 0 reken je de beginwaarde uit. De grenswaarde hoort bij t heel groot.' },
+        },
+        {
+            // Opgave 29: hetzelfde venster als in 29d (t van 0 tot 20, A van 0 tot 100), iets hoger voor de stippellijn.
+            vraag: 'Opgave 29a: hoe volgt uit 90 · 0,8^[t] ≈ 0 dat A ≈ 100 als t heel groot wordt? A = 100 − 90 · 0,8^[t].',
+            v: 't', y: 'A', f: t => 100 - 90 * 0.8 ** t, grens: 100,
+            x: { max: 20, step: 2 }, yr: { max: 120, step: 20 },
+            rows: [
+                { e: '0,8^[t] ≈ 0', f: t => 0.8 ** t, doel: 0, u: 'Als t heel groot wordt, dan nadert 0,8^[t] tot 0, want 0 < 0,8 < 1.' },
+                { e: '90 · 0,8^[t] ≈ 0', f: t => 90 * 0.8 ** t, doel: 0, u: '90 keer bijna 0 is bijna 0.' },
+                { e: 'A = 100 − 90 · 0,8^[t] ≈ 100', f: t => 100 - 90 * 0.8 ** t, doel: 100, u: 'Van 100 trek je bijna niets af.' },
+            ],
+            conclusie: 'Dus A ≈ 100 als t heel groot wordt: de grenswaarde is 100.',
+            fout: { bij: 0, e: '0,8^[t] ≈ 1, dus A ≈ 100 − 90 = 10', waarde: 10, nul: true, u: 'Fout: 0,8^[t] is alleen bij t = 0 gelijk aan 1. Als t heel groot wordt, nadert 0,8^[t] tot 0.' },
+        },
+        {
+            // Theorie A p. 111: B(0) = 120 / 1,5 = 80, daarna dalend naar 0.
+            vraag: 'Theorie A: beredeneer wat de grenswaarde van B is. B = {120|1 + 0,5 · 1,6^[t]}.',
+            v: 't', y: 'B', f: t => 120 / (1 + 0.5 * 1.6 ** t), grens: 0,
+            x: { max: 15, step: 3 }, yr: { max: 140, step: 20 },
+            rows: [
+                { e: '1,6^[t] wordt heel groot', f: t => 1.6 ** t, doel: Infinity, u: 'Als t heel groot wordt, dan wordt 1,6^[t] heel groot, want 1,6 > 1.' },
+                { e: '0,5 · 1,6^[t] wordt heel groot', f: t => 0.5 * 1.6 ** t, doel: Infinity, u: 'De helft van een heel groot getal is nog steeds heel groot.' },
+                { e: '1 + 0,5 · 1,6^[t] wordt heel groot', f: t => 1 + 0.5 * 1.6 ** t, doel: Infinity, u: 'Er komt 1 bij: nog steeds heel groot.' },
+                { e: 'B = {120|1 + 0,5 · 1,6^[t]} ≈ 0', f: t => 120 / (1 + 0.5 * 1.6 ** t), doel: 0, u: 'Deel je 120 door een heel groot getal, dan krijg je ongeveer 0.' },
+            ],
+            conclusie: 'Dus de grenswaarde van B is 0.',
+            fout: { bij: 0, e: '1,6^[t] ≈ 0, dus B ≈ {120|1} = 120', waarde: 120, u: 'Fout: 1,6 is groter dan 1. Dan nadert 1,6^[t] niet tot 0, maar wordt hij heel groot.' },
+        },
+        {
+            // Fig 14.20: begint bij 5000 / 7,5 ≈ 667 (ruim een kwart van de stippellijn), bijna 2500 aan de rechterkant → t van 0 tot 20.
+            vraag: 'Voorbeeld a (figuur 14.20): beredeneer wat het verzadigingsniveau is. N = {5000|2 + 5,5 · e^[−0,3t]}, met t in maanden.',
+            v: 't', y: 'N', f: t => 5000 / (2 + 5.5 * Math.exp(-0.3 * t)), grens: 2500,
+            x: { max: 20, step: 2 }, yr: { max: 3000, step: 500 },
+            rows: [
+                { e: 'e^[−0,3t] ≈ 0', f: t => Math.exp(-0.3 * t), doel: 0, u: 'Omdat e^[−0,3t] ≈ 0,74^[t] geldt: als t heel groot wordt, dan nadert e^[−0,3t] tot 0.' },
+                { e: '5,5 · e^[−0,3t] ≈ 0', f: t => 5.5 * Math.exp(-0.3 * t), doel: 0, u: '5,5 keer bijna 0 is bijna 0.' },
+                { e: '2 + 5,5 · e^[−0,3t] ≈ 2', f: t => 2 + 5.5 * Math.exp(-0.3 * t), doel: 2, u: 'In de noemer blijft 2 over.' },
+                { e: 'N = {5000|2 + 5,5 · e^[−0,3t]} ≈ {5000|2} = 2500', f: t => 5000 / (2 + 5.5 * Math.exp(-0.3 * t)), doel: 2500, u: '5000 gedeeld door bijna 2 is bijna 2500.' },
+            ],
+            conclusie: 'Dus het verzadigingsniveau is 2500 vissen.',
+            fout: { bij: 0, e: 'N = {5000|2 + 5,5 · e^[0]} = {5000|7,5} ≈ 667', waarde: 5000 / 7.5, nul: true, u: 'Fout: dit is het aantal vissen op t = 0, dus op 1 januari 2010. Het verzadigingsniveau hoort bij t heel groot.' },
+        },
+        {
+            // Terugblik p. 118: begint bij 150 / 23 ≈ 6,5, buigpunt bij 20 · 0,6ᵗ = 3 (t ≈ 3,7), bijna 50 bij t = 10.
+            vraag: 'Terugblik: beredeneer wat het verzadigingsniveau is. N = {150|3 + 20 · 0,6^[t]}.',
+            v: 't', y: 'N', f: t => 150 / (3 + 20 * 0.6 ** t), grens: 50,
+            x: { max: 10, step: 1 }, yr: { max: 60, step: 10 },
+            rows: [
+                { e: '0,6^[t] ≈ 0', f: t => 0.6 ** t, doel: 0, u: 'Als t heel groot wordt, dan nadert 0,6^[t] tot 0, want 0 < 0,6 < 1.' },
+                { e: '20 · 0,6^[t] ≈ 0', f: t => 20 * 0.6 ** t, doel: 0, u: '20 keer bijna 0 is bijna 0.' },
+                { e: '3 + 20 · 0,6^[t] ≈ 3', f: t => 3 + 20 * 0.6 ** t, doel: 3, u: 'In de noemer blijft 3 over.' },
+                { e: 'N = {150|3 + 20 · 0,6^[t]} ≈ {150|3} = 50', f: t => 150 / (3 + 20 * 0.6 ** t), doel: 50, u: '150 gedeeld door bijna 3 is bijna 50.' },
+            ],
+            conclusie: 'Dus het verzadigingsniveau is 50.',
+            fout: { bij: 2, e: '3 + 20 · 0,6^[t] ≈ 23, dus N ≈ {150|23} ≈ 6,5', waarde: 150 / 23, nul: true, u: 'Fout: 20 · 0,6^[t] nadert tot 0, dus de 20 verdwijnt ook. Met 3 + 20 reken je de beginwaarde uit.' },
+        },
+        {
+            // Terugblik p. 118: y(0) = 2400, daalt naar 1200 (e^(−0,9x) ≈ 0,4ˣ).
+            vraag: 'Terugblik: beredeneer wat de grenswaarde is. y = 1200(1 + e^[−0,9x]).',
+            v: 'x', y: 'y', f: x => 1200 * (1 + Math.exp(-0.9 * x)), grens: 1200,
+            x: { max: 8, step: 1 }, yr: { max: 2800, step: 400 },
+            rows: [
+                { e: 'e^[−0,9x] ≈ 0', f: x => Math.exp(-0.9 * x), doel: 0, u: 'Omdat e^[−0,9x] ≈ 0,4^[x] geldt: als x heel groot wordt, dan nadert e^[−0,9x] tot 0.' },
+                { e: '1 + e^[−0,9x] ≈ 1', f: x => 1 + Math.exp(-0.9 * x), doel: 1, u: 'Er blijft 1 over.' },
+                { e: 'y = 1200(1 + e^[−0,9x]) ≈ 1200', f: x => 1200 * (1 + Math.exp(-0.9 * x)), doel: 1200, u: '1200 keer bijna 1 is bijna 1200.' },
+            ],
+            conclusie: 'Dus de grenswaarde is 1200. Deze grafiek daalt naar de grenswaarde toe: hij nadert 1200 van boven.',
+            fout: { bij: 0, e: 'y = 1200(1 + e^[0]) = 2400', waarde: 2400, nul: true, u: 'Fout: met x = 0 reken je de beginwaarde uit. Als x heel groot wordt, nadert e^[−0,9x] tot 0.' },
+        },
+    ];
+    let grensIdx = 0, grensStap = 1, grensFout = false, grensT = 10;
+
+    function setGrensPreset(i) {
+        grensIdx = i;
+        grensStap = 1;
+        grensFout = false;
+        const pr = grensPresets[i];
+        const s = $('grens-t');
+        s.max = 3 * pr.x.max;
+        s.step = pr.x.max / 100;
+        grensT = pr.x.max / 4;
+        s.value = grensT;
+        $('grens-t-naam').innerText = pr.v;
+        $('grens-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Vraag</span><span>${fm(pr.vraag)}</span>`;
+        setActiveButton('grens-preset-', grensPresets.length, i);
+        renderGrens(true);
+    }
+
+    function setGrensT(val) {
+        grensT = parseFloat(val);
+        renderGrens();
+    }
+
+    function grensVolgende() {
+        grensFout = false;
+        grensStap = Math.min(grensPresets[grensIdx].rows.length, grensStap + 1);
+        renderGrens(true);
+    }
+
+    function grensVorige() {
+        grensFout = false;
+        grensStap = Math.max(1, grensStap - 1);
+        renderGrens();
+    }
+
+    function grensAlles() {
+        grensFout = false;
+        grensStap = grensPresets[grensIdx].rows.length;
+        renderGrens();
+    }
+
+    function grensToggleFout() {
+        grensFout = !grensFout;
+        renderGrens(true);
+    }
+
+    /** Eén ≈-regel met de waarde van dat deel bij de gekozen t, en een balkje dat volloopt als het deel zijn waarde nadert. */
+    function grensRegelHTML(row, t, v, animeer) {
+        const val = row.f(t), start = row.f(0);
+        let fill, status;
+        if (row.doel === Infinity) {
+            fill = Math.min(1, Math.max(0, Math.log10(val / start) / 5));
+            status = fill >= 1 ? 'heel groot ✓' : 'wordt steeds groter';
+        } else {
+            const schaal = Math.abs(start - row.doel) || 1;
+            const afstand = Math.abs(val - row.doel);
+            fill = Math.max(0, 1 - afstand / schaal);
+            status = afstand <= 0.005 * schaal ? 'bijna gelijk ✓' : `nog ${fmtW(afstand)} ervan af`;
+        }
+        return `
+            <div class="${animeer ? 'verschijn ' : ''}flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 px-3 py-2.5 rounded-xl border-l-4 border-sky-400 bg-sky-50/70">
+                <div class="mono text-base text-slate-900 md:w-5/12 overflow-x-auto">${fm(row.e)}</div>
+                <div class="text-xs md:flex-1 leading-snug text-sky-800">${fm(row.u)}</div>
+                <div class="md:w-36 shrink-0 text-[11px] mono text-slate-600">
+                    <div class="whitespace-nowrap"><span class="text-amber-700">${v} = ${fmt(t, 1)}</span>: <strong class="text-slate-800">${fmtW(val)}</strong></div>
+                    <div class="h-1.5 rounded bg-slate-200 mt-1 overflow-hidden"><div class="h-1.5 bg-sky-500" style="width: ${(100 * fill).toFixed(1)}%"></div></div>
+                    <div class="text-[10px] text-slate-500 mt-0.5">${status}</div>
+                </div>
+            </div>`;
+    }
+
+    function grensFoutHTML(pr, t) {
+        return `
+            <div class="verschijn flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 px-3 py-2.5 rounded-xl border-l-4 border-red-500 bg-red-50">
+                <div class="mono text-base text-slate-900 md:w-5/12 overflow-x-auto">${fm(pr.fout.e)}</div>
+                <div class="text-xs md:flex-1 leading-snug font-semibold text-red-700">✗ ${fm(pr.fout.u)}</div>
+                <div class="md:w-36 shrink-0 text-[11px] mono text-slate-600"><span class="text-amber-700">${pr.v} = ${fmt(t, 1)}</span>: ${pr.y} = <strong>${fmtW(pr.f(t))}</strong><br><span class="text-red-600">en niet ${fmtW(pr.fout.waarde)}</span></div>
+            </div>`;
+    }
+
+    function renderGrens(animeer = false) {
+        const pr = grensPresets[grensIdx];
+        const t = grensT, v = pr.v;
+        const klaar = !grensFout && grensStap === pr.rows.length;
+        const lijst = grensFout ? pr.rows.slice(0, pr.fout.bij) : pr.rows.slice(0, grensStap);
+        let html = lijst.map((row, i) => grensRegelHTML(row, t, v, animeer && !grensFout && i === lijst.length - 1)).join('');
+        if (grensFout) html += grensFoutHTML(pr, t);
+        $('grens-ladder').innerHTML = html;
+        $('grens-teller').innerText = grensFout ? 'klassieke fout' : `regel ${grensStap} van ${pr.rows.length}`;
+        $('btn-grens-fout').innerText = grensFout ? '✓ Goede redenering' : '⚠ Klassieke fout';
+        $('grens-t-label').innerText = `${v} = ${fmt(t, 1)}`;
+        $('grens-conclusie').innerHTML = klaar
+            ? `<div class="${animeer ? 'verschijn ' : ''}p-4 rounded-xl bg-sky-50 border border-sky-300 text-sm text-sky-900"><strong>Conclusie.</strong> ${pr.conclusie} In de grafiek is dat de stippellijn.</div>`
+            : grensFout ? '' : '<div class="text-xs text-slate-500 px-1">Klik op "Volgende" voor de volgende regel van de redenering.</div>';
+
+        const g = drawGraph('canvas-grens', {
+            xMin: 0, xMax: pr.x.max, yMin: 0, yMax: pr.yr.max, xStep: pr.x.step, yStep: pr.yr.step,
+            xLabel: v, yLabel: pr.y, pad: { l: 46, r: 22 },
+            hLines: [
+                ...(klaar ? [{ y: pr.grens, color: C.sky, label: `grenswaarde ${fmt(pr.grens)}` }] : []),
+                ...(grensFout ? [{ y: pr.fout.waarde, color: '#dc2626', label: `fout: ${fmtW(pr.fout.waarde)}` }] : []),
+            ],
+            curves: [{ f: pr.f, color: DONKER, width: 3 }],
+        });
+        const { ctx, mapX, mapY, box } = g;
+        const y = pr.f(t);
+        const onder = y > pr.yr.max * 0.8;
+        if (t <= pr.x.max) {
+            const px = mapX(t), py = mapY(y);
+            ctx.save();
+            ctx.strokeStyle = C.amber;
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            strokeLine(ctx, px, box.y1, px, py);
+            ctx.restore();
+            stip(ctx, px, box.y1, C.amber, 5);
+            stip(ctx, px, py, DONKER, 6);
+            const rechts = px > box.x1 - 110;
+            tekst(ctx, `${pr.y} = ${fmtW(y)}`, rechts ? px - 10 : px + 10, py + (onder ? 20 : -10), DONKER, rechts ? 'right' : 'left');
+        } else {
+            const py = mapY(y);
+            pijl(ctx, box.x1 - 48, py, box.x1 - 4, py, C.amber);
+            tekst(ctx, `${v} = ${fmt(t, 1)}: ${pr.y} = ${fmtW(y)}`, box.x1 - 4, py + (onder ? 22 : -10), C.amber, 'right');
+        }
+        if (grensFout && pr.fout.nul) {
+            const p0 = pr.f(0);
+            stip(ctx, mapX(0), mapY(p0), C.amber, 6);
+            tekst(ctx, 'beginwaarde', mapX(0) + 10, mapY(p0) + (p0 > pr.yr.max * 0.8 ? 20 : -8), C.amber);
+        }
+    }
+
+    // ==================== TAB 3: STIJGEND OF DALEND (REDENEERKETTING) ====================
+    // Elke schakel: e = het deel (fm-notatie), lbl = hetzelfde op het canvas (als e een breuk is), f = het deel als functie,
+    // dir = 'toe' of 'af', why = de reden zoals in de uitwerkingen van het boek, pre = de woorden ervoor (standaard
+    // "Als t toeneemt, dan neemt" en daarna "dus neemt"). dom = het stuk van de t- of x-as in de grafiekjes.
+    const kettingPresets = [
+        {
+            formule: 'N = 80(1 − 0,9^[t])', v: 't', y: 'N', dom: [0, 40],
+            stappen: [
+                { e: '0,9^[t]', f: t => 0.9 ** t, dir: 'af', why: 'g^[t] met 0 < g < 1 neemt af als t toeneemt.' },
+                { e: '1 − 0,9^[t]', f: t => 1 - 0.9 ** t, dir: 'toe', why: 'Je trekt van 1 steeds minder af, dus er blijft steeds meer over.' },
+                { e: '80(1 − 0,9^[t])', f: t => 80 * (1 - 0.9 ** t), dir: 'toe', why: '80 keer een getal dat toeneemt, neemt ook toe.' },
+            ],
+        },
+        {
+            formule: 'B = {120|1 + 0,5 · 1,6^[t]}', v: 't', y: 'B', dom: [0, 12],
+            stappen: [
+                { e: '1,6^[t]', f: t => 1.6 ** t, dir: 'toe', why: 'g^[t] met g > 1 neemt toe als t toeneemt.' },
+                { e: '0,5 · 1,6^[t]', f: t => 0.5 * 1.6 ** t, dir: 'toe', why: 'Er staat een positief getal voor: dezelfde richting.' },
+                { e: '1 + 0,5 · 1,6^[t]', f: t => 1 + 0.5 * 1.6 ** t, dir: 'toe', why: 'Er 1 bij optellen: dezelfde richting.' },
+                { e: '{120|1 + 0,5 · 1,6^[t]}', lbl: '120 / (1 + 0,5 · 1,6^[t])', f: t => 120 / (1 + 0.5 * 1.6 ** t), dir: 'af', why: 'Deel je 120 door een steeds groter getal, dan krijg je een steeds kleinere uitkomst.' },
+            ],
+        },
+        {
+            formule: 'N = {5000|2 + 5,5 · e^[−0,3t]}', v: 't', y: 'N', dom: [0, 20],
+            stappen: [
+                { e: 'e^[−0,3t]', f: t => Math.exp(-0.3 * t), dir: 'af', why: 'e^[−0,3t] ≈ 0,74^[t] en 0 < 0,74 < 1, dus e^[−0,3t] neemt af.' },
+                { e: '5,5 · e^[−0,3t]', f: t => 5.5 * Math.exp(-0.3 * t), dir: 'af', why: 'Er staat een positief getal voor: dezelfde richting.' },
+                { e: '2 + 5,5 · e^[−0,3t]', f: t => 2 + 5.5 * Math.exp(-0.3 * t), dir: 'af', why: 'Er 2 bij optellen: dezelfde richting.' },
+                { e: '{5000|2 + 5,5 · e^[−0,3t]}', lbl: '5000 / (2 + 5,5 · e^[−0,3t])', f: t => 5000 / (2 + 5.5 * Math.exp(-0.3 * t)), dir: 'toe', why: 'Deel je 5000 door een steeds kleiner positief getal, dan krijg je een steeds grotere uitkomst.' },
+            ],
+        },
+        {
+            formule: 'y = 100 − {20|3x + 1}', v: 'x', y: 'y', dom: [0, 5],
+            stappen: [
+                { e: '3x', f: x => 3 * x, dir: 'toe', why: 'ax met a = 3 > 0 neemt toe als x toeneemt.' },
+                { e: '3x + 1', f: x => 3 * x + 1, dir: 'toe', why: 'Er 1 bij optellen: dezelfde richting.' },
+                { e: '{20|3x + 1}', lbl: '20 / (3x + 1)', f: x => 20 / (3 * x + 1), dir: 'af', why: 'Deel je 20 door een steeds groter getal, dan wordt de uitkomst steeds kleiner.' },
+                { e: '100 − {20|3x + 1}', lbl: '100 − 20 / (3x + 1)', f: x => 100 - 20 / (3 * x + 1), dir: 'toe', why: 'Je trekt van 100 steeds minder af, dus er blijft steeds meer over.' },
+            ],
+        },
+        {
+            formule: 'y = {10|x² + 1} − 5', v: 'x', y: 'y', dom: [0, 5],
+            stappen: [
+                { e: 'x²', f: x => x * x, dir: 'toe', why: 'x^[n] met n = 2 > 0 neemt toe als x toeneemt.' },
+                { e: 'x² + 1', f: x => x * x + 1, dir: 'toe', why: 'Er 1 bij optellen: dezelfde richting.' },
+                { e: '{10|x² + 1}', lbl: '10 / (x² + 1)', f: x => 10 / (x * x + 1), dir: 'af', why: 'Deel je 10 door een steeds groter getal, dan wordt de uitkomst steeds kleiner.' },
+                { e: '{10|x² + 1} − 5', lbl: '10 / (x² + 1) − 5', f: x => 10 / (x * x + 1) - 5, dir: 'af', why: 'Er 5 van aftrekken: dezelfde richting.' },
+            ],
+        },
+        {
+            formule: 'y = {50 · 0,8^[x]|√x}', v: 'x', y: 'y', dom: [0.3, 10],
+            stappen: [
+                { e: '0,8^[x]', f: x => 0.8 ** x, dir: 'af', why: 'g^[x] met 0 < g < 1 neemt af als x toeneemt.' },
+                { e: '50 · 0,8^[x]', pre: 'dus neemt de teller', lbl: 'teller 50 · 0,8^[x]', f: x => 50 * 0.8 ** x, dir: 'af', why: 'Er staat een positief getal voor: dezelfde richting.' },
+                { e: '√x', pre: 'en neemt de noemer', lbl: 'noemer √x', f: x => Math.sqrt(x), dir: 'toe', why: '√x neemt toe als x toeneemt.' },
+                { e: '{50 · 0,8^[x]|√x}', pre: 'dus neemt de breuk', lbl: '50 · 0,8^[x] / √x', f: x => 50 * 0.8 ** x / Math.sqrt(x), dir: 'af', why: 'De teller neemt af en de noemer neemt toe: allebei maken ze de breuk kleiner.' },
+            ],
+        },
+        {
+            formule: 'y = 200 − {50|x√x}', v: 'x', y: 'y', dom: [0.5, 8],
+            stappen: [
+                { e: '√x', f: x => Math.sqrt(x), dir: 'toe', why: '√x neemt toe als x toeneemt.' },
+                { e: 'x√x', f: x => x * Math.sqrt(x), dir: 'toe', why: 'x en √x nemen allebei toe en zijn allebei positief, dus hun product neemt ook toe.' },
+                { e: '{50|x√x}', lbl: '50 / (x√x)', f: x => 50 / (x * Math.sqrt(x)), dir: 'af', why: 'Deel je 50 door een steeds groter getal, dan wordt de uitkomst steeds kleiner.' },
+                { e: '200 − {50|x√x}', lbl: '200 − 50 / (x√x)', f: x => 200 - 50 / (x * Math.sqrt(x)), dir: 'toe', why: 'Je trekt van 200 steeds minder af, dus er blijft steeds meer over.' },
+            ],
+        },
+    ];
+    let kettingIdx = 0, kettingT = 0, kettingPlaying = true, kettingGoed = 0, kettingFout = null;
+
+    function setKettingPreset(i) {
+        kettingIdx = i;
+        kettingGoed = 0;
+        kettingFout = null;
+        const pr = kettingPresets[i];
+        kettingT = pr.dom[0];
+        $('ketting-pil').innerHTML = fm(pr.formule);
+        $('ketting-legenda-v').innerText = pr.v;
+        setActiveButton('ketting-preset-', kettingPresets.length, i);
+        renderKetting(true);
+    }
+
+    function kiesRichting(dir) {
+        const stap = kettingPresets[kettingIdx].stappen[kettingGoed];
+        if (!stap) return;
+        if (dir === stap.dir) {
+            kettingGoed++;
+            kettingFout = null;
+        } else {
+            kettingFout = dir;
+        }
+        renderKetting(true);
+    }
+
+    function toggleKettingPlay() {
+        kettingPlaying = !kettingPlaying;
+        $('btn-ketting-play').innerText = kettingPlaying ? '⏸ Pauzeer' : `▶ Laat ${kettingPresets[kettingIdx].v} lopen`;
+    }
+
+    function renderKetting(animeer = false) {
+        renderKettingLijst(animeer);
+        renderKettingCanvas();
+    }
+
+    function renderKettingLijst(animeer) {
+        const pr = kettingPresets[kettingIdx];
+        const n = pr.stappen.length;
+        const badge = d => `<span class="ml-1 px-2 py-0.5 rounded-md bg-violet-600 text-white text-xs font-bold whitespace-nowrap">${d === 'toe' ? '↑ toe' : '↓ af'}</span>`;
+        let html = '';
+        pr.stappen.forEach((s, i) => {
+            if (i > kettingGoed) return;
+            const pre = s.pre || (i === 0 ? `Als ${pr.v} toeneemt, dan neemt` : 'dus neemt');
+            if (i < kettingGoed) {
+                html += `
+                    <div class="${animeer && i === kettingGoed - 1 ? 'verschijn ' : ''}px-3 py-2 rounded-xl border-l-4 border-violet-500 bg-violet-50/70">
+                        <div class="text-sm text-slate-800">${pre} <span class="mono">${fm(s.e)}</span> ${badge(s.dir)}</div>
+                        <div class="text-[11px] text-violet-800 mt-0.5">${fm(s.why)}</div>
+                    </div>`;
+            } else {
+                const fout = kettingFout !== null;
+                const tip = i === 0 ? 'Gebruik de regels voor de bouwstenen hierboven.' : 'Kijk wat de vorige schakel doet, en hoe dit deel daarvan afhangt.';
+                html += `
+                    <div class="${animeer ? (fout ? 'schud ' : 'verschijn ') : ''}px-3 py-2.5 rounded-xl border-2 ${fout ? 'border-red-300 bg-red-50' : 'border-indigo-300 bg-white'}">
+                        <div class="text-sm text-slate-800">${pre} <span class="mono">${fm(s.e)}</span> …</div>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="kiesRichting('toe')" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-violet-50 border border-violet-300 text-violet-800 hover:bg-violet-100">↑ toe</button>
+                            <button onclick="kiesRichting('af')" class="flex-1 py-1.5 rounded-lg text-xs font-bold bg-violet-50 border border-violet-300 text-violet-800 hover:bg-violet-100">↓ af</button>
+                        </div>
+                        <div class="text-[11px] mt-1.5 ${fout ? 'text-red-700 font-semibold' : 'text-slate-500'}">${fout ? `✗ Nee, dit deel neemt niet ${kettingFout}. ${fm(s.why)}` : tip}</div>
+                    </div>`;
+            }
+        });
+        $('ketting-lijst').innerHTML = html;
+        const laatste = pr.stappen[n - 1];
+        $('ketting-conclusie').innerHTML = kettingGoed === n
+            ? `<div class="${animeer ? 'verschijn ' : ''}p-4 rounded-xl bg-violet-600 text-white text-sm">
+                   <strong>Dus de grafiek van ${pr.y} is ${laatste.dir === 'toe' ? 'stijgend' : 'dalend'}.</strong>
+                   <div class="text-xs text-violet-100 mt-1">Controle: in de onderste strook gaat de stip ${laatste.dir === 'toe' ? 'omhoog' : 'omlaag'} als ${pr.v} toeneemt.</div>
+               </div>`
+            : '';
+    }
+
+    /** Eén strook per schakel, onder elkaar, met een gedeelde horizontale as. Elke strook heeft een eigen verticale schaal. */
+    function renderKettingCanvas() {
+        const pr = kettingPresets[kettingIdx];
+        const { ctx, w, h } = setupCanvas($('canvas-ketting'));
+        const n = pr.stappen.length;
+        const [d0, d1] = pr.dom;
+        const L = 238, R = w - 70, top = 12, onder = 46;
+        const rijH = (h - top - onder) / n;
+        const mapX = x => L + (x - d0) / (d1 - d0) * (R - L);
+        const t = kettingT;
+
+        pr.stappen.forEach((s, i) => {
+            const y0 = top + i * rijH + 4, y1 = top + (i + 1) * rijH - 6;
+            const laatste = i === n - 1;
+            const zichtbaar = i < kettingGoed;
+            const kleur = laatste ? DONKER : C.violet;
+            // De verticale as van deze strook; het deel zelf staat ernaast als label.
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            strokeLine(ctx, L, y0, L, y1);
+            strokeLine(ctx, L, y1, R, y1);
+            const labelKleur = zichtbaar ? kleur : i === kettingGoed ? '#475569' : '#cbd5e1';
+            canvasFormule(ctx, s.lbl || s.e, L - 12, (y0 + y1) / 2 + 6, { align: 'right', size: 15, color: labelKleur, bold: laatste });
+            if (i > kettingGoed) return;
+            if (!zichtbaar) {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '600 14px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('? Eerst redeneren: neemt dit deel toe of af?', (L + R) / 2, (y0 + y1) / 2 + 4);
+                return;
+            }
+            const N = 240;
+            const xs = Array.from({ length: N + 1 }, (_, k) => d0 + (d1 - d0) * k / N);
+            const ys = xs.map(s.f);
+            let lo = Math.min(...ys), hi = Math.max(...ys);
+            if (hi - lo < 1e-9) { hi += 1; lo -= 1; }
+            const mapY = y => y1 - 4 - (y - lo) / (hi - lo) * (y1 - y0 - 10);
+            ctx.save();
+            ctx.strokeStyle = kleur;
+            ctx.lineWidth = laatste ? 3 : 2.5;
+            ctx.beginPath();
+            xs.forEach((x, k) => (k ? ctx.lineTo(mapX(x), mapY(ys[k])) : ctx.moveTo(mapX(x), mapY(ys[k]))));
+            ctx.stroke();
+            ctx.restore();
+            const yt = s.f(t), px = mapX(t), links = px > R - 80;
+            stip(ctx, px, mapY(yt), kleur, 5.5);
+            tekst(ctx, fmtW(yt), links ? px - 9 : px + 9, Math.max(y0 + 14, mapY(yt) - 7), kleur, links ? 'right' : 'left', 13);
+            ctx.fillStyle = kleur;
+            ctx.font = '700 15px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(s.dir === 'toe' ? '↑ toe' : '↓ af', R + 10, (y0 + y1) / 2 + 5);
+        });
+
+        // Gedeelde horizontale as (t of x) met schaalverdeling en label, zoals bij drawGraph.
+        const asY = h - onder + 6;
+        ctx.strokeStyle = DONKER;
+        ctx.lineWidth = 1.5;
+        strokeLine(ctx, L, asY, R, asY);
+        const stap = mooieStap(d1 - d0, 8);
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        for (let k = Math.ceil(d0 / stap - 1e-9); k * stap <= d1 + 1e-9; k++) {
+            const px = mapX(k * stap);
+            strokeLine(ctx, px, asY, px, asY + 4);
+            ctx.fillText(fmt(k * stap), px, asY + 17);
+        }
+        ctx.fillStyle = DONKER;
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(pr.v, R + 8, asY + 4);
+
+        // De gekozen t: één verticale lijn door alle stroken.
+        ctx.save();
+        ctx.strokeStyle = C.amber;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 4]);
+        strokeLine(ctx, mapX(t), top, mapX(t), asY);
+        ctx.restore();
+        stip(ctx, mapX(t), asY, C.amber, 5);
+        tekst(ctx, `${pr.v} = ${fmt(t, 1)}`, Math.min(Math.max(mapX(t), L + 30), R - 30), asY + 35, C.amber, 'center', 13);
+    }
+
+    // ==================== TAB 4: FORMULE-LAB (N = c / (a + b · gᵗ)) ====================
+    // Voorbeeld p. 112: c = 5000, a = 2, b = 5,5 en g = e^(−0,3) ≈ 0,74. Theorie A: B = 120 / (1 + 0,5 · 1,6ᵗ).
+    // Terugblik p. 118: N = 150 / (3 + 20 · 0,6ᵗ).
+    const labPresets = [
+        { c: 5000, a: 2, b: 5.5, g: 0.74, tMax: 20, xStep: 2, cMin: 100, cMax: 6000, cStep: 50, y: 'N' },
+        { c: 120, a: 1, b: 0.5, g: 1.6, tMax: 15, xStep: 3, cMin: 5, cMax: 300, cStep: 5, y: 'B' },
+        { c: 150, a: 3, b: 20, g: 0.6, tMax: 10, xStep: 1, cMin: 5, cMax: 300, cStep: 5, y: 'N' },
+    ];
+    let labIdx = 0;
+
+    function setLabPreset(i) {
+        labIdx = i;
+        const pr = labPresets[i];
+        const c = $('lab-c');
+        c.min = pr.cMin;
+        c.max = pr.cMax;
+        c.step = pr.cStep;
+        c.value = pr.c;
+        $('lab-a').value = pr.a;
+        $('lab-b').value = pr.b;
+        $('lab-g').value = pr.g;
+        setActiveButton('lab-preset-', labPresets.length, i);
+        updateLab();
+    }
+
+    function updateLab() {
+        const pr = labPresets[labIdx];
+        const c = parseFloat($('lab-c').value), a = parseFloat($('lab-a').value);
+        const b = parseFloat($('lab-b').value), g = parseFloat($('lab-g').value);
+        const y = pr.y, gT = fmtF(g, 2);
+        const f = t => c / (a + b * g ** t);
+        const N0 = c / (a + b);
+        const constant = b === 0 || g === 1;
+        const grens = b === 0 ? c / a : g < 1 ? c / a : g > 1 ? 0 : N0;
+
+        $('val-c').innerText = `c = ${fmt(c)}`;
+        $('val-a').innerText = `a = ${fmt(a)}`;
+        $('val-b').innerText = `b = ${fmt(b)}`;
+        $('val-g').innerText = `g = ${gT}`;
+        $('lab-g-uitleg').innerHTML = g < 1 ? '0 &lt; g &lt; 1: g<sup>t</sup> neemt af en nadert tot 0.'
+            : g > 1 ? 'g &gt; 1: g<sup>t</sup> neemt toe en wordt heel groot.' : 'g = 1: g<sup>t</sup> = 1 voor elke t.';
+        $('lab-formule').innerHTML = fm(`${y} = {${fmt(c)}|${fmt(a)} + ${fmt(b)} · ${gT}^[t]}`);
+
+        const hoogste = Math.max(N0, grens, f(pr.tMax)) * 1.15 || 1;
+        const yStep = mooieStap(hoogste, 6);
+        const r = drawGraph('canvas-lab', {
+            xMin: 0, xMax: pr.tMax, yMin: 0, yMax: Math.ceil(hoogste / yStep) * yStep, xStep: pr.xStep, yStep,
+            xLabel: 't', yLabel: y, pad: { l: 50 },
+            hLines: [{ y: grens, color: C.sky, label: `grenswaarde ${fmtW(grens)}` }],
+            curves: [{ f, color: C.indigo, width: 3 }],
+        });
+        stip(r.ctx, r.mapX(0), r.mapY(N0), C.amber, 7);
+
+        const macht = `${gT}^[t]`;
+        let grensTekst, richting;
+        if (b === 0) {
+            grensTekst = `b = 0: er staat geen g<sup>t</sup> meer in de formule. Dan is ${fm(`${y} = {${fmt(c)}|${fmt(a)}} = ${fmtW(c / a)}`)} voor elke t.`;
+        } else if (g < 1) {
+            grensTekst = `Als t heel groot wordt, dan nadert ${fm(macht)} tot 0. Dan wordt ${fm(`${fmt(b)} · ${macht}`)} ≈ 0 en de noemer ≈ ${fmt(a)}. Dus ${fm(`${y} ≈ {${fmt(c)}|${fmt(a)}} = ${fmtW(c / a)}`)}.`;
+        } else if (g > 1) {
+            grensTekst = `Als t heel groot wordt, dan wordt ${fm(macht)} heel groot, en dus ook de noemer. Deel je ${fmt(c)} door een heel groot getal, dan krijg je ongeveer 0.`;
+        } else {
+            grensTekst = `${fm(`1^[t]`)} = 1, dus ${fm(`${y} = {${fmt(c)}|${fmt(a)} + ${fmt(b)}} = ${fmtW(N0)}`)} voor elke t.`;
+        }
+        if (constant) {
+            richting = `${y} verandert niet als t toeneemt: de grafiek is een horizontale lijn, niet stijgend en niet dalend.`;
+        } else if (g < 1) {
+            richting = `Als t toeneemt, dan neemt ${fm(macht)} af, dus ${fm(`${fmt(b)} · ${macht}`)} af, dus de noemer af. Deel je ${fmt(c)} door een steeds kleiner getal, dan neemt ${y} toe: <strong>stijgend</strong>.`;
+        } else {
+            richting = `Als t toeneemt, dan neemt ${fm(macht)} toe, dus ${fm(`${fmt(b)} · ${macht}`)} toe, dus de noemer toe. Deel je ${fmt(c)} door een steeds groter getal, dan neemt ${y} af: <strong>dalend</strong>.`;
+        }
+        $('lab-uitleg').innerHTML = `
+            <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-slate-700">
+                <div class="font-bold text-sky-800 mb-1">Grenswaarde: ${fmtW(grens)}</div>${grensTekst}
+            </div>
+            <div class="p-3 rounded-xl bg-amber-50 border border-amber-200 text-slate-700">
+                <div class="font-bold text-amber-800 mb-1">Beginwaarde: ${fmtW(N0)}</div>
+                Bij t = 0 is ${fm(`${gT}^[0]`)} = 1, dus ${fm(`${y}(0) = {${fmt(c)}|${fmt(a)} + ${fmt(b)}} = ${fmtW(N0)}`)}. Verander b: de beginwaarde verandert, de grenswaarde niet.
+            </div>
+            <div class="p-3 rounded-xl bg-violet-50 border border-violet-200 text-slate-700">
+                <div class="font-bold text-violet-800 mb-1">Stijgend of dalend</div>${richting}
+            </div>`;
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //   choice:     'B'                                              — meerkeuze, radio name = sleutel
+    //   check:      () => true/false                                 — eigen controle (bv. grafiek-matcher)
+    //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
+    //   hint:       wijst naar de aanpak en de plek in de les — NIET het antwoord
+    //   goed:       korte bevestiging bij een goed antwoord (optioneel)
+    //   uitwerking: volledige berekening (HTML); verschijnt na goed antwoord of na 2 fouten
+    // Afgeronde antwoorden staan erin als [afgerond, onafgerond] met een kleine tol: zo telt
+    // zowel "9,6" als het GR-getal "9,6439", maar niet een verkeerd afgeronde "9,7".
+    // Bij een check die een grafiek verandert (stippellijn pas na het goede antwoord) tekent
+    // setTimeout de kaarten opnieuw, nadat checkExercise de opdracht als opgelost heeft gemarkeerd.
+    const T30 = ln((260 / 250 - 1) / 32) / ln(0.5);                       // 9,6439 weken
+    const T31 = ln(250 / 1200) / ln(0.7);                                  // 4,3979 uur na 9:00
+    const N33 = t => 1035 / (1 + 210 * Math.exp(-0.175 * t));
+    const AFW33 = (N33(45) - 961) / 961 * 100;                             // −0,2615 %
+    const P34 = t => 92 / 2.39 ** t + 32 / 1.04 ** t + 10;
+    const T34 = (() => {                                                   // P = 50 bij t = 2,4453 minuut
+        let lo = 0, hi = 20;
+        for (let i = 0; i < 60; i++) {
+            const m = (lo + hi) / 2;
+            if (P34(m) > 50) lo = m; else hi = m;
+        }
+        return lo;
+    })();
+
+    const exercises = {
+        q1: {
+            // 0,8ᵗ af → 90 · 0,8ᵗ af → 100 − 90 · 0,8ᵗ toe → stijgend
+            check: () => keuzesOk({ 'q1-1': 'af', 'q1-2': 'af', 'q1-3': 'toe', 'q1-c': 'stijgend' }),
+            hint: 'Werk van binnen naar buiten, zoals de redeneerketting in tab 3. Begin bij 0,8ᵗ: is het grondtal kleiner of groter dan 1?',
+            uitwerking: `b. Als t toeneemt, dan neemt 0,8<sup>t</sup> <strong>af</strong>, want 0 &lt; 0,8 &lt; 1. Dus dan neemt 90 · 0,8<sup>t</sup> <strong>af</strong>, en dus neemt 100 − 90 · 0,8<sup>t</sup> <strong>toe</strong>: je trekt van 100 steeds minder af.<br>
+                c. A neemt toe als t toeneemt, dus de grafiek van A is <strong>stijgend</strong>. In opgave 29d zie je dat ook op de GR (venster x van 0 tot 20, y van 0 tot 100).`,
+        },
+        q2: {
+            // b: 260 / (1 + 32 · 0,125) = 52; c: 0,5ᵗ ≈ 0 → 260; d: 1 + 32 · 0,5ᵗ = 1,04 → t = 9,64
+            check: () => {
+                const ok = veldenOk([['q2-h', 52, 0.006], ['q2-g', 260, 0.006], ['q2-t', [9.6, T30], 0.006]]);
+                setTimeout(renderOpdrachten);
+                return ok;
+            },
+            hint: 'b: vul t = 3 in. c: laat t heel groot worden (tab 2). d: h is in cm. Gebruik de GR met een snijpunt (tab 4).',
+            uitwerking: `b. ${fm('h = {260|1 + 32 · 0,5³} = {260|5} = 52')}, dus 52 cm.<br>
+                c. Als t heel groot wordt, nadert 0,5<sup>t</sup> tot 0. Dan 32 · 0,5<sup>t</sup> ≈ 0 en 1 + 32 · 0,5<sup>t</sup> ≈ 1, dus ${fm('h ≈ {260|1} = 260')}. De grenswaarde is 260 cm.<br>
+                d. 2,5 meter = 250 cm. Voer in y<sub>1</sub> = 260/(1 + 32 · 0,5<sup>x</sup>) en y<sub>2</sub> = 250. De optie snijpunt geeft x ≈ 9,64. Vanaf t ≈ 9,6 weken is de zonnebloem hoger dan 2,5 meter.<br>
+                Wie 2,5 invult, vindt t ≈ −1,7: dan klopt de eenheid niet.`,
+        },
+        q3: {
+            // b: 0,7ᵗ ≈ 0 → N ≈ 1200; c: t = 4,398 uur = 4 uur 24 min → 13:24
+            check: () => {
+                const ok = veldenOk([['q3-n', 1200, 0.01], ['q3-uur', 13, 0.01], ['q3-min', [24, (T31 - 4) * 60], 0.02]]);
+                setTimeout(renderOpdrachten);
+                return ok;
+            },
+            hint: 'b: laat t heel groot worden (tab 2). c: los 1200(1 − 0,7ᵗ) = 950 op met de GR (tab 4). t is het aantal uren na 9:00 uur.',
+            uitwerking: `b. Als t heel groot wordt, nadert 0,7<sup>t</sup> tot 0, dus N ≈ 1200(1 − 0) = 1200. Het verzadigingsniveau is de lijn <strong>N = 1200</strong>. In de praktijk: op den duur hebben (bijna) alle 1200 leerlingen van de school het nieuws gehoord.<br>
+                c. Voer in y<sub>1</sub> = 1200(1 − 0,7<sup>x</sup>) en y<sub>2</sub> = 950. Snijpunt: x ≈ 4,398. Dat is 4 uur en 0,398 · 60 ≈ 24 minuten na 9:00 uur, dus om <strong>13:24 uur</strong>.`,
+        },
+        q4: {
+            // a: 2^(−0,23t) = (2^(−0,23))ᵗ ≈ 0,853ᵗ → 500/20 = 25; b: eᵗ toe → dalend; c: 1,5ᵗ toe → stijgend; d: 160
+            check: () => [veldenOk([['q4-a', 25, 0.01], ['q4-d', 160, 0.01]]), keuzesOk({ 'q4-b': 'dalend', 'q4-c': 'stijgend' })].every(Boolean),
+            hint: 'a: schrijf de macht met de negatieve exponent als (2^−0,23)ᵗ (Let op in tab 1). b en c: bouw een redeneerketting (tab 3). d: tab 2.',
+            uitwerking: `a. ${fm('2^[−0,23t] = (2^[−0,23])^[t] ≈ 0,853^[t]')}. Als t heel groot wordt, nadert dit tot 0. Dan ${fm('13 · 2^[−0,23t]')} ≈ 0 en de noemer ≈ 20, dus ${fm('N ≈ {500|20} = 25')}.<br>
+                b. Als t toeneemt, neemt e<sup>t</sup> toe (e ≈ 2,72 &gt; 1), dus 2,1 · e<sup>t</sup> toe, dus 8 + 2,1 · e<sup>t</sup> toe. Deel je 720 door een steeds groter getal, dan neemt N af: <strong>dalend</strong>.<br>
+                c. 1,5<sup>t</sup> neemt toe, dus 1 + 1,5<sup>t</sup> neemt toe, dus 8000(1 + 1,5<sup>t</sup>) neemt toe: <strong>stijgend</strong>.<br>
+                d. 0,8<sup>t</sup> ≈ 0, dus 50 · 0,8<sup>t</sup> ≈ 0 en N ≈ 160 − 0 = 160. Met t = 0 vind je 110: dat is de beginwaarde.`,
+        },
+        q5: {
+            // b: (280/63)^(1/10) = 1,1609 → 16,1%; c: 23 april 0:00 is t = 22 → 63 · 1,16⁷ ≈ 178 (of 280 / 1,16³ ≈ 179);
+            // d: N(45) = 958,5 tegen 961 → −0,26%
+            check: () => veldenOk([
+                ['q5-p', [16.1, 100 * ((280 / 63) ** 0.1 - 1)], 0.006],
+                ['q5-n', [63 * 1.16 ** 7, 280 / 1.16 ** 3], 0.6],
+                ['q5-afw', [0.3, -0.3, AFW33, -AFW33], 0.006],
+            ]),
+            hint: 'b: in 10 dagen werd het aantal 280/63 keer zo groot. c: tel de dagen vanaf t = 15 (Let op in tab 4). d: bereken N(45) met de formule en vergelijk met de telling 961.',
+            uitwerking: `b. Van t = 15 tot t = 25 zijn 10 dagen. De groeifactor per 10 dagen is ${fm('{280|63} ≈ 4,444')}, dus de groeifactor per dag is ${fm('4,444^[{1|10}] ≈ 1,161')}. Het groeipercentage is 16,1% per dag.<br>
+                c. 1 april 0:00 uur is t = 0, dus 23 april 0:00 uur is t = 22. Vanaf de telling op t = 15: N = 63 · 1,16<sup>7</sup> ≈ <strong>178</strong>. (Terugrekenen vanaf t = 25 geeft 280 / 1,16<sup>3</sup> ≈ 179; dat is ook goed.) Wie t = 23 neemt, vindt 207.<br>
+                d. ${fm('N(45) = {1035|1 + 210 · e^[−0,175 · 45]} ≈ 958,5')}. De telling is 961. ${fm('{958,5 − 961|961} · 100% ≈ −0,26%')}. De formule wijkt dus ongeveer 0,3% af: hij geeft iets te weinig.`,
+        },
+        q6: {
+            // b: P = 50 bij t = 2,4453 min = 146,7 s; c: 10; d: a = 1/2,39, b = 1/1,04
+            check: () => veldenOk([
+                ['q6-s', [147, T34 * 60], 0.3],
+                ['q6-g', 10, 0.01],
+                ['q6-a', [0.418, 1 / 2.39], 0.0005],
+                ['q6-b', [0.962, 1 / 1.04], 0.0005],
+            ]),
+            hint: 'b: los P = 50 op met de GR (tab 4); t is in minuten. c: laat t heel groot worden (tab 2). d: 92 gedeeld door 2,39ᵗ is 92 · (1/2,39)ᵗ.',
+            uitwerking: `b. De helft van de woorden: P = 50. Voer in y<sub>1</sub> = 92/2,39<sup>x</sup> + 32/1,04<sup>x</sup> + 10 en y<sub>2</sub> = 50. Snijpunt: x ≈ 2,445 minuten. Dat is 2,445 · 60 ≈ <strong>147 seconden</strong>.<br>
+                c. Als t heel groot wordt, wordt 2,39<sup>t</sup> heel groot, dus ${fm('{92|2,39^[t]}')} ≈ 0. Ook 1,04<sup>t</sup> wordt heel groot, dus ${fm('{32|1,04^[t]}')} ≈ 0. Dan P ≈ 0 + 0 + 10 = <strong>10</strong>. Op den duur weet je nog ongeveer 10% van de woorden.<br>
+                d. ${fm('{92|2,39^[t]} = 92 · ({1|2,39})^[t]')}, dus ${fm('a = {1|2,39} ≈ 0,418')}. Net zo ${fm('b = {1|1,04} ≈ 0,962')}.`,
+        },
+        q7: {
+            check: () => keuzesOk({ 'q7-a': 'toe', 'q7-b': 'af', 'q7-c': 'af', 'q7-d': 'toe' }),
+            hint: 'Bouw per formule een redeneerketting van binnen naar buiten (tab 3). Iets aftrekken van een getal, of een getal erdoor delen, draait de richting om.',
+            uitwerking: `a. 0,9<sup>x</sup> neemt af (0 &lt; 0,9 &lt; 1), dus 1 − 0,9<sup>x</sup> neemt toe: <strong>y neemt toe</strong>.<br>
+                b. 2x neemt toe, dus 2x + 1 neemt toe, dus ${fm('{20|2x + 1}')} neemt af: <strong>y neemt af</strong>.<br>
+                c. x² neemt toe, dus ${fm('{1|x²}')} neemt af, dus ${fm('10 + {1|x²}')} neemt af: <strong>y neemt af</strong>.<br>
+                d. x + 1 neemt toe, dus ${fm('√[x + 1]')} neemt toe, dus ${fm('3√[x + 1]')} neemt toe, dus ${fm('{3√[x + 1]|10}')} neemt toe: <strong>y neemt toe</strong>.`,
+        },
+        q8: {
+            choice: 'B',
+            hint: 'xⁿ neemt alleen toe als n > 0. Schrijf eerst 5x⁻³ als een breuk (Let op in tab 3).',
+            uitwerking: `Met ${fm('a^[−p] = {1|a^[p]}')} is ${fm('y = 5x^[−3] = {5|x³}')}. Als x toeneemt, neemt x³ toe (n = 3 &gt; 0). Deel je 5 door een steeds groter getal, dan neemt de uitkomst af. De grafiek is dalend: <strong>B</strong>.<br>
+                A gebruikt de regel voor x<sup>n</sup> met n = −3, maar die regel geldt alleen voor n &gt; 0. C heeft de goede conclusie, maar x<sup>−3</sup> is iets anders dan −3x: de redenering klopt niet. D vergeet dat delen door een groter getal een kleinere uitkomst geeft.`,
+        },
+        q9: {
+            check: () => [
+                keuzesOk({ 'q9-ar': 'dalend', 'q9-br': 'stijgend', 'q9-cr': 'stijgend' }),
+                veldenOk([['q9-ag', 25, 0.01], ['q9-bg', 40, 0.01], ['q9-cg', 72, 0.01]]),
+            ].every(Boolean),
+            hint: 'Per formule: eerst de redeneerketting (tab 3), dan x of t heel groot maken (tab 2).',
+            uitwerking: `a. x² neemt toe, dus ${fm('{12|x²}')} neemt af, dus ${fm('25 + {12|x²}')} neemt af: <strong>dalend</strong>. Als x heel groot wordt, is ${fm('{12|x²}')} ≈ 0, dus y ≈ <strong>25</strong>.<br>
+                b. √x neemt toe, dus 2 + √x neemt toe, dus ${fm('{80|2 + √x}')} neemt af, dus ${fm('40 − {80|2 + √x}')} neemt toe: <strong>stijgend</strong>. Als x heel groot wordt, is ${fm('{80|2 + √x}')} ≈ 0, dus y ≈ <strong>40</strong>.<br>
+                c. 0,65<sup>t</sup> neemt af, dus 333 · 0,65<sup>t</sup> neemt af, dus de noemer neemt af en N neemt toe: <strong>stijgend</strong>. Als t heel groot wordt, is 0,65<sup>t</sup> ≈ 0, dus ${fm('N ≈ {18 000|250} = 72')}.`,
+        },
+        q10: {
+            // c: 38 = v²/(25f) → f = v²/950; d: 1,2² = 1,44 → 44%; e: v² = 1000f, f × 1,084 → v × √1,084 = 1,0412
+            fields: { 'q10-1': 950, 'q10-d': 44, 'q10-e': [4.1, 100 * (Math.sqrt(1.084) - 1)] },
+            tol: 0.006,
+            hint: 'c: vul L = 38 in en maak f vrij. d: v wordt 1,2v; wat gebeurt er dan met v²? e: L blijft 40 en f wordt 1,084f. Wat moet er dan met v² gebeuren?',
+            uitwerking: `c. ${fm('38 = {v²|25f}')} geeft 38 · 25f = v², dus 950f = v² en ${fm('f = {v²|950}')}.<br>
+                d. Bij de snelheid 1,2v is de remweg ${fm('{(1,2v)²|25f} = 1,44 · {v²|25f}')}. De remweg wordt 1,44 keer zo lang: <strong>44%</strong> langer.<br>
+                e. ${fm('40 = {v²|25f}')} geeft v² = 1000f. Wordt f 1,084 keer zo groot, dan wordt v² ook 1,084 keer zo groot. Dan wordt v ${fm('√[1,084] ≈ 1,041')} keer zo groot: de snelheid is <strong>4,1%</strong> hoger.`,
+        },
+        q11: {
+            // a: T − 33 = 0 → G = 33 voor elke w; b: W = 0,474 + 0,454s − 0,0454s² met s = √w ∈ [0, 5]: top bij s = 5
+            check: () => [veldenOk([['q11-T', 33, 0.01]]), radioWaarde('q11') === 'AS'].every(Boolean),
+            hint: 'a: welke T maakt de factor (T − 33) gelijk aan 0? b: schets W op de GR voor w van 0 tot 25 en kijk of de helling groter of kleiner wordt.',
+            uitwerking: `a. Bij T = 33 is T − 33 = 0, dus G = 33 + 0 · W = <strong>33</strong> °C, bij elke windsnelheid.<br>
+                b. W(0) = 0,474 en W(25) = 0,474 + 0,454 · 5 · 0,5 = 1,609. De grafiek van W stijgt bij kleine w heel snel en daarna steeds langzamer: <strong>afnemend stijgend</strong>.<br>
+                (c. Rond het vriespunt is T − 33 ≈ −33, een negatief getal. Als w toeneemt, neemt W toe, dus (T − 33) · W neemt af. Dan neemt ook G af.)`,
+        },
+        q12: {
+            // De formule van de bioloog: c = 1035, b = 210, g = e^(−0,175) ≈ 0,84 (binnen ±6 van alle vijf tellingen).
+            check: () => {
+                const c = parseNum($('q12-c').value), b = parseNum($('q12-b').value), g = parseNum($('q12-g').value);
+                if (![c, b, g].every(isFinite) || g <= 0) return false;
+                return FIG1423_LABELS.every(([t, n]) => Math.abs(c / (1 + b * g ** t) - n) <= 35);
+            },
+            hint: 'c is de grenswaarde: lees de stippellijn af. Kies daarna g tussen 0 en 1: hoe dichter bij 1, hoe trager de groei. Met b schuif je de grafiek naar links of rechts.',
+            uitwerking: `De bioloog gebruikt ${fm('N = {1035|1 + 210 · e^[−0,175t]}')}. Met ${fm('e^[−0,175t] = (e^[−0,175])^[t] ≈ 0,84^[t]')} is dat c = 1035, b = 210 en g ≈ 0,84.<br>
+                A33e: als t heel groot wordt, nadert 0,84<sup>t</sup> tot 0. Dan 210 · 0,84<sup>t</sup> ≈ 0 en de noemer ≈ 1, dus ${fm('N ≈ {1035|1} = 1035')}. Dat klopt met de verwachting van de bioloog: op den duur vrijwel 1035 fruitvliegjes.`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Figuur 14.21 (zonder schaalverdeling in het boek): h = 260 / (1 + 32 · 0,5ᵗ) begint bij 260/33 ≈ 7,9 en heeft
+    // het buigpunt bij t = 5 (32 · 0,5ᵗ = 1) → t van 0 tot 12. De stippellijn komt pas na het goede antwoord.
+    function drawQ2() {
+        drawGraph('canvas-q2', {
+            xMin: 0, xMax: 12, yMin: 0, yMax: 300, xStep: 2, yStep: 50, pad: { l: 36, b: 24 },
+            xLabel: 't', yLabel: 'h',
+            hLines: solved.has('q2') ? [{ y: 260, color: C.sky, label: 'grenswaarde 260' }] : [],
+            curves: [{ f: t => 260 / (1 + 32 * 0.5 ** t), color: DONKER }],
+        });
+    }
+
+    // Figuur 14.22 (zonder schaalverdeling in het boek): N = 1200(1 − 0,7ᵗ) begint in O en zit bij t = 12 op 99%.
+    function drawQ3() {
+        drawGraph('canvas-q3', {
+            xMin: 0, xMax: 12, yMin: 0, yMax: 1400, xStep: 2, yStep: 200, pad: { l: 42, b: 24 },
+            xLabel: 't', yLabel: 'N',
+            hLines: solved.has('q3') ? [{ y: 1200, color: C.sky, label: 'verzadigingsniveau 1200' }] : [],
+            curves: [{ f: t => 1200 * (1 - 0.7 ** t), color: DONKER }],
+        });
+    }
+
+    // Figuur 14.23: de vijf gelabelde tellingen exact zoals in het boek. De andere stippen liggen op de formule van de
+    // bioloog (afgerond); hun plaats is afgelezen. Schaalverdeling zoals in het boek: 15, 35, 55, 75 en 500, 1000.
+    const FIG1423_LABELS = [[15, 63], [25, 280], [35, 705], [45, 961], [55, 1026]];
+    const FIG1423_T = [3, 8, 10, 12, 18, 20, 22, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 36, 37, 38, 40, 42, 44, 47, 50, 52, 58, 62, 73, 78, 80];
+    const fig1423Stippen = [...FIG1423_T.map(t => [t, Math.round(N33(t))]), ...FIG1423_LABELS];
+
+    function fig1423(canvasId, extra = {}, klein = false) {
+        const r = drawGraph(canvasId, Object.assign({
+            xMin: 0, xMax: 85, yMin: 0, yMax: 1200, xStep: 5, yStep: 250,
+            xTick: v => [15, 35, 55, 75].includes(Math.round(v)) ? fmt(v) : '',
+            yTick: v => (v === 500 || v === 1000 ? fmt(v) : ''),
+            xLabel: 't', yLabel: 'N', xCaption: 'tijd in dagen',
+            hLines: [{ y: 1035, color: C.sky }],
+            points: fig1423Stippen.map(([x, y]) => ({ x, y, color: DONKER, r: klein ? 2.6 : 3.4 })),
+        }, extra));
+        const { ctx, mapX, mapY } = r;
+        const s = klein ? 10 : 12;
+        const plek = { 15: [-8, -8, 'right'], 25: [8, 4, 'left'], 35: [8, 4, 'left'], 45: [-12, 2, 'right'], 55: [4, 18, 'left'] };
+        FIG1423_LABELS.forEach(([t, n]) => {
+            const [dx, dy, al] = plek[t];
+            stip(ctx, mapX(t), mapY(n), DONKER, klein ? 3.4 : 4.6);
+            tekst(ctx, `(${t}, ${n})`, mapX(t) + dx, mapY(n) + dy, DONKER, al, s);
+        });
+        return r;
+    }
+
+    function drawQ5() {
+        fig1423('canvas-q5', { pad: { l: 40, r: 18, t: 22 } }, true);
+    }
+
+    function drawQ12() {
+        const c = parseNum($('q12-c').value), b = parseNum($('q12-b').value), g = parseNum($('q12-g').value);
+        const geldig = [c, b, g].every(isFinite) && g > 0;
+        const f = t => c / (1 + b * g ** t);
+        fig1423('canvas-q12', { curves: geldig ? [{ f, color: C.indigo, width: 3 }] : [] });
+        $('q12-live').innerHTML = geldig ? fm(`N = {${fmt(c)}|1 + ${fmt(b)} · ${fmt(g, 3)}^[t]}`) : '';
+        $('q12-afw').innerHTML = geldig
+            ? 'Afstand tot de tellingen: ' + FIG1423_LABELS.map(([t, n]) => {
+                const d = f(t) - n;
+                return `<span class="${Math.abs(d) <= 35 ? 'text-indigo-700 font-bold' : 'text-rose-600'}">t = ${t}: ${d >= 0 ? '+' : '−'}${fmt(Math.abs(d), 0)}</span>`;
+            }).join(' · ')
+            : '';
+    }
+
+    function renderOpdrachten() {
+        drawQ2();
+        drawQ3();
+        drawQ5();
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setBasisPreset(0);
+    setGrensPreset(0);
+    setKettingPreset(0);
+    setLabPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+    requestAnimationFrame(animateLoop);
+</script>
+</body>
+</html>

@@ -30,6 +30,12 @@ the H13 lessons use English.
   them: `2nd` `WINDOW` (TBLSET), `2nd` `GRAPH` (TABLE), `MODE`.
 - **Don't guess Dutch menu text** the book doesn't show. Describe the item instead ("de regel met
   de grafiektypes", "de functiemodus (Engelstalige GR: FUNCTION)").
+- **The Dutch CALC menu (`2nd` `TRACE`) is not confirmed yet.** G&R H14 uses the words "optie nulpunt"
+  and "optie maximum", but no book page shows the Dutch menu lines or the prompts. Until someone checks
+  a real Dutch CE, write the book's word with the English menu text alongside ("de optie maximum
+  (Engelstalige GR: 4:maximum)", "de optie voor het snijpunt (Engelstalige GR: 5:intersect)"), and
+  describe the prompts instead of quoting them ("kies links van de top een grens, dan rechts, en geef
+  een gok (Engelstalige GR: Left Bound?, Right Bound?, Guess?)"). Fill in the table below once confirmed.
 
 | Engels | Nederlands (zoals in G&R H12) |
 |---|---|
@@ -39,6 +45,7 @@ the H13 lessons use English.
 | `TYPE: SEQ(n) SEQ(n+1) SEQ(n+2)` | `TYPE: RIJ(n) RIJ(n+1) RIJ(n+2)` |
 | `PRESS + FOR ΔTbl` | `DRUK OP + VOOR ΔTbl` |
 | `PRESS ENTER TO EDIT` | `DRUK OP ENTER VOOR BEWERKEN` (cursor op een kolomkop) |
+| `CALC`: `1:value` `2:zero` `3:minimum` `4:maximum` `5:intersect` | *nog niet bevestigd* (boek H14: "optie nulpunt", "optie maximum") |
 
 ## Settings
 
@@ -66,6 +73,7 @@ the `gr-screen`.
 | Breuk (stapel) | `ALPHA` `Y=` (F1) → `1:n/d` | |
 | Uitkomst als breuk | `MATH` → `1:▶Frac` → `ENTER` | |
 | log met grondtal | `MATH` → `logBASE(` (of `ALPHA` `WINDOW` (F2) → `logBASE(`) | |
+| Numerieke afgeleide | `ALPHA` `WINDOW` (F2) → `nDeriv(` (G&R H14: "de optie nDeriv via f2"). In het sjabloon `d/dX(Y1)\|X=X` (zo op het scherm in het boek) | Voor de hellinggrafiek: `Y2=d/dX(Y1)\|X=X`, dan `2nd` `GRAPH` (TABLE) of `GRAPH` |
 | Vorig antwoord | `2nd` `(−)` (ANS) | Op een Nederlandstalige GR staat er `Antw` op het scherm |
 
 ## Graphs
