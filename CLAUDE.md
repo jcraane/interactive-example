@@ -120,6 +120,16 @@ All examples are in **Dutch** (`lang="nl"`).
   combineren stappenplan whose route dots line up on the combined formula, and 12 auto-checked book
   exercises (fill-in boxes in a given form) ending in a matcher on opgave A53c. Book-style fractions
   and roots come from a small `fm()` markup helper (`{teller|noemer}`, `√[…]`, `^[…]`, `#1`).
+- `wiskunde/vwo6/omvormen-exponenten-en-logaritmen.html` — **Wiskunde**, §13.4 of the same chapter:
+  variabelen vrijmaken bij exponenten en logaritmen, grondtallen veranderen, and N = b·gᵗ ↔
+  ᵍlog(N) = at + b, N = atᵇ ↔ ᵍlog(N) = a + b·ᵍlog(t). The thread is "elke stap is één rekenregel":
+  a rule tester where the left side is a wide band and the right side a line (bases 10/e/2, a
+  klassieke-fout toggle that pulls the line out of the band), the §13.3 terugreken-ladder for
+  Theorie A, a base-change explorer where you slide c until the new-base graph covers the old one,
+  a normal-axis vs logarithmic-axis explorer for Theorie C/D (straight line, slope triangle, startgetal)
+  plus a ladder with the book's derivations, and 12 auto-checked book exercises ending in a matcher
+  on figuur 13.23. Ladder steps are coloured by rule: emerald omkeerregel, amber machtsregels, sky
+  logregels, violet grondtal veranderen, orange GR-berekening.
 - **H12 Rijen** (Getal & Ruimte, five lessons). They share concept colours (beginterm u₀/b emerald,
   rekenkundige rij / verschil v / lineair sky, meetkundige rij / factor r / exponentieel rose,
   rangnummer n amber, somrij / Σ violet) and show the simulated TI-84 Plus CE screens in Dutch, as

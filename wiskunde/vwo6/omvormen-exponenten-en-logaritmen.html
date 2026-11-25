@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hoofdstuk 13: Omvormen van formules met exponenten en logaritmen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        /* Actieve tab: wit op de indigo header, zodat je altijd ziet waar je bent.
+           Ook bij hover: anders wint Tailwinds hover:bg-white/20 en oogt de actieve tab vaag. */
+        .tab-btn.active,
+        .tab-btn.active:hover {
+            background-color: #ffffff;
+            color: #4338ca;
+            box-shadow: 0 4px 12px rgba(30, 27, 75, 0.25);
+        }
+        input[type="range"] {
+            accent-color: #4f46e5;
+        }
+        /* GR-scherm (gesimuleerd TI-84 Plus CE display) */
+        .gr-screen {
+            background-color: #d8e2dc;
+            background-image: radial-gradient(#b7c9be 1px, transparent 1px);
+            background-size: 8px 8px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        /* GR-toets in een stappenlijst: <span class="key">2nd</span> */
+        .key {
+            display: inline-block;
+            background: #3a3a44;
+            border: 1px solid #50505c;
+            border-bottom-width: 2px;
+            border-radius: 5px;
+            padding: 0 7px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            margin: 0 1px;
+            white-space: nowrap;
+        }
+        /* Formules zoals in het boek (opgemaakt door fm()): breuk = teller boven noemer */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 0.12em;
+        }
+        .frac > span {
+            padding: 0.05em 0.25em;
+            line-height: 1.25;
+            white-space: nowrap;
+        }
+        .frac > span:last-child {
+            border-top: 1.5px solid currentColor;
+        }
+        .frac .frac {
+            font-size: 0.88em;
+        }
+        sup .frac {
+            font-size: 0.85em;
+        }
+        .root {
+            white-space: nowrap;
+        }
+        .root .radicand {
+            border-top: 1.5px solid currentColor;
+            padding: 0 0.12em;
+        }
+        .root-idx {
+            font-size: 0.6em;
+            margin-right: -0.3em;
+        }
+        /* Invulvakje in een opdracht: #1 → [1] */
+        .vak {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.6em;
+            height: 1.4em;
+            padding: 0 0.2em;
+            border: 1.5px dashed #818cf8;
+            border-radius: 0.3em;
+            background: #eef2ff;
+            color: #4338ca;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+        /* Nieuwe regel in een herleidingsladder */
+        .verschijn {
+            animation: verschijn 0.35s ease-out;
+        }
+        @keyframes verschijn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-16">
+
+<!-- ==================== HEADER (vast) ==================== -->
+<header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-violet-700 text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+            <span class="text-xs uppercase tracking-widest bg-indigo-500/40 px-2.5 py-1 rounded-full font-semibold">Wiskunde • Hoofdstuk 13</span>
+            <h1 class="text-xl md:text-2xl font-extrabold mt-1">13.4 Omvormen van formules met exponenten en logaritmen</h1>
+        </div>
+        <div class="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm self-start md:self-auto">
+            <div class="text-xs text-indigo-100">Oefenscore</div>
+            <div id="global-score" class="text-lg font-extrabold mono bg-white text-indigo-700 px-3 py-0.5 rounded-lg">0 / 0</div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 pb-3 overflow-x-auto">
+        <nav class="flex gap-2 min-w-max">
+            <button onclick="switchTab('tab-basis')" id="btn-tab-basis" class="tab-btn active px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                1. Basisbegrippen
+            </button>
+            <button onclick="switchTab('tab-vrij')" id="btn-tab-vrij" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                2. Variabelen vrijmaken
+            </button>
+            <button onclick="switchTab('tab-grond')" id="btn-tab-grond" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                3. Grondtallen veranderen
+            </button>
+            <button onclick="switchTab('tab-log')" id="btn-tab-log" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                4. Naar de log-vorm en terug
+            </button>
+            <button onclick="switchTab('tab-opdrachten')" id="btn-tab-opdrachten" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold transition bg-white/10 hover:bg-white/20">
+                5. Oefenopdrachten (12)
+            </button>
+        </nav>
+    </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 mt-6 space-y-8">
+
+    <!-- ==================== TAB 1: BASISBEGRIPPEN ==================== -->
+    <section id="tab-basis" class="tab-section space-y-6">
+
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Wat is omvormen met exponenten en logaritmen?</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In §13.3 herschreef je formules met breuken en wortels. Nu doe je hetzelfde met <strong>machten</strong> en <strong>logaritmen</strong>. Je maakt t vrij uit N = 2 · log(t) − 3, je schrijft 1,85<sup>t</sup> met het <strong>grondtal</strong> e, en je zet N = 316 · 1,585<sup>t</sup> om in log(N) = 0,2t + 2,5. Elke stap is één <strong>rekenregel</strong>: de formule krijgt een andere vorm, maar bij elke t hoort nog steeds dezelfde N.
+            </p>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-emerald-700">1. Omkeerregel</div>
+                    <div class="font-bold text-slate-900 mt-1">Log weg, of log erbij</div>
+                    <p class="text-sm text-slate-600 mt-1">Een logaritme en een macht met hetzelfde grondtal heffen elkaar op. Zo maak je een log weg, of neem je van beide leden de log.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-emerald-200 mt-2 text-emerald-800 font-semibold space-y-1">
+                        <div data-f="ᵍlog(x) = y ⇔ x = g^[y]"></div>
+                        <div data-f="ln(x) = y ⇔ x = e^[y]"></div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">2. Machtsregels</div>
+                    <div class="font-bold text-slate-900 mt-1">Een exponent splitsen</div>
+                    <p class="text-sm text-slate-600 mt-1">Zo schrijf je 10<sup>½N + 1½</sup> als 31,6 · 3,16<sup>N</sup>: een getal maal een groeifactor tot de macht N.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-amber-200 mt-2 text-amber-800 font-semibold space-y-1">
+                        <div data-f="a^[p + q] = a^[p] · a^[q]"></div>
+                        <div data-f="a^[pq] = (a^[p])^[q]"></div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-sky-700">3. Logregels</div>
+                    <div class="font-bold text-slate-900 mt-1">Een product of macht uit de log halen</div>
+                    <p class="text-sm text-slate-600 mt-1">Een product wordt een som, en een exponent komt vóór de log te staan. Zo haal je een t uit de exponent.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-sky-200 mt-2 text-sky-800 font-semibold space-y-1">
+                        <div data-f="ᵍlog(ab) = ᵍlog(a) + ᵍlog(b)"></div>
+                        <div data-f="ᵍlog(a^[p]) = p · ᵍlog(a)"></div>
+                        <div>log(A) = log(B) geeft A = B</div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">4. Grondtal veranderen</div>
+                    <div class="font-bold text-slate-900 mt-1">Van log naar ln en terug</div>
+                    <p class="text-sm text-slate-600 mt-1">Elk grondtal kan. Je deelt door de log van het grondtal dat je kwijt wilt.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-violet-200 mt-2 text-violet-800 font-semibold space-y-1">
+                        <div data-f="ᵍlog(a) = {ᵖlog(a)|ᵖlog(g)}"></div>
+                        <div data-f="log(a) = {ln(a)|ln(10)}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-slate-600">
+                <span class="font-semibold text-slate-700">In de herleidingen van deze les heeft elke stap de kleur van zijn regel.</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-400 inline-block"></span> gewone stap (apart zetten, delen)</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-orange-500 inline-block"></span> uitrekenen met de GR</span>
+            </div>
+        </div>
+
+        <!-- Verkenner: klopt een regel voor élke x? Linkerlid = brede band, rechterlid = lijn. -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-md">
+                    <h3 class="text-lg font-bold text-slate-800">Verkenner: klopt de regel voor élke x?</h3>
+                    <p class="text-sm text-slate-500">Kies een regel. Het linkerlid is de brede grijze band, het rechterlid de indigo lijn. Klopt de regel, dan ligt de lijn overal in de band. Klik daarna op de klassieke fout en kijk hoe de rode lijn loskomt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setRegel(0)" id="regel-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white"><span data-f="a^[p + q]"></span></button>
+                    <button onclick="setRegel(1)" id="regel-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200"><span data-f="a^[pq]"></span></button>
+                    <button onclick="setRegel(2)" id="regel-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">log(ab)</button>
+                    <button onclick="setRegel(3)" id="regel-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200"><span data-f="log(a^[p])"></span></button>
+                    <button onclick="setRegel(4)" id="regel-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Ander grondtal</button>
+                    <button onclick="setRegel(5)" id="regel-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Log en macht</button>
+                </div>
+            </div>
+
+            <div id="regel-pil" class="mb-4 px-5 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-basis" width="720" height="340" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-5 h-2.5 bg-slate-300 inline-block rounded"></span> Linkerlid</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Rechterlid</span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-red-600 inline-block rounded"></span> Klassieke fout</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                        <div class="text-xs font-bold text-slate-600 mb-2">Grondtal</div>
+                        <div class="flex gap-2">
+                            <button onclick="setRegelBasis(0)" id="regel-basis-0" class="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">10 (log)</button>
+                            <button onclick="setRegelBasis(1)" id="regel-basis-1" class="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">e (ln)</button>
+                            <button onclick="setRegelBasis(2)" id="regel-basis-2" class="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">2 (²log)</button>
+                        </div>
+                    </div>
+                    <div id="regel-s-paneel">
+                        <label for="regel-s" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Het andere getal in de regel:</span>
+                            <span id="regel-s-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="regel-s" type="range" min="0" max="1" step="0.1" value="0.5" class="w-full mt-1" oninput="setRegelS(this.value)" />
+                    </div>
+                    <div>
+                        <label for="regel-x" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Controleer bij:</span>
+                            <span id="regel-x-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="regel-x" type="range" min="0" max="1" step="0.1" value="0.5" class="w-full mt-1" oninput="setRegelX(this.value)" />
+                    </div>
+                    <button onclick="toggleRegelFout()" id="btn-regel-fout" class="w-full py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    <div id="regel-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (rekenregels)</div>
+            <h4 class="font-bold text-slate-800 mt-1">Er bestaat geen regel voor een som in de log</h4>
+            <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                log(a + b) kun je niet splitsen: log(2 + 8) = log(10) = 1, maar log(2) + log(8) = log(16) ≈ 1,20. Alleen een <strong>product</strong> wordt een som: log(2 · 8) = log(2) + log(8). Net zo is <span class="mono" data-f="a^[p] + a^[q]"></span> niet te vereenvoudigen. Alleen <span class="mono" data-f="a^[p] · a^[q] = a^[p + q]"></span>.
+            </p>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 2: VARIABELEN VRIJMAKEN (THEORIE A) ==================== -->
+    <section id="tab-vrij" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie A: variabelen vrijmaken bij formules met exponenten en logaritmen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Zit de variabele die je vrijmaakt <strong>in een logaritme</strong>, zoals t in N = 2 · log(t) − 3? Zet dan de term met de log apart en maak de log weg met de omkeerregel. Met de machtsregels schrijf je het antwoord daarna in een nette vorm, zoals t = a · b<sup>N</sup>.
+                Zit de variabele <strong>in een exponent</strong>, zoals t in N = 5 · 1,18<sup>t</sup>? Zet dan de macht apart en neem van beide leden de log of de ln. Met <span class="mono" data-f="ᵍlog(a^[p]) = p · ᵍlog(a)"></span> komt t voor de log te staan.
+            </p>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5 text-sm">
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold text-emerald-800">Log weg</div>
+                    <div class="mono mt-1 text-slate-800" data-f="ᵍlog(x) = y geeft x = g^[y]"></div>
+                </div>
+                <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <div class="text-xs font-bold text-emerald-800">Macht weg</div>
+                    <div class="mono mt-1 text-slate-800" data-f="g^[y] = x geeft y = ᵍlog(x)"></div>
+                </div>
+                <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold text-amber-800">Exponent splitsen</div>
+                    <div class="mono mt-1 text-slate-800" data-f="a^[p + q] = a^[p] · a^[q]"></div>
+                    <div class="mono mt-0.5 text-slate-800" data-f="a^[pq] = (a^[p])^[q]"></div>
+                </div>
+                <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+                    <div class="text-xs font-bold text-sky-800">Exponent naar voren</div>
+                    <div class="mono mt-1 text-slate-800" data-f="ᵍlog(a^[p]) = p · ᵍlog(a)"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stappenplan: herleidingsladder + terugrekenen in de grafiek -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: vrijmaken is terugrekenen</h2>
+                    <p class="text-sm text-slate-600">Kies een voorbeeld uit het boek en klik door de stappen. In de grafiek reken je terug: van de waarde die je weet naar de waarde die je zoekt. Achter elke regel zie je dat hij nog klopt bij die getallen.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end">
+                    <button onclick="setVrijPreset(0)" id="vrij-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie A: N = 2 · log(t) − 3</button>
+                    <button onclick="setVrijPreset(1)" id="vrij-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld: N = 5 · 1,18<sup>t</sup></button>
+                    <button onclick="setVrijPreset(2)" id="vrij-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: N = 20 · 10<sup>0,1t + 2</sup></button>
+                    <button onclick="setVrijPreset(3)" id="vrij-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: N = log(4t) − 3</button>
+                </div>
+            </div>
+
+            <div id="vrij-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-2">
+                    <div id="vrij-ladder" class="space-y-2"></div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <canvas id="canvas-vrij" width="460" height="300" class="w-full h-auto"></canvas>
+                        <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                            <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-slate-700 inline-block rounded"></span> Oorspronkelijke formule</span>
+                            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Terugrekenen</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="vrij-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Wat je weet:</span>
+                            <span id="vrij-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="vrij-slider" type="range" min="0" max="10" step="0.1" value="5" class="w-full mt-1" oninput="setVrijG(this.value)" />
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="vrij.vorige()" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm whitespace-nowrap">← Vorige</button>
+                        <span id="vrij-teller" class="text-xs font-semibold text-slate-500 whitespace-nowrap"></span>
+                        <button onclick="vrij.volgende()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm whitespace-nowrap">Volgende →</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="vrij.alles()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Toon alle stappen</button>
+                        <button onclick="vrij.toggleFout()" id="btn-vrij-fout" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    </div>
+                    <div id="vrij-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <!-- GR-callout: machten van 10 en e, en 1 / ln(1,18) -->
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: 10<sup>x</sup>, e<sup>x</sup> en ln uitrekenen</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Theorie A en Voorbeeld</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="flex justify-between text-[11px] border-b border-slate-400/50 pb-1 mb-2 font-bold">
+                        <span>NORMAL FLOAT AUTO REAL</span>
+                        <span>MP</span>
+                    </div>
+                    <div>10<sup>1.5</sup></div>
+                    <div class="text-right">31.6227766</div>
+                    <div class="mt-1">10<sup>0.5</sup></div>
+                    <div class="text-right">3.16227766</div>
+                    <div class="mt-1">1/ln(1.18)</div>
+                    <div class="text-right">6.041768979</div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">2nd</span> <span class="key">LOG</span> (10<sup>x</sup>), typ 1.5 en druk <span class="key">ENTER</span>. Afgerond is dat 31,6. Doe hetzelfde met 0.5: dat geeft 3,16.</li>
+                    <li>Voor e<sup>x</sup> druk je <span class="key">2nd</span> <span class="key">LN</span>. Zo reken je e<sup>2,5</sup> uit in Theorie C.</li>
+                    <li>Typ 1 <span class="key">÷</span> <span class="key">LN</span> 1.18 <span class="key">)</span> en druk <span class="key">ENTER</span>. De GR opent zelf het haakje na ln. Afgerond op twee decimalen is a = 6,04.</li>
+                </ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                <p class="text-xs leading-relaxed">Bij de exponent in een vakje. Na <span class="key">2nd</span> <span class="key">LOG</span> staat de cursor omhoog, in de exponent. Wil je 10<sup>1,5</sup> · 2 uitrekenen en typ je gewoon door, dan komt × 2 ook in de exponent en rekent de GR 10<sup>3</sup> uit. Ga met <span class="key">▸</span> uit de exponent voordat je verder typt.</p>
+                <p class="text-xs leading-relaxed">Te vroeg afronden. Rond pas aan het eind af, en zo nauwkeurig als de opgave vraagt. Met 3,2 in plaats van 3,16 zit 31,6 · 3,2<sup>N</sup> bij N = 5 al 6% te hoog.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie A)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Een som in de exponent wordt een product</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    <span class="mono" data-f="10^[½N + 1½] = 10^[½N] · 10^[1½]"></span>, en dus niet <span class="mono" data-f="10^[½N] + 10^[1½]"></span>. Kies "Theorie A" en klik op de klassieke fout: de foute regel klopt niet meer bij de getallen uit de grafiek.
+                </p>
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800 mt-4">Let op! (Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">"Log" mag je niet wegstrepen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Uit log(4t) = N + 3 volgt <span class="mono" data-f="4t = 10^[N + 3]"></span>, en niet 4t = N + 3. Een log maak je weg met de omkeerregel: het rechterlid wordt de exponent van het grondtal.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (opgaven 57, A63 en A71)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Eerst de eenheid, dan invullen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Een formule werkt alleen met de eenheid waarvoor hij is gemaakt. Is t in minuten, dan is 45 seconden t = 0,75. Is h in cm, dan is 1,30 meter h = 130. En werkt een formule met inch, dan deel je centimeters eerst door 2,54. Lees bij elke contextopgave eerst wat de variabelen betekenen.
+                </p>
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800 mt-4">Let op! (Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Vermenigvuldig álle termen</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Uit 0,1t = log(0,05N) − 2 volgt t = 10 · log(0,05N) − 20. Ook de −2 gaat keer 10.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 3: GRONDTALLEN VERANDEREN (THEORIE B) ==================== -->
+    <section id="tab-grond" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie B: grondtallen veranderen</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                In opgave 60 zag je dat N = 20 · 1,85<sup>t</sup> te schrijven is als N = 20 · e<sup>0,615t</sup>. Het grondtal 1,85 is veranderd in het grondtal e. Je zoekt daarvoor het getal c met e<sup>c</sup> = 1,85, dus c = ln(1,85) ≈ 0,615. De beginwaarde 20 blijft gewoon staan.
+                Bij formules met <strong>logaritmen</strong> kies je een ander grondtal voor de log. Omdat log(t) = <span class="mono" data-f="{ln(t)|ln(10)}"></span> = 0,434… · ln(t), is N = 25 · log(t) ≈ 10,9 · ln(t).
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">Exponentiële formule</div>
+                    <div class="font-bold text-slate-900 mt-1">Zoek de exponent c bij het nieuwe grondtal</div>
+                    <p class="text-sm text-slate-600 mt-1">Het nieuwe grondtal tot de macht c moet de oude groeifactor opleveren.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-violet-200 mt-2 text-violet-800 font-semibold space-y-1">
+                        <div data-f="N = 50 · e^[t] = 50 · (2^[c])^[t] = 50 · 2^[ct]"></div>
+                        <div data-f="2^[c] = e geeft c = ²log(e) ≈ 1,443"></div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-violet-50 border border-violet-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-violet-700">Logaritmische formule</div>
+                    <div class="font-bold text-slate-900 mt-1">Deel door de log van het oude grondtal</div>
+                    <p class="text-sm text-slate-600 mt-1">Het grondtal dat je kwijt wilt, komt in de noemer.</p>
+                    <div class="mono text-xs bg-white px-2.5 py-1.5 rounded border border-violet-200 mt-2 text-violet-800 font-semibold flex flex-wrap gap-x-6 gap-y-1">
+                        <span data-f="ᵍlog(a) = {ᵖlog(a)|ᵖlog(g)}"></span>
+                        <span data-f="log(a) = {ln(a)|ln(10)}"></span>
+                        <span data-f="ln(a) = {log(a)|log(e)}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: schuif de nieuwe parameter tot de nieuwe formule over de oude valt -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-md">
+                    <h2 class="text-xl font-bold text-slate-800">Verkenner: schuif tot de grafieken samenvallen</h2>
+                    <p class="text-sm text-slate-600">De brede grijze band is de oorspronkelijke formule, de indigo lijn de formule met het nieuwe grondtal. Schuif tot de lijn overal in de band ligt. Dan zie je hoe je dat getal ook meteen had kunnen uitrekenen.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end lg:max-w-lg">
+                    <button onclick="setGrondPreset(0)" id="grond-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Opgave 60: 1,85<sup>t</sup> → e</button>
+                    <button onclick="setGrondPreset(1)" id="grond-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie B: e<sup>t</sup> → 2</button>
+                    <button onclick="setGrondPreset(2)" id="grond-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld a: 1,94<sup>t</sup> → 10</button>
+                    <button onclick="setGrondPreset(3)" id="grond-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: 1,75<sup>t</sup> → 2</button>
+                    <button onclick="setGrondPreset(4)" id="grond-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie B: log → ln</button>
+                    <button onclick="setGrondPreset(5)" id="grond-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld b: ln → log</button>
+                    <button onclick="setGrondPreset(6)" id="grond-preset-6" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: 1,85 + log(3t)</button>
+                </div>
+            </div>
+
+            <div id="grond-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-8 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <canvas id="canvas-grond" width="720" height="340" class="w-full h-auto"></canvas>
+                    <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                        <span class="flex items-center gap-1.5"><span class="w-5 h-2.5 bg-slate-300 inline-block rounded"></span> <span id="grond-legenda-oud">Oorspronkelijke formule</span></span>
+                        <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> Jouw formule met het nieuwe grondtal</span>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-4 space-y-4">
+                    <div id="grond-pil" class="px-4 py-3 rounded-2xl bg-slate-900 text-white mono text-base font-bold shadow-inner text-center"></div>
+                    <div id="grond-p0-paneel" class="p-3.5 rounded-xl bg-violet-50/70 border border-violet-200">
+                        <div class="flex justify-between text-xs font-bold text-violet-800">
+                            <span id="grond-p0-naam"></span>
+                            <span id="grond-p0-val" class="mono text-sm"></span>
+                        </div>
+                        <input id="grond-p0" type="range" min="0" max="1" step="0.01" value="0.5" class="w-full mt-1.5" oninput="setGrondParam(0, this.value)" />
+                    </div>
+                    <div id="grond-p1-paneel" class="p-3.5 rounded-xl bg-violet-50/70 border border-violet-200">
+                        <div class="flex justify-between text-xs font-bold text-violet-800">
+                            <span id="grond-p1-naam"></span>
+                            <span id="grond-p1-val" class="mono text-sm"></span>
+                        </div>
+                        <input id="grond-p1" type="range" min="0" max="1" step="0.01" value="0.5" class="w-full mt-1.5" oninput="setGrondParam(1, this.value)" />
+                    </div>
+                    <div id="grond-status" class="text-sm font-semibold"></div>
+                    <button onclick="toonGrondBerekening()" class="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm">Toon de berekening</button>
+                    <div id="grond-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            <!-- GR-callout: log met grondtal 2 -->
+            <div class="lg:col-span-7 bg-slate-900 text-white p-5 rounded-2xl shadow-lg border border-slate-700">
+                <div class="flex items-center justify-between mb-3 gap-3">
+                    <div class="font-bold">🧮 Op de TI-84 Plus CE: een log met grondtal 2</div>
+                    <div class="text-xs font-bold tracking-wider uppercase text-slate-400 text-right">Terugblik</div>
+                </div>
+                <div class="gr-screen text-slate-900 rounded-xl p-3.5 border-4 border-slate-700 mono text-sm">
+                    <div class="flex justify-between text-[11px] border-b border-slate-400/50 pb-1 mb-2 font-bold">
+                        <span>NORMAL FLOAT AUTO REAL</span>
+                        <span>MP</span>
+                    </div>
+                    <div>log<sub>2</sub>(1.75)</div>
+                    <div class="text-right">.8073549221</div>
+                    <div class="mt-1">ln(1.75)/ln(2)</div>
+                    <div class="text-right">.8073549221</div>
+                </div>
+                <ol class="list-decimal pl-5 mt-4 space-y-1.5 text-sm text-slate-300">
+                    <li>Druk <span class="key">MATH</span> en kies <span class="key">logBASE(</span>. Je krijgt een sjabloon log<sub>□</sub>(□).</li>
+                    <li>Vul het grondtal 2 en het getal 1.75 in. Met de pijltjestoetsen ga je van vakje naar vakje. Druk <span class="key">ENTER</span>.</li>
+                    <li>Het kan ook zonder sjabloon, met de regel voor een ander grondtal: <span class="key">LN</span> 1.75 <span class="key">)</span> <span class="key">÷</span> <span class="key">LN</span> 2 <span class="key">)</span>. Dus c = ²log(1,75) ≈ 0,807.</li>
+                </ol>
+            </div>
+            <div class="lg:col-span-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-slate-700 space-y-2">
+                <div class="font-bold text-amber-900">Waar gaat het vaak mis?</div>
+                <p class="text-xs leading-relaxed">Teller en noemer omgedraaid. ln(2)/ln(1.75) geeft 1,239: dat is <span class="mono"><sup>1,75</sup>log(2)</span>, niet ²log(1,75). Controleer je antwoord altijd terug: 2<sup>0,807</sup> = 1,75 klopt, 2<sup>1,239</sup> = 2,36 niet.</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie B)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Het oude grondtal komt in de noemer</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    <span class="mono" data-f="log(t) = {ln(t)|ln(10)}"></span>, en niet ln(10)/ln(t). Twijfel je? Vul t = 10 in: links staat log(10) = 1, rechts moet dan ook 1 komen. Bij een exponentiële formule zoek je juist c met <span class="mono" data-f="2^[c] = 1,75"></span>: het nieuwe grondtal tot de macht c is de oude groeifactor.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Terugblik)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Splits eerst de log van een product</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    Bij N = 1,85 + log(3t) in de vorm N = a + b · ln(t) gebruik je log(3t) = <span class="mono" data-f="{ln(3) + ln(t)|ln(10)}"></span>. Het deel <span class="mono" data-f="{ln(3)|ln(10)}"></span> ≈ 0,48 komt bij de 1,85. Zo krijg je N ≈ 2,33 + 0,43 · ln(t). Kies de Terugblik-knop in de verkenner: met alleen b schuiven krijg je de lijn nooit in de band.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 4: NAAR DE LOG-VORM EN TERUG (THEORIE C EN D) ==================== -->
+    <section id="tab-log" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Theorie C en D: van en naar de log-vorm</h2>
+            <p class="text-slate-600 mt-2 leading-relaxed">
+                Een exponentiële formule N = b · g<sup>t</sup> kun je schrijven als <strong>log(N) = at + b</strong>, en een machtsformule N = at<sup>b</sup> als <strong>log(N) = a + b · log(t)</strong>. Je gaat heen door van beide leden de log te nemen en de logregels te gebruiken. Terug gaat met de omkeerregel en de machtsregels (Theorie C), of met de regel log(A) = log(B) geeft A = B (Theorie D).
+            </p>
+            <div class="grid md:grid-cols-2 gap-4 mt-5">
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-rose-700">Theorie C</div>
+                    <div class="font-bold text-slate-900 mt-1 mono" data-f="ᵍlog(N) = at + b en N = b · g^[t]"></div>
+                    <div class="mono text-xs bg-white px-2.5 py-2 rounded border border-rose-200 mt-2 text-slate-800 space-y-1">
+                        <div data-f="log(N) = 0,2t + 2,5 geeft N = 10^[0,2t + 2,5]"></div>
+                        <div data-f="N = 10^[2,5] · (10^[0,2])^[t] ≈ 316 · 1,585^[t]"></div>
+                    </div>
+                </div>
+                <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                    <div class="text-xs font-bold uppercase tracking-wider text-amber-700">Theorie D</div>
+                    <div class="font-bold text-slate-900 mt-1 mono" data-f="N = at^[b] en ᵍlog(N) = a + b · ᵍlog(t)"></div>
+                    <div class="mono text-xs bg-white px-2.5 py-2 rounded border border-amber-200 mt-2 text-slate-800 space-y-1">
+                        <div data-f="log(N) = log(224t^[3,6]) = log(224) + 3,6 · log(t)"></div>
+                        <div data-f="log(N) ≈ 2,35 + 3,6 · log(t)"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Verkenner: gewone as naast logaritmische as -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-4">
+                <div class="lg:max-w-md">
+                    <h2 class="text-xl font-bold text-slate-800">Verkenner: een rechte lijn op een logaritmische as</h2>
+                    <p class="text-sm text-slate-600">Links staat de formule op een gewone as. Rechts is de as logaritmisch, zoals in figuur 13.23: van 1 naar 10 is even ver als van 10 naar 100. De log-vorm is de formule van de rechte lijn rechts. Schuif aan de helling en het startgetal en kijk wat er links gebeurt.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end lg:max-w-lg">
+                    <button onclick="setLogPreset(0)" id="log-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">Theorie C: log(N) = 0,2t + 2,5</button>
+                    <button onclick="setLogPreset(1)" id="log-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld a: 2 · ln(N) = 5 − 0,37t</button>
+                    <button onclick="setLogPreset(2)" id="log-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld b: N = 280e<sup>0,14t</sup></button>
+                    <button onclick="setLogPreset(3)" id="log-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: ln(N) = 0,45t + 4,3</button>
+                    <button onclick="setLogPreset(4)" id="log-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Theorie D: N = 224t<sup>3,6</sup></button>
+                    <button onclick="setLogPreset(5)" id="log-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: y = 50x<sup>2,1</sup></button>
+                    <button onclick="setLogPreset(6)" id="log-preset-6" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: ²log(y) = 3 · ²log(x) + 5</button>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <div class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Log-vorm</div>
+                    <div id="log-pil-log" class="px-4 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+                </div>
+                <div>
+                    <div id="log-pil-exp-titel" class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Exponentiële vorm</div>
+                    <div id="log-pil-exp" class="px-4 py-3 rounded-2xl bg-slate-900 text-white mono text-base md:text-lg font-bold shadow-inner text-center"></div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="text-xs font-bold text-slate-600 mb-1">Gewone assen</div>
+                    <canvas id="canvas-log-lin" width="460" height="300" class="w-full h-auto"></canvas>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div id="log-log-titel" class="text-xs font-bold text-slate-600 mb-1">Logaritmische verticale as</div>
+                    <canvas id="canvas-log-log" width="460" height="300" class="w-full h-auto"></canvas>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-4 justify-center mt-2 text-xs text-slate-600">
+                <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-indigo-600 inline-block rounded"></span> De formule</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span> <span id="log-legenda-punten">Punten bij t = 0, 1, 2, …</span></span>
+                <span class="flex items-center gap-1.5"><span class="w-4 h-1 bg-rose-600 inline-block rounded"></span> Helling: één stap opzij</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span> Startgetal</span>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-6 mt-5 items-start">
+                <div class="lg:col-span-5 space-y-4">
+                    <div class="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                        <div class="flex justify-between text-xs font-bold text-rose-800">
+                            <span id="log-hel-naam">helling</span>
+                            <span id="log-hel-val" class="mono text-sm"></span>
+                        </div>
+                        <input id="log-hel" type="range" min="-1" max="1" step="0.005" value="0.2" class="w-full mt-1.5" oninput="setLogParam('hel', this.value)" />
+                        <div id="log-hel-uitleg" class="text-[11px] text-rose-700 mt-0.5"></div>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                        <div class="flex justify-between text-xs font-bold text-amber-900">
+                            <span id="log-start-naam">startgetal</span>
+                            <span id="log-start-val" class="mono text-sm"></span>
+                        </div>
+                        <input id="log-start" type="range" min="0" max="5" step="0.01" value="2.5" class="w-full mt-1.5" oninput="setLogParam('start', this.value)" />
+                        <div id="log-start-uitleg" class="text-[11px] text-amber-800 mt-0.5"></div>
+                    </div>
+                </div>
+                <div id="log-uitleg" class="lg:col-span-7 p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+            </div>
+        </div>
+
+        <!-- Herleidingsladder: de afleidingen uit Theorie C en D -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 mb-5">
+                <div class="lg:max-w-sm">
+                    <h2 class="text-xl font-bold text-slate-800">Stappenplan: heen en terug, regel voor regel</h2>
+                    <p class="text-sm text-slate-600">De afleidingen uit het boek. Kies een getal voor t (of x) en kijk: elke regel klopt nog. Alleen bij een klassieke fout gaat het mis.</p>
+                </div>
+                <div class="flex flex-wrap gap-2 lg:justify-end lg:max-w-lg">
+                    <button onclick="setOmPreset(0)" id="om-preset-0" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white">C: log(N) = 0,2t + 2,5 → N = b · g<sup>t</sup></button>
+                    <button onclick="setOmPreset(1)" id="om-preset-1" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">C: N = 316 · 1,585<sup>t</sup> → log(N)</button>
+                    <button onclick="setOmPreset(2)" id="om-preset-2" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld a: 2 · ln(N) = 5 − 0,37t</button>
+                    <button onclick="setOmPreset(3)" id="om-preset-3" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Voorbeeld b: N = 280e<sup>0,14t</sup></button>
+                    <button onclick="setOmPreset(4)" id="om-preset-4" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">D: N = 224t<sup>3,6</sup> → log(N)</button>
+                    <button onclick="setOmPreset(5)" id="om-preset-5" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">D: log(N) → N = at<sup>b</sup></button>
+                    <button onclick="setOmPreset(6)" id="om-preset-6" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">Terugblik: ²log(y) → y = ax<sup>b</sup></button>
+                </div>
+            </div>
+
+            <div id="om-vraag" class="mb-4 px-4 py-3 rounded-2xl bg-slate-900 text-white text-sm"></div>
+
+            <div class="grid lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 space-y-2">
+                    <div id="om-ladder" class="space-y-2"></div>
+                </div>
+                <div class="lg:col-span-5 space-y-4">
+                    <div>
+                        <label for="om-slider" class="text-xs font-semibold text-slate-600 flex justify-between">
+                            <span>Controleer met:</span>
+                            <span id="om-label" class="mono font-bold text-indigo-600"></span>
+                        </label>
+                        <input id="om-slider" type="range" min="0" max="10" step="0.1" value="3" class="w-full mt-1" oninput="setOmT(this.value)" />
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="om.vorige()" class="px-3 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm whitespace-nowrap">← Vorige</button>
+                        <span id="om-teller" class="text-xs font-semibold text-slate-500 whitespace-nowrap"></span>
+                        <button onclick="om.volgende()" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm whitespace-nowrap">Volgende →</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="om.alles()" class="py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">Toon alle stappen</button>
+                        <button onclick="om.toggleFout()" id="btn-om-fout" class="py-2 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-semibold text-xs">⚠ Klassieke fout</button>
+                    </div>
+                    <div id="om-uitleg" class="p-4 rounded-xl bg-indigo-50 border border-indigo-100 text-xs space-y-1.5 text-slate-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie C)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Twee keer de letter b, maar niet hetzelfde getal</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    In log(N) = 0,2t + 2,5 is b = 2,5. In N = b · g<sup>t</sup> is b ≈ 316. Het verband is <span class="mono">2,5 = log(316)</span>: het startgetal van de lijn is de log van de beginwaarde. Net zo is a = 0,2 de log van de groeifactor: <span class="mono">10<sup>0,2</sup> ≈ 1,585</span>. Wie de 2,5 zomaar overneemt, schrijft N = 2,5 · 1,585<sup>t</sup>. Kies in het stappenplan de eerste knop en klik op de klassieke fout.
+                </p>
+            </div>
+            <div class="bg-amber-50 rounded-2xl p-5 border border-amber-200">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-800">Let op! (Theorie D)</div>
+                <h4 class="font-bold text-slate-800 mt-1">Eerst één log links en één log rechts</h4>
+                <p class="text-xs text-slate-700 leading-relaxed mt-1">
+                    De regel log(A) = log(B) geeft A = B werkt pas als er aan beide kanten één log staat. Bij log(N) = 2,35 + 3,6 · log(t) schrijf je daarom eerst 2,35 = log(10<sup>2,35</sup>) en 3,6 · log(t) = log(t<sup>3,6</sup>). Dan voeg je ze samen tot log(10<sup>2,35</sup> · t<sup>3,6</sup>). Opgave R69 laat een tweede route zien: N = 10<sup>2,35 + 3,6 · log(t)</sup>, en die geeft hetzelfde.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TAB 5: OEFENOPDRACHTEN ==================== -->
+    <section id="tab-opdrachten" class="tab-section hidden space-y-6">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800">Interactieve Oefenopdrachten uit het Boek</h2>
+            <p class="text-sm text-slate-600 mt-1">
+                Controleer direct je antwoorden. Kommagetallen mag je met een komma of punt typen, breuken als 1/2 of ½ en negatieve getallen met een minteken.
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Dit is een selectie van 12 opgaven uit §13.4 die samen alle theorie behandelen. De andere opgaven maak je in je schrift. Rond af zoals de opgave vraagt. Bij een genummerd vakje <span class="mono" data-f="#1"></span> typ je alleen het getal dat erin hoort.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+
+            <!-- Opdracht 1: opgave O54 -->
+            <div data-q="q1" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 1 • Opgave O54</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Maak t vrij</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Gegeven is de formule log(N) = 2t − 3. Maak t vrij en vul de vakjes in.</p>
+                    <div class="p-3 rounded-xl bg-slate-900 text-white mono text-sm"><span data-f="t = #1 · log(N) + #2"></span></div>
+                    <div class="grid grid-cols-2 gap-2 text-xs mt-3">
+                        <div>
+                            <label for="q1-1" class="font-semibold text-slate-700">vakje 1</label>
+                            <input id="q1-1" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q1-2" class="font-semibold text-slate-700">vakje 2</label>
+                            <input id="q1-2" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q1')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q1" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q1" onclick="showUitwerking('q1')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q1" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 2: opgave 55b -->
+            <div data-q="q2" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 2 • Opgave 55b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Uit de log, in de vorm t = a · b<sup>N</sup></h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule N = 5 · log(t) − 4 in de vorm t = a · b<sup>N</sup>. Rond a af op één decimaal en b op drie decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q2-a" class="font-semibold text-slate-700">a (één decimaal)</label>
+                            <input id="q2-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q2-b" class="font-semibold text-slate-700">b (drie decimalen)</label>
+                            <input id="q2-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q2')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q2" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q2" onclick="showUitwerking('q2')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q2" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 3: opgave 55c -->
+            <div data-q="q3" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 3 • Opgave 55c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">t uit de exponent halen</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule N = 20 · 1,75<sup>t</sup> in de vorm t = a · log(bN). Rond a af op één decimaal.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q3-a" class="font-semibold text-slate-700">a (één decimaal)</label>
+                            <input id="q3-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q3-b" class="font-semibold text-slate-700">b</label>
+                            <input id="q3-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q3')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q3" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q3" onclick="showUitwerking('q3')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q3" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 4: opgave 57a en b (context, eenheid) -->
+            <div data-q="q4" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 4 • Opgave 57a en b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🥛 Melk uit de koelkast</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Stijn haalt een pak melk uit de koelkast. Voor de temperatuur van de melk heeft hij de formule t = 25 − k · log(20 − T) opgesteld. Hierin is t de tijd in minuten vanaf het moment dat hij de melk uit de koelkast heeft gehaald en is T de temperatuur van de melk in °C. De temperatuur in de koelkast is 5 °C.</p>
+                    <p class="text-xs text-slate-600 mb-2">a. Bereken k in twee decimalen.<br>b. Neem k = 21. Bereken de temperatuur van de melk na 45 seconden. Rond af op één decimaal.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q4-k" class="font-semibold text-slate-700">a. k</label>
+                            <input id="q4-k" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q4-T" class="font-semibold text-slate-700">b. T (in °C)</label>
+                            <input id="q4-T" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q4')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q4" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q4" onclick="showUitwerking('q4')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q4" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 5: opgave 61a -->
+            <div data-q="q5" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 5 • Opgave 61a</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Naar grondtal 2</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule N = 250 · 1,18<sup>t</sup> in de vorm N = b · 2<sup>ct</sup>. Rond zo nodig af op drie decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q5-b" class="font-semibold text-slate-700">b</label>
+                            <input id="q5-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q5-c" class="font-semibold text-slate-700">c (drie decimalen)</label>
+                            <input id="q5-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q5')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q5" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q5" onclick="showUitwerking('q5')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q5" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 6: opgave 61d -->
+            <div data-q="q6" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 6 • Opgave 61d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Van ln naar log</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule N = 16,65 + 2,5 · ln(3t) in de vorm N = a + b · log(t). Rond a en b af op twee decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q6-a" class="font-semibold text-slate-700">a (twee decimalen)</label>
+                            <input id="q6-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q6-b" class="font-semibold text-slate-700">b (twee decimalen)</label>
+                            <input id="q6-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q6')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q6" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q6" onclick="showUitwerking('q6')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q6" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 7: opgave A63a en c (context, eenheid + grondtal e) -->
+            <div data-q="q7" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 7 • Opgave A63a en c</span>
+                    <h3 class="font-bold text-slate-800 mt-1">⚖️ De Ehrenberg-relatie</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">De formule W = 2,4 · 1,0186<sup>h</sup> geeft voor kinderen tussen 5 en 13 jaar het verband tussen het gewicht W in kg en de lengte h in cm.</p>
+                    <p class="text-xs text-slate-600 mb-2">a. Robert heeft een lengte van 1,30 meter. Bereken zijn gewicht in gehele kg.<br>c. Schrijf de formule in de vorm W = b · e<sup>ch</sup>. Rond c af op vier decimalen.</p>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <label for="q7-W" class="font-semibold text-slate-700">a. W (kg)</label>
+                            <input id="q7-W" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-b" class="font-semibold text-slate-700">c. b</label>
+                            <input id="q7-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q7-c" class="font-semibold text-slate-700">c. c (vier dec.)</label>
+                            <input id="q7-c" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q7')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q7" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q7" onclick="showUitwerking('q7')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q7" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 8: opgave 65b -->
+            <div data-q="q8" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 8 • Opgave 65b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Van de log-vorm naar N = b · g<sup>t</sup></h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule ln(0,4N) = 0,45t + 5,16 in de vorm N = b · g<sup>t</sup>. Rond b af op gehelen en g op drie decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q8-b" class="font-semibold text-slate-700">b (gehelen)</label>
+                            <input id="q8-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q8-g" class="font-semibold text-slate-700">g (drie decimalen)</label>
+                            <input id="q8-g" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q8')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q8" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q8" onclick="showUitwerking('q8')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q8" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 9: opgave 66b -->
+            <div data-q="q9" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 9 • Opgave 66b</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Van e-macht naar log(N) = at + b</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Schrijf de formule N = 280e<sup>0,15t</sup> in de vorm log(N) = at + b. Rond a af op drie decimalen en b op twee decimalen.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q9-a" class="font-semibold text-slate-700">a (drie decimalen)</label>
+                            <input id="q9-a" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q9-b" class="font-semibold text-slate-700">b (twee decimalen)</label>
+                            <input id="q9-b" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q9')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q9" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q9" onclick="showUitwerking('q9')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q9" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 10: Theorie D / R69 (meerkeuze, klassieke fouten) -->
+            <div data-q="q10" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 10 • Theorie D en opgave R69</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Welke formule hoort erbij?</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-3">Je schrijft log(N) = 2,35 + 3,6 · log(t) in de vorm N = at<sup>b</sup>. Welke formule krijg je?</p>
+                    <div class="grid grid-cols-2 gap-2 text-sm mono">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q10" value="A" /> A <span data-f="N = 2,35 · t^[3,6]"></span></label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q10" value="B" /> B <span data-f="N ≈ 224 · t^[3,6]"></span></label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q10" value="C" /> C <span data-f="N ≈ 224 · 3,6^[t]"></span></label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer hover:bg-slate-50"><input type="radio" name="q10" value="D" /> D <span data-f="N ≈ 224 + t^[3,6]"></span></label>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q10')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q10" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q10" onclick="showUitwerking('q10')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q10" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 11: opgave A71c en d (context, inch) -->
+            <div data-q="q11" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 11 • Opgave A71c en d</span>
+                    <h3 class="font-bold text-slate-800 mt-1">🦌 Het reuzenhert</h3>
+                    <p class="text-xs text-slate-600 mt-1 mb-2">Voor de Megaloceros, het reuzenhert, geldt de formule ln(S) = 1,6 + 0,61 · ln(G). Hierin is S de schouderhoogte in inch en G de spanwijdte van het gewei in inch. Verder is 1 inch = 2,54 cm.</p>
+                    <p class="text-xs text-slate-600 mb-2">c. Bereken in cm nauwkeurig de schouderhoogte van een reuzenhert met een spanwijdte van het gewei van 320 cm.<br>d. Bereken in cm nauwkeurig de spanwijdte van het gewei van een reuzenhert dat een schouderhoogte heeft van 200 cm.</p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                            <label for="q11-S" class="font-semibold text-slate-700">c. schouderhoogte (cm)</label>
+                            <input id="q11-S" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                        <div>
+                            <label for="q11-G" class="font-semibold text-slate-700">d. spanwijdte (cm)</label>
+                            <input id="q11-G" type="text" placeholder="..." class="w-full mt-1 px-2.5 py-1.5 border rounded-lg mono" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q11')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q11" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q11" onclick="showUitwerking('q11')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q11" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Opdracht 12: einduitdaging op figuur 13.23 (opgave A67) -->
+            <div data-q="q12" class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col justify-between md:col-span-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-600 uppercase">Opdracht 12 • Einduitdaging (opgave A67, figuur 13.23)</span>
+                    <h3 class="font-bold text-slate-800 mt-1">Laat jouw lijn samenvallen met de lijn in figuur 13.23</h3>
+                    <p class="text-xs text-slate-600 mt-1">In de Verenigde Staten is onderzoek gedaan naar het aantal sterfgevallen per 100 000 inwoners. Hierin is l de leeftijd in jaren en s het aantal sterfgevallen per 100 000 inwoners. De verticale as heeft een logaritmische schaalverdeling. Voor leeftijden tussen 30 en 90 jaar liggen de punten op een rechte lijn, en die lijn hoort bij een formule <span class="mono">log(s) = a · l + b</span>. Lees twee punten af en kies a en b zo dat jouw lijn over de rode lijn valt.</p>
+                    <canvas id="canvas-q12" width="760" height="300" class="w-full h-auto my-2 bg-slate-50 rounded-lg border"></canvas>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs items-end">
+                        <div>
+                            <label for="q12-a" class="font-semibold text-slate-700">a (helling)</label>
+                            <input id="q12-a" type="number" step="0.005" value="0.02" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div>
+                            <label for="q12-b" class="font-semibold text-slate-700">b (startgetal)</label>
+                            <input id="q12-b" type="number" step="0.05" value="2" oninput="drawQ12()" class="w-full mt-1 px-2 py-1 border rounded mono" />
+                        </div>
+                        <div id="q12-live" class="col-span-2 md:col-span-1 mono text-sm text-indigo-700 font-bold"></div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t">
+                    <div class="flex items-center justify-between gap-3">
+                        <button onclick="checkExercise('q12')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shrink-0">Controleer</button>
+                        <span id="fb-q12" class="text-xs font-semibold text-right"></span>
+                    </div>
+                    <button id="solbtn-q12" onclick="showUitwerking('q12')" class="hidden mt-2 text-xs font-semibold text-indigo-600 hover:text-violet-700">Bekijk uitwerking →</button>
+                    <div id="sol-q12" class="hidden mt-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-slate-700 leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Terug naar de landingspagina (vast) -->
+<div class="max-w-6xl mx-auto px-4 mt-10 text-center">
+    <a href="../../index.html" class="inline-block text-sm font-semibold text-indigo-600 hover:text-violet-700 transition">← Terug naar alle voorbeelden</a>
+</div>
+
+<script>
+    // ==================== HULPFUNCTIES (vast — niet aanpassen) ====================
+    const $ = id => document.getElementById(id);
+
+    // Conceptkleuren als hex, gelijk aan de Tailwind-tinten in de markup (500/600).
+    const C = {
+        indigo: '#4f46e5', rose: '#e11d48', sky: '#0284c7', amber: '#d97706',
+        emerald: '#059669', violet: '#7c3aed', orange: '#ea580c', slate: '#94a3b8',
+    };
+
+    /**
+     * Getal in Nederlandse notatie: 2.5 → "2,5", -3 → "−3".
+     * Wat op 0 afrondt wordt "0", niet "−0": dat gebeurt bij een as die bij 0 begint
+     * (Math.ceil(−1e-9) = −0 in de rasterlus) en bij afrondingsruis als −1e-16.
+     */
+    function fmt(v, digits = 2) {
+        if (!isFinite(v)) return '–';
+        if (Math.abs(v) < 0.5 * 10 ** -digits) v = 0;
+        const s = Number(v).toLocaleString('nl-NL', { maximumFractionDigits: digits, useGrouping: false });
+        return s.replace('-', '−');
+    }
+
+    /** Veelvouden van ¼π als boeknotatie: 0, ¼π, ½π, π, 1½π, 2π … (anders gewoon fmt). */
+    function fmtPi(v) {
+        const q = Math.round(v / (Math.PI / 4));
+        if (Math.abs(v - q * Math.PI / 4) > 1e-6) return fmt(v);
+        if (q === 0) return '0';
+        const n = Math.abs(q), whole = Math.floor(n / 4), frac = ['', '¼', '½', '¾'][n % 4];
+        const body = whole === 0 ? frac : (whole === 1 && !frac ? '' : whole + frac);
+        return (q < 0 ? '−' : '') + body + 'π';
+    }
+
+    /**
+     * Leest een antwoord in Nederlandse notatie: "0,5", "-3", "−3", "1/4", "¼", "1½", "2π", "¼pi", "pi/4".
+     * Geeft NaN bij onleesbare invoer.
+     */
+    function parseNum(str) {
+        let s = String(str ?? '').trim().toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/[−–]/g, '-')
+            .replace(/,/g, '.')
+            .replace(/pi/g, 'π')
+            .replace(/[·*×]/g, '');
+        if (s === '') return NaN;
+        let factor = 1;
+        if (s.includes('π')) {
+            factor = Math.PI;
+            s = s.replace('π', '');
+            if (s === '' || s === '-') s += '1';
+            s = s.replace(/^(-?)\//, '$11/');
+        }
+        const uni = { '½': 1 / 2, '¼': 1 / 4, '¾': 3 / 4, '⅓': 1 / 3, '⅔': 2 / 3 };
+        const mixed = s.match(/^(-?)(\d*)([½¼¾⅓⅔])$/);
+        if (mixed) {
+            const whole = mixed[2] === '' ? 0 : parseInt(mixed[2], 10);
+            return (mixed[1] ? -1 : 1) * (whole + uni[mixed[3]]) * factor;
+        }
+        const frac = s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);
+        if (frac) return parseFloat(frac[1]) / parseFloat(frac[2]) * factor;
+        if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+        return parseFloat(s) * factor;
+    }
+
+    /** Absolute afwijking ≤ tol. */
+    function approx(v, target, tol = 0.01) {
+        return isFinite(v) && Math.abs(v - target) <= tol + 1e-9;
+    }
+
+    /** Maakt een canvas scherp op retina; width/height-attributen = logische grootte. */
+    function setupCanvas(canvas) {
+        if (!canvas.dataset.w) {
+            canvas.dataset.w = canvas.width;
+            canvas.dataset.h = canvas.height;
+        }
+        const w = +canvas.dataset.w, h = +canvas.dataset.h;
+        const dpr = window.devicePixelRatio || 1;
+        if (canvas.width !== Math.round(w * dpr)) {
+            canvas.width = Math.round(w * dpr);
+            canvas.height = Math.round(h * dpr);
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        return { ctx, w, h };
+    }
+
+    function strokeLine(ctx, xa, ya, xb, yb) {
+        ctx.beginPath();
+        ctx.moveTo(xa, ya);
+        ctx.lineTo(xb, yb);
+        ctx.stroke();
+    }
+
+    /**
+     * Tekent een assenstelsel met raster, schaalverdeling (Nederlandse notatie) en optioneel
+     * grafieken, hulplijnen en punten. Geeft { ctx, mapX, mapY, box } terug voor eigen tekenwerk.
+     *
+     * opt: xMin, xMax, yMin, yMax, xStep, yStep           (verplicht)
+     *      xLabel, yLabel                                  (verplicht) variabele zoals in het boek, bv. 't', 'h'
+     *      xCaption                                        grootheid + eenheid onder de as, bv. 'tijd in seconden'
+     *      xTick, yTick: v => tekst                        bv. xTick: fmtPi
+     *      curves: [{ f, color, width, dash, domain: [a, b] }]
+     *      hLines: [{ y, color, dash, label }]   vLines: [{ x, color, dash, label }]
+     *      points: [{ x, y, color, r, label }]
+     *      pad:    { l, r, t, b }
+     */
+    function drawGraph(canvasId, opt) {
+        const canvas = $(canvasId);
+        if (!canvas) return null;
+        const { ctx, w, h } = setupCanvas(canvas);
+        if (!opt.xLabel || !opt.yLabel) console.warn(`drawGraph('${canvasId}'): elke grafiek heeft xLabel en yLabel nodig`);
+        const pad = Object.assign({ l: 44, r: 24, t: 26, b: opt.xCaption ? 46 : 30 }, opt.pad);
+        const box = { x0: pad.l, x1: w - pad.r, y0: pad.t, y1: h - pad.b };
+        const mapX = x => box.x0 + (x - opt.xMin) / (opt.xMax - opt.xMin) * (box.x1 - box.x0);
+        const mapY = y => box.y1 - (y - opt.yMin) / (opt.yMax - opt.yMin) * (box.y1 - box.y0);
+        const xTick = opt.xTick || (v => fmt(v));
+        const yTick = opt.yTick || (v => fmt(v));
+        const eps = 1e-9;
+
+        // Raster + schaalverdeling (integer-lus: geen afrondingsdrift)
+        ctx.lineWidth = 1;
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.fillStyle = '#64748b';
+        ctx.strokeStyle = '#e2e8f0';
+        for (let i = Math.ceil(opt.xMin / opt.xStep - eps); i * opt.xStep <= opt.xMax + eps; i++) {
+            const x = i * opt.xStep, px = mapX(x);
+            strokeLine(ctx, px, box.y0, px, box.y1);
+            ctx.textAlign = 'center';
+            ctx.fillText(xTick(x), px, box.y1 + 16);
+        }
+        for (let i = Math.ceil(opt.yMin / opt.yStep - eps); i * opt.yStep <= opt.yMax + eps; i++) {
+            const y = i * opt.yStep, py = mapY(y);
+            strokeLine(ctx, box.x0, py, box.x1, py);
+            ctx.textAlign = 'right';
+            ctx.fillText(yTick(y), box.x0 - 7, py + 4);
+        }
+
+        // Assen: door de oorsprong als die in beeld is, anders langs de rand
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 1.5;
+        const axisY = opt.yMin <= 0 && opt.yMax >= 0 ? mapY(0) : box.y1;
+        const axisX = opt.xMin <= 0 && opt.xMax >= 0 ? mapX(0) : box.x0;
+        strokeLine(ctx, box.x0, axisY, box.x1, axisY);
+        strokeLine(ctx, axisX, box.y0, axisX, box.y1);
+
+        // Aslabels zoals in het boek: variabele aan het eind van elke as, buiten het raster
+        ctx.fillStyle = '#334155';
+        ctx.font = 'italic 600 13px Inter, sans-serif';
+        if (opt.xLabel) { ctx.textAlign = 'left'; ctx.fillText(opt.xLabel, box.x1 + 6, axisY + 4); }
+        if (opt.yLabel) { ctx.textAlign = 'center'; ctx.fillText(opt.yLabel, axisX, box.y0 - 8); }
+        if (opt.xCaption) {
+            ctx.fillStyle = '#64748b';
+            ctx.font = '500 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(opt.xCaption, box.x1, box.y1 + 32);
+        }
+
+        // Alles hieronder blijft binnen het grafiekvlak
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0);
+        ctx.clip();
+
+        (opt.hLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, box.x0, mapY(l.y), box.x1, mapY(l.y));
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, box.x0 + 6, mapY(l.y) - 6);
+            }
+        });
+        (opt.vLines || []).forEach(l => {
+            ctx.save();
+            ctx.strokeStyle = l.color || C.slate;
+            ctx.lineWidth = l.width || 2;
+            ctx.setLineDash(l.dash || [6, 4]);
+            strokeLine(ctx, mapX(l.x), box.y0, mapX(l.x), box.y1);
+            ctx.restore();
+            if (l.label) {
+                ctx.fillStyle = l.color || C.slate;
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(l.label, mapX(l.x) + 6, box.y0 + 12);
+            }
+        });
+
+        // Grafieken: pen optillen bij niet-gedefinieerde waarden en sprongen (asymptoten)
+        const span = opt.yMax - opt.yMin;
+        (opt.curves || []).forEach(c => {
+            ctx.save();
+            ctx.strokeStyle = c.color || C.indigo;
+            ctx.lineWidth = c.width || 2.5;
+            ctx.setLineDash(c.dash || []);
+            ctx.beginPath();
+            let pen = false, prevY = null;
+            for (let px = box.x0; px <= box.x1; px += 1) {
+                const x = opt.xMin + (px - box.x0) / (box.x1 - box.x0) * (opt.xMax - opt.xMin);
+                const outside = c.domain && (x < c.domain[0] || x > c.domain[1]);
+                const y = outside ? NaN : c.f(x);
+                if (!isFinite(y)) { pen = false; prevY = null; continue; }
+                const py = mapY(y);
+                if (!pen || Math.abs(y - prevY) > span) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+                pen = true;
+                prevY = y;
+            }
+            ctx.stroke();
+            ctx.restore();
+        });
+
+        (opt.points || []).forEach(p => {
+            ctx.fillStyle = p.color || C.indigo;
+            ctx.beginPath();
+            ctx.arc(mapX(p.x), mapY(p.y), p.r || 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            if (p.label) {
+                ctx.font = '700 11px Inter, sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText(p.label, mapX(p.x) + 8, mapY(p.y) - 8);
+            }
+        });
+        ctx.restore();
+
+        return { ctx, mapX, mapY, box };
+    }
+
+    /** Zet de actieve/inactieve stijl op een rij preset-knoppen (prefix + index). */
+    function setActiveButton(prefix, count, active,
+                             on = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+                             off = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200') {
+        for (let i = 0; i < count; i++) {
+            const btn = $(prefix + i);
+            if (btn) btn.className = i === active ? on : off;
+        }
+    }
+
+    /**
+     * Formule-opmaak zoals in het boek, zonder MathJax. Notatie in de bron:
+     *   {teller|noemer}  → breuk (mag genest: {600a|5b + {a²|3b}})
+     *   √[…]  ∛[…]      → wortel met streep erover
+     *   ^[…]            → exponent, bv. x^[−1,2] of y^[{1|p}]
+     *   #1              → genummerd invulvakje bij een opdracht
+     * In markup: <span class="mono" data-f="{3|x − 1} − x"></span> (START vult alle data-f in).
+     * In JS: `${fm('{3|x − 1}')}`. Eenvoudige formules zonder breuk mogen gewoon tekst blijven.
+     */
+    function fm(src) {
+        let i = 0;
+        function parse(stop) {
+            let out = '';
+            while (i < src.length && !stop.includes(src[i])) {
+                const ch = src[i];
+                if (ch === '{') {
+                    i++;
+                    const teller = parse('|');
+                    i++;
+                    const noemer = parse('}');
+                    i++;
+                    out += `<span class="frac"><span>${teller}</span><span>${noemer}</span></span>`;
+                } else if ('√∛^'.includes(ch) && src[i + 1] === '[') {
+                    i += 2;
+                    const inner = parse(']');
+                    i++;
+                    if (ch === '^') out += `<sup>${inner}</sup>`;
+                    else out += `<span class="root">${ch === '∛' ? '<sup class="root-idx">3</sup>' : ''}√<span class="radicand">${inner}</span></span>`;
+                } else if (ch === '#' && /\d/.test(src[i + 1])) {
+                    out += `<span class="vak">${src[i + 1]}</span>`;
+                    i += 2;
+                } else {
+                    out += ch === '<' ? '&lt;' : ch === '&' ? '&amp;' : ch;
+                    i++;
+                }
+            }
+            return out;
+        }
+        return parse('');
+    }
+
+    // ==================== HULPFUNCTIES VOOR DEZE LES ====================
+    const lg = Math.log10, ln = Math.log;
+
+    /** Twee uitkomsten gelijk (relatief), of allebei niet gedefinieerd (log van 0 of minder). */
+    function gelijk(a, b) {
+        if (!isFinite(a) || !isFinite(b)) return !isFinite(a) && !isFinite(b);
+        return Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+    }
+
+    /** Negatief getal tussen haakjes bij invullen: 10^(−0,5). */
+    const fmtB = (v, digits = 2) => v < 0 ? `(${fmt(v, digits)})` : fmt(v, digits);
+    /** " + 0,5" of " − 0,5" achter een term. */
+    const plusMin = (v, digits = 2) => v < 0 ? ` − ${fmt(-v, digits)}` : ` + ${fmt(v, digits)}`;
+    /** Vast aantal decimalen, in Nederlandse notatie: 1 → "1,000" (voor een slider-parameter in een formule). */
+    const fmtF = (v, d) => v.toFixed(d).replace('.', ',').replace('-', '−');
+    /** Getal met ongeveer vier significante cijfers: 316,2 · 12,18 · 0,831. */
+    const fmtS = v => fmt(v, Math.abs(v) >= 1000 ? 0 : Math.abs(v) >= 100 ? 1 : Math.abs(v) >= 10 ? 2 : 3);
+
+    // Conceptkleur van een herleidingsstap: rand + achtergrond van de regel, en de kleur van de uitleg.
+    // emerald = omkeerregel, amber = machtsregels, sky = logregels, violet = ander grondtal,
+    // orange = uitrekenen met de GR, slate = gewone stap.
+    const KLEUR = {
+        amber: { rij: 'border-amber-400 bg-amber-50/70', tekst: 'text-amber-800' },
+        rose: { rij: 'border-rose-400 bg-rose-50/70', tekst: 'text-rose-800' },
+        sky: { rij: 'border-sky-400 bg-sky-50/70', tekst: 'text-sky-800' },
+        emerald: { rij: 'border-emerald-400 bg-emerald-50/70', tekst: 'text-emerald-800' },
+        violet: { rij: 'border-violet-400 bg-violet-50/70', tekst: 'text-violet-800' },
+        orange: { rij: 'border-orange-400 bg-orange-50/70', tekst: 'text-orange-800' },
+        slate: { rij: 'border-slate-300 bg-slate-50', tekst: 'text-slate-600' },
+    };
+
+    /**
+     * Herleidingsladder: de regels onder elkaar, zoals in het boek. Achter elke regel staat de
+     * controle met de ingevulde getallen. Een regel is { e, l, r }: links moet gelijk zijn aan rechts.
+     * u + k = de stap naar de volgende regel (de blauwe tekst in het boek) en de kleur van zijn regel.
+     * afgerond: true = het boek rondt hier af, dus ≈ is goed.
+     */
+    function ladderHTML(lijst, vals, klaar, animeer) {
+        return lijst.map((row, i) => {
+            const laatste = i === lijst.length - 1;
+            const L = row.l(vals), R = row.r(vals);
+            let tekst, teken;
+            if (!isFinite(L) || !isFinite(R)) {
+                tekst = 'bestaat niet';
+                teken = '–';
+            } else if (gelijk(L, R)) {
+                tekst = `${fmt(L, 3)} = ${fmt(R, 3)}`;
+                teken = '✓';
+            } else if (row.afgerond && Math.abs(L - R) < 0.03 * Math.abs(R)) {
+                tekst = `${fmt(L, 3)} ≈ ${fmt(R, 3)}`;
+                teken = '≈';
+            } else {
+                tekst = `${fmt(L, 3)} ≠ ${fmt(R, 3)}`;
+                teken = '✗';
+            }
+            const tekenKlasse = { '✓': 'text-emerald-600', '≈': 'text-amber-600', '✗': 'text-red-600', '–': 'text-slate-400' }[teken];
+
+            let rij, uitleg;
+            if (row.isFout) {
+                rij = 'border-red-500 bg-red-50';
+                uitleg = `<span class="font-semibold text-red-700">✗ ${fm(row.u)}</span>`;
+            } else if (laatste && klaar) {
+                rij = 'border-indigo-500 bg-indigo-50';
+                uitleg = '<span class="font-semibold text-indigo-700">Klaar!</span>';
+            } else {
+                const kl = KLEUR[row.k || 'slate'];
+                rij = kl.rij;
+                uitleg = !row.u ? '' : laatste
+                    ? `<span class="${kl.tekst} opacity-80">Volgende stap: ${fm(row.u)}</span>`
+                    : `<span class="${kl.tekst}">${fm(row.u)}</span>`;
+            }
+            return `
+                <div class="${animeer && laatste ? 'verschijn ' : ''}flex flex-col md:flex-row md:items-center gap-1.5 md:gap-4 px-3 py-2.5 rounded-xl border-l-4 ${rij}">
+                    <div class="mono text-base text-slate-900 md:w-5/12 overflow-x-auto">${fm(row.e)}</div>
+                    <div class="text-xs md:flex-1 leading-snug">${uitleg}</div>
+                    <div class="mono text-[11px] text-slate-500 whitespace-nowrap md:text-right">${tekst} <span class="font-bold text-sm ${tekenKlasse}">${teken}</span></div>
+                </div>`;
+        }).join('');
+    }
+
+    /** Bediening van een herleidingsladder: volgende/vorige stap, alles tonen, klassieke fout. */
+    function maakLadder(presets, render) {
+        const s = { idx: 0, stap: 1, fout: false };
+        s.pr = () => presets[s.idx];
+        s.kies = i => { s.idx = i; s.stap = 1; s.fout = false; };
+        s.volgende = () => { s.fout = false; s.stap = Math.min(s.pr().rows.length, s.stap + 1); render(true); };
+        s.vorige = () => { s.fout = false; s.stap = Math.max(1, s.stap - 1); render(false); };
+        s.alles = () => { s.fout = false; s.stap = s.pr().rows.length; render(false); };
+        s.toggleFout = () => { if (!s.pr().fout) return; s.fout = !s.fout; render(true); };
+        s.klaar = () => !s.fout && s.stap === s.pr().rows.length;
+        s.lijst = () => s.fout
+            ? [...s.pr().rows.slice(0, s.pr().fout.bij), { ...s.pr().fout, isFout: true }]
+            : s.pr().rows.slice(0, s.stap);
+        s.teller = () => s.fout ? 'klassieke fout' : `regel ${s.stap} van ${s.pr().rows.length}`;
+        return s;
+    }
+
+    /** Gestippelde pijl van (x1, y1) naar (x2, y2) in pixels. */
+    function pijl(ctx, x1, y1, x2, y2, color) {
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        strokeLine(ctx, x1, y1, x2, y2);
+        ctx.setLineDash([]);
+        const a = Math.atan2(y2 - y1, x2 - x1);
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - 10 * Math.cos(a - 0.4), y2 - 10 * Math.sin(a - 0.4));
+        ctx.lineTo(x2 - 10 * Math.cos(a + 0.4), y2 - 10 * Math.sin(a + 0.4));
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function stip(ctx, x, y, color, r = 6) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    /** Label met een lichte achtergrond, zodat het leesbaar blijft boven een lijn of grafiek. */
+    function tekst(ctx, s, x, y, color, align = 'left') {
+        ctx.font = '700 12px Inter, sans-serif';
+        ctx.textAlign = align;
+        const w = ctx.measureText(s).width;
+        const x0 = align === 'center' ? x - w / 2 : align === 'right' ? x - w : x;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+        ctx.fillRect(x0 - 3, y - 12, w + 6, 16);
+        ctx.fillStyle = color;
+        ctx.fillText(s, x, y);
+    }
+
+    // De drie grondtallen uit het boek: hoe je ze schrijft en hun log.
+    const BASIS = {
+        '10': { g: '10', log: 'log', v: 10 },
+        'e': { g: 'e', log: 'ln', v: Math.E },
+        '2': { g: '2', log: '²log', v: 2 },
+    };
+    const logB = (b, x) => Math.log(x) / Math.log(BASIS[b].v);
+
+    // Schaalverdeling van een logaritmische as zoals in figuur 13.23: 1, 10¹, 10², … (of e¹, 2³).
+    const SUP = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', '-': '⁻' };
+    const sup = k => String(k).split('').map(c => SUP[c] ?? c).join('');
+    const machtTick = b => v => {
+        const k = Math.round(v);
+        if (Math.abs(v - k) > 1e-9) return '';
+        return k === 0 ? '1' : BASIS[b].g + sup(k);
+    };
+
+    /** Mooie rasterstap (1, 2, 2,5 of 5 maal een macht van 10) voor een bereik. */
+    function mooieStap(bereik, maxStappen = 7) {
+        const p = 10 ** Math.floor(Math.log10(bereik / maxStappen));
+        return [1, 2, 2.5, 5, 10].map(m => m * p).find(s => bereik / s <= maxStappen) || 10 * p;
+    }
+
+    // ==================== NAVIGATIE (vast; alleen tabRenderers aanvullen) ====================
+    const tabRenderers = {
+        'tab-basis': () => renderRegel(),
+        'tab-vrij': () => renderVrij(),
+        'tab-grond': () => renderGrond(),
+        'tab-log': () => { renderLog(); renderOm(); },
+        'tab-opdrachten': () => renderOpdrachten(),
+    };
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+        $(tabId).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        $('btn-' + tabId).classList.add('active');
+        try { history.replaceState(null, '', '#' + tabId); } catch (e) { /* file:// in sommige browsers */ }
+        window.scrollTo({ top: 0 });
+        tabRenderers[tabId]?.();
+    }
+
+    // ==================== TAB 1: BASISBEGRIPPEN (regels testen) ====================
+    // Elke regel als functie van x: L = linkerlid, R = rechterlid, F = de klassieke fout.
+    // s = het andere getal in de regel (slider), g = het grondtal. tL/tR/tF geven de tekst
+    // (X = 'x' of een ingevuld getal, B = grondtal als tekst, G = de log van dat grondtal).
+    const regels = [
+        {
+            s: { n: 'q', min: -1, max: 1, step: 0.1, start: 0.5 },
+            x: { min: -1.5, max: 1.5, step: 0.5, start: 0.5 },
+            L: (x, s, g) => g ** (x + s),
+            R: (x, s, g) => g ** x * g ** s,
+            F: (x, s, g) => g ** x + g ** s,
+            tL: (X, s, b) => `${b.g}^[${X}${plusMin(s)}]`,
+            tR: (X, s, b) => `${b.g}^[${X}] · ${b.g}^[${fmt(s)}]`,
+            tF: (X, s, b) => `${b.g}^[${X}] + ${b.g}^[${fmt(s)}]`,
+            fout: 'Een som in de exponent wordt een product van machten, geen som.',
+        },
+        {
+            s: { n: 'p', min: 0.5, max: 2, step: 0.1, start: 1.5 },
+            x: { min: -1, max: 1.5, step: 0.5, start: 1 },
+            L: (x, s, g) => g ** (s * x),
+            R: (x, s, g) => (g ** s) ** x,
+            F: (x, s, g) => g ** s * g ** x,
+            tL: (X, s, b) => `${b.g}^[${X === 'x' ? fmt(s) + 'x' : fmt(s) + ' · ' + X}]`,
+            tR: (X, s, b) => `(${b.g}^[${fmt(s)}])^[${X}]`,
+            tF: (X, s, b) => `${b.g}^[${fmt(s)}] · ${b.g}^[${X}]`,
+            fout: 'Een product in de exponent is een macht van een macht. Een product van machten hoort bij een som in de exponent.',
+        },
+        {
+            s: { n: 'a', min: 0.5, max: 10, step: 0.5, start: 3 },
+            x: { min: 0, max: 10, step: 1, start: 2, van: 0.5 },
+            log: true,
+            L: (x, s, g, b) => logB(b, s * x),
+            R: (x, s, g, b) => logB(b, s) + logB(b, x),
+            F: (x, s, g, b) => logB(b, s) * logB(b, x),
+            tL: (X, s, b) => `${b.log}(${fmt(s)} · ${X})`,
+            tR: (X, s, b) => `${b.log}(${fmt(s)}) + ${b.log}(${X})`,
+            tF: (X, s, b) => `${b.log}(${fmt(s)}) · ${b.log}(${X})`,
+            fout: 'De log van een product is een som van logs, geen product.',
+        },
+        {
+            s: { n: 'p', min: 0.5, max: 3, step: 0.5, start: 2 },
+            x: { min: 0, max: 10, step: 1, start: 3, van: 0.5 },
+            log: true,
+            L: (x, s, g, b) => logB(b, x ** s),
+            R: (x, s, g, b) => s * logB(b, x),
+            F: (x, s, g, b) => logB(b, x) ** s,
+            tL: (X, s, b) => `${b.log}(${X}^[${fmt(s)}])`,
+            tR: (X, s, b) => `${fmt(s)} · ${b.log}(${X})`,
+            tF: (X, s, b) => `(${b.log}(${X}))^[${fmt(s)}]`,
+            fout: 'De exponent komt vóór de log te staan, niet boven de log.',
+        },
+        {
+            s: null,
+            x: { min: 0, max: 10, step: 1, start: 4, van: 0.5 },
+            log: true,
+            // ander grondtal p: bij log reken je met ln, bij ln en ²log met log
+            p: b => b === '10' ? 'e' : '10',
+            L: (x, s, g, b) => logB(b, x),
+            R: (x, s, g, b) => logB(b === '10' ? 'e' : '10', x) / logB(b === '10' ? 'e' : '10', g),
+            F: (x, s, g, b) => logB(b === '10' ? 'e' : '10', g) / logB(b === '10' ? 'e' : '10', x),
+            tL: (X, s, b) => `${b.log}(${X})`,
+            tR: (X, s, b, pb) => `{${pb.log}(${X})|${pb.log}(${b.g})}`,
+            tF: (X, s, b, pb) => `{${pb.log}(${b.g})|${pb.log}(${X})}`,
+            fout: 'Teller en noemer zijn omgedraaid. Het oude grondtal hoort in de noemer.',
+        },
+        {
+            s: null,
+            x: { min: 0, max: 10, step: 1, start: 5, van: 0.5 },
+            log: true,
+            L: (x, s, g, b) => g ** logB(b, x),
+            R: x => x,
+            F: null,
+            tL: (X, s, b) => `${b.g}^[${b.log}(${X})]`,
+            tR: X => `${X}`,
+            fout: '',
+        },
+    ];
+    const regelBases = ['10', 'e', '2'];
+    let regelIdx = 0, regelBasis = '10', regelS = 0.5, regelX = 0.5, regelFout = false;
+
+    function setRegel(i) {
+        regelIdx = i;
+        regelFout = false;
+        const r = regels[i];
+        if (r.s) {
+            const s = $('regel-s');
+            s.min = r.s.min;
+            s.max = r.s.max;
+            s.step = r.s.step;
+            s.value = r.s.start;
+            regelS = r.s.start;
+        }
+        $('regel-s-paneel').classList.toggle('hidden', !r.s);
+        const x = $('regel-x');
+        x.min = r.x.van ?? r.x.min;
+        x.max = r.x.max;
+        x.step = 0.5;
+        x.value = r.x.start;
+        regelX = r.x.start;
+        $('btn-regel-fout').classList.toggle('invisible', !r.F);
+        setActiveButton('regel-preset-', regels.length, i);
+        renderRegel();
+    }
+
+    function setRegelBasis(i) {
+        regelBasis = regelBases[i];
+        setActiveButton('regel-basis-', 3, i,
+            'flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 text-white',
+            'flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200');
+        renderRegel();
+    }
+
+    function setRegelS(val) { regelS = parseFloat(val); renderRegel(); }
+    function setRegelX(val) { regelX = parseFloat(val); renderRegel(); }
+    function toggleRegelFout() { regelFout = !regelFout; renderRegel(); }
+
+    function renderRegel() {
+        const r = regels[regelIdx];
+        const b = BASIS[regelBasis], g = b.v, s = regelS;
+        const pb = BASIS[r.p ? r.p(regelBasis) : regelBasis];
+        const L = x => r.L(x, s, g, regelBasis);
+        const rechts = regelFout && r.F ? r.F : r.R;
+        const Rf = x => rechts(x, s, g, regelBasis);
+        const tRechts = regelFout && r.F ? r.tF : r.tR;
+
+        // Verticaal bereik uit het linkerlid (de band), zodat de band altijd in beeld is.
+        const van = r.x.van ?? r.x.min;
+        const ys = [];
+        for (let i = 0; i <= 120; i++) {
+            const y = L(van + (r.x.max - van) * i / 120);
+            if (isFinite(y)) ys.push(y);
+        }
+        let lo = Math.min(0, ...ys), hi = Math.max(...ys);
+        const stap = mooieStap(Math.max(hi - lo, 1e-6) * 1.1);
+        lo = Math.floor(lo / stap) * stap;
+        hi = Math.ceil(hi * 1.05 / stap) * stap;
+
+        const lijnKleur = regelFout ? '#dc2626' : C.indigo;
+        drawGraph('canvas-basis', {
+            xMin: r.x.min, xMax: r.x.max, yMin: lo, yMax: hi, xStep: r.x.step, yStep: stap,
+            xLabel: 'x', yLabel: 'y',
+            curves: [
+                { f: L, color: '#cbd5e1', width: 12, domain: r.log ? [0.02, r.x.max] : null },
+                { f: Rf, color: lijnKleur, width: 3, domain: r.log ? [0.02, r.x.max] : null },
+            ],
+            points: [
+                { x: regelX, y: L(regelX), color: '#64748b', r: 8 },
+                { x: regelX, y: Rf(regelX), color: lijnKleur, r: 5 },
+            ],
+        });
+
+        $('regel-pil').innerHTML = `${regelFout && r.F ? '<span class="text-red-400">✗</span> ' : ''}${fm(r.tL('x', s, b, pb))} = ${fm(tRechts('x', s, b, pb))}`;
+        if (r.s) $('regel-s-label').innerText = `${r.s.n} = ${fmt(s)}`;
+        $('regel-x-label').innerText = `x = ${fmt(regelX)}`;
+        $('btn-regel-fout').innerText = regelFout ? '✓ Toon de echte regel' : '⚠ Klassieke fout';
+
+        const X = fmtB(regelX);
+        const Lv = L(regelX), Rv = Rf(regelX);
+        const zelfde = isFinite(Lv) && isFinite(Rv) && Math.abs(Lv - Rv) < 1e-9 * Math.max(1, Math.abs(Lv));
+        let html = `<div class="font-bold text-indigo-900">Controle bij x = ${fmt(regelX)}</div>
+            <div>links: <span class="mono">${fm(r.tL(X, s, b, pb))}</span> = <span class="mono font-bold">${isFinite(Lv) ? fmt(Lv, 3) : 'bestaat niet'}</span></div>
+            <div>rechts: <span class="mono">${fm(tRechts(X, s, b, pb))}</span> = <span class="mono font-bold">${isFinite(Rv) ? fmt(Rv, 3) : 'bestaat niet'}</span></div>`;
+        if (!regelFout) {
+            html += `<div class="text-emerald-700 font-semibold">✓ Gelijk. De lijn ligt overal in de band: de regel klopt voor élke x, niet alleen voor deze.</div>`;
+            if (regelIdx === 5) html += `<div>Eerst de log nemen en daarna de macht: dan ben je terug bij x. Daarom geeft ${fm(`${b.log}(x) = y`)} meteen ${fm(`x = ${b.g}^[y]`)}.</div>`;
+            if (regelIdx === 4) html += `<div>Het grondtal p mag je zelf kiezen. Hier is het ${pb.g === 'e' ? 'e (ln)' : '10 (log)'}, zoals op de GR.</div>`;
+        } else if (zelfde) {
+            html += `<div class="text-amber-700 font-semibold">Hier zijn ze toevallig gelijk. Maar kijk naar de rest van de grafiek: de rode lijn ligt bijna nergens in de band. Eén getal bewijst niets.</div>`;
+        } else {
+            html += `<div class="text-red-700 font-semibold">✗ Niet gelijk. De rode lijn komt los van de band: deze "regel" bestaat niet.</div><div>${fm(r.fout)}</div>`;
+        }
+        $('regel-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 2: VARIABELEN VRIJMAKEN (THEORIE A) ====================
+    // Voorbeelden uit Theorie A (p. 77) en de Terugblik (p. 86). h = horizontale as, v = verticale as
+    // (variabelen zoals in de formule), curve = de oorspronkelijke formule als v(h). Je weet altijd de
+    // waarde op de verticale as (N) en rekent terug naar t. exact = de vrijgemaakte formule,
+    // uit = zoals het boek hem afrondt.
+    const vrijPresets = [
+        {
+            vraag: 'Maak t vrij bij de formule N = 2 · log(t) − 3.',
+            h: { n: 't', min: 0, max: 100, step: 10 }, v: { n: 'N', min: -3, max: 2, step: 1 },
+            curve: t => t > 0 ? 2 * lg(t) - 3 : NaN,
+            g: { min: -1.5, max: 1, step: 0.05, start: 0.5 },
+            exact: N => 10 ** (0.5 * N + 1.5),
+            uit: N => 31.6 * 3.16 ** N,
+            rows: [
+                { e: 'N = 2 · log(t) − 3', l: v => v.N, r: v => 2 * lg(v.t) - 3, u: 't vrijmaken: schrijf de term met log(t) apart.', k: 'slate' },
+                { e: '2 · log(t) = N + 3', l: v => 2 * lg(v.t), r: v => v.N + 3, u: 'Deel beide leden door 2.', k: 'slate' },
+                { e: 'log(t) = ½N + 1½', l: v => lg(v.t), r: v => 0.5 * v.N + 1.5, u: 'Gebruik ᵍlog(x) = y geeft x = g^[y].', k: 'emerald' },
+                { e: 't = 10^[½N + 1½]', l: v => v.t, r: v => 10 ** (0.5 * v.N + 1.5), u: 'Gebruik a^[p + q] = a^[p] · a^[q].', k: 'amber' },
+                { e: 't = 10^[½N] · 10^[1½]', l: v => v.t, r: v => 10 ** (0.5 * v.N) * 10 ** 1.5, u: 'Gebruik a^[pq] = (a^[p])^[q].', k: 'amber' },
+                { e: 't = 10^[1½] · (10^[½])^[N]', l: v => v.t, r: v => 10 ** 1.5 * (10 ** 0.5) ** v.N, u: 'Bereken 10^[1½] en 10^[½] met de GR.', k: 'orange' },
+                { e: 't ≈ 31,6 · 3,16^[N]', l: v => v.t, r: v => 31.6 * 3.16 ** v.N, afgerond: true },
+            ],
+            fout: { bij: 4, e: 't = 10^[½N] + 10^[1½]', l: v => v.t, r: v => 10 ** (0.5 * v.N) + 10 ** 1.5, u: 'Fout: a^[p + q] = a^[p] · a^[q]. Een som in de exponent wordt een product, geen som.' },
+        },
+        {
+            vraag: 'Gegeven is de formule N = 5 · 1,18^[t]. Schrijf de formule in de vorm t = a · ln(bN). Rond a af op twee decimalen.',
+            h: { n: 't', min: 0, max: 15, step: 3 }, v: { n: 'N', min: 0, max: 60, step: 10 },
+            curve: t => 5 * 1.18 ** t,
+            g: { min: 5.5, max: 58, step: 0.5, start: 20 },
+            exact: N => ln(0.2 * N) / ln(1.18),
+            uit: N => 6.04 * ln(0.2 * N),
+            rows: [
+                { e: 'N = 5 · 1,18^[t]', l: v => v.N, r: v => 5 * 1.18 ** v.t, u: 'Verwissel beide leden en deel beide leden door 5.', k: 'slate' },
+                { e: '1,18^[t] = 0,2N', l: v => 1.18 ** v.t, r: v => 0.2 * v.N, u: 'Neem van beide leden de ln.', k: 'emerald' },
+                { e: 'ln(1,18^[t]) = ln(0,2N)', l: v => ln(1.18 ** v.t), r: v => ln(0.2 * v.N), u: 'Gebruik ᵍlog(a^[p]) = p · ᵍlog(a).', k: 'sky' },
+                { e: 't · ln(1,18) = ln(0,2N)', l: v => v.t * ln(1.18), r: v => ln(0.2 * v.N), u: 'Deel beide leden door ln(1,18).', k: 'slate' },
+                { e: 't = {1|ln(1,18)} · ln(0,2N)', l: v => v.t, r: v => ln(0.2 * v.N) / ln(1.18), u: 'Bereken {1|ln(1,18)} met de GR.', k: 'orange' },
+                { e: 't ≈ 6,04 · ln(0,2N)', l: v => v.t, r: v => 6.04 * ln(0.2 * v.N), afgerond: true },
+            ],
+            fout: { bij: 4, e: 't = ln(0,2N) − ln(1,18)', l: v => v.t, r: v => ln(0.2 * v.N) - ln(1.18), u: 'Fout: t · ln(1,18) is een product. Je deelt beide leden door ln(1,18); aftrekken mag alleen bij een som.' },
+        },
+        {
+            vraag: 'Maak t vrij bij de formule N = 20 · 10^[0,1t + 2].',
+            h: { n: 't', min: -20, max: 5, step: 5 }, v: { n: 'N', min: 0, max: 2000, step: 250 },
+            curve: t => 20 * 10 ** (0.1 * t + 2),
+            g: { min: 30, max: 1950, step: 10, start: 500 },
+            exact: N => 10 * lg(0.05 * N) - 20,
+            rows: [
+                { e: 'N = 20 · 10^[0,1t + 2]', l: v => v.N, r: v => 20 * 10 ** (0.1 * v.t + 2), u: 't vrijmaken, dus linker- en rechterlid wisselen.', k: 'slate' },
+                { e: '20 · 10^[0,1t + 2] = N', l: v => 20 * 10 ** (0.1 * v.t + 2), r: v => v.N, u: 'Deel beide leden door 20.', k: 'slate' },
+                { e: '10^[0,1t + 2] = 0,05N', l: v => 10 ** (0.1 * v.t + 2), r: v => 0.05 * v.N, u: 'Gebruik g^[y] = x geeft y = ᵍlog(x).', k: 'emerald' },
+                { e: '0,1t + 2 = log(0,05N)', l: v => 0.1 * v.t + 2, r: v => lg(0.05 * v.N), u: 'Breng 2 naar het rechterlid.', k: 'slate' },
+                { e: '0,1t = log(0,05N) − 2', l: v => 0.1 * v.t, r: v => lg(0.05 * v.N) - 2, u: 'Vermenigvuldig beide leden met 10.', k: 'slate' },
+                { e: 't = 10 · log(0,05N) − 20', l: v => v.t, r: v => 10 * lg(0.05 * v.N) - 20 },
+            ],
+            fout: { bij: 5, e: 't = 10 · log(0,05N) − 2', l: v => v.t, r: v => 10 * lg(0.05 * v.N) - 2, u: 'Fout: vermenigvuldig álle termen met 10. Dan wordt −2 ook −20.' },
+        },
+        {
+            vraag: 'Maak t vrij bij de formule N = log(4t) − 3.',
+            h: { n: 't', min: 0, max: 500, step: 100 }, v: { n: 'N', min: -2, max: 1, step: 0.5 },
+            curve: t => t > 0 ? lg(4 * t) - 3 : NaN,
+            g: { min: -1.6, max: 0.3, step: 0.02, start: -0.6 },
+            exact: N => 250 * 10 ** N,
+            rows: [
+                { e: 'N = log(4t) − 3', l: v => v.N, r: v => lg(4 * v.t) - 3, u: 't vrijmaken, dus linker- en rechterlid wisselen.', k: 'slate' },
+                { e: 'log(4t) − 3 = N', l: v => lg(4 * v.t) - 3, r: v => v.N, u: 'Breng −3 naar het rechterlid.', k: 'slate' },
+                { e: 'log(4t) = N + 3', l: v => lg(4 * v.t), r: v => v.N + 3, u: 'Gebruik ᵍlog(x) = y geeft x = g^[y].', k: 'emerald' },
+                { e: '4t = 10^[N + 3]', l: v => 4 * v.t, r: v => 10 ** (v.N + 3), u: 'Deel beide leden door 4 en gebruik a^[p + q] = a^[p] · a^[q].', k: 'amber' },
+                { e: 't = ¼ · 10^[N] · 10^[3]', l: v => v.t, r: v => 0.25 * 10 ** v.N * 1000, u: 'Bereken ¼ · 10³ = 250.', k: 'orange' },
+                { e: 't = 250 · 10^[N]', l: v => v.t, r: v => 250 * 10 ** v.N },
+            ],
+            fout: { bij: 3, e: '4t = N + 3', l: v => 4 * v.t, r: v => v.N + 3, u: 'Fout: "log" mag je niet wegstrepen. Uit log(4t) = N + 3 volgt 4t = 10^[N + 3].' },
+        },
+    ];
+    let vrijG = 0;
+    const vrij = maakLadder(vrijPresets, animeer => renderVrij(animeer));
+
+    function setVrijPreset(i) {
+        vrij.kies(i);
+        const pr = vrijPresets[i];
+        const s = $('vrij-slider');
+        s.min = pr.g.min;
+        s.max = pr.g.max;
+        s.step = pr.g.step;
+        s.value = pr.g.start;
+        vrijG = pr.g.start;
+        $('vrij-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Voorbeeld</span><span class="mono">${fm(pr.vraag)}</span>`;
+        $('btn-vrij-fout').classList.toggle('invisible', !pr.fout);
+        setActiveButton('vrij-preset-', vrijPresets.length, i);
+        renderVrij(true);
+    }
+
+    function setVrijG(val) {
+        vrijG = parseFloat(val);
+        renderVrij();
+    }
+
+    function renderVrij(animeer = false) {
+        const pr = vrij.pr();
+        const w = pr.exact(vrijG);
+        const vals = { [pr.h.n]: w, [pr.v.n]: vrijG };
+        const klaar = vrij.klaar();
+        $('vrij-ladder').innerHTML = ladderHTML(vrij.lijst(), vals, klaar, animeer);
+        $('vrij-teller').innerText = vrij.teller();
+        $('btn-vrij-fout').innerText = vrij.fout ? '✓ Goede uitwerking' : '⚠ Klassieke fout';
+        $('vrij-label').innerText = `${pr.v.n} = ${fmt(vrijG)}`;
+
+        // Grafiek: de oorspronkelijke formule, met een pijl van de bekende naar de gezochte waarde.
+        const g = drawGraph('canvas-vrij', {
+            xMin: pr.h.min, xMax: pr.h.max, yMin: pr.v.min, yMax: pr.v.max, xStep: pr.h.step, yStep: pr.v.step,
+            xLabel: pr.h.n, yLabel: pr.v.n, pad: { l: 44, r: 22 },
+            curves: [{ f: pr.curve, color: '#334155', width: 3 }],
+        });
+        const uit = (pr.uit || pr.exact)(vrijG);
+        const inBeeld = isFinite(w) && w >= pr.h.min && w <= pr.h.max;
+        if (inBeeld) {
+            const { ctx, mapX, mapY, box } = g;
+            const asY = pr.v.min <= 0 && pr.v.max >= 0 ? mapY(0) : box.y1;
+            const asX = pr.h.min <= 0 && pr.h.max >= 0 ? mapX(0) : box.x0;
+            const px = mapX(w), py = mapY(vrijG);
+            const gezocht = klaar ? `${pr.h.n} ${pr.uit ? '≈' : '='} ${fmt(uit, 2)}` : `${pr.h.n} = ?`;
+            pijl(ctx, asX, py, px, py, C.emerald);
+            pijl(ctx, px, py, px, asY, C.emerald);
+            stip(ctx, asX, py, C.indigo);
+            const links = asX > box.x1 - 120;
+            tekst(ctx, `${pr.v.n} = ${fmt(vrijG)}`, links ? asX - 8 : asX + 8, py - 8, C.indigo, links ? 'right' : 'left');
+            if (klaar) stip(ctx, mapX(uit), asY, C.emerald, 7);
+            const rechts = px > box.x1 - 80;
+            const onder = asY < box.y1 - 20 && vrijG > 0;
+            tekst(ctx, gezocht, rechts ? px - 10 : px + 10, asY + (onder ? 18 : -8), klaar ? C.emerald : '#64748b', rechts ? 'right' : 'left');
+            stip(ctx, px, py, '#334155', 4.5);
+        }
+
+        let html = `<div class="font-bold text-indigo-900">Terugrekenen</div>`;
+        html += `<div>Je weet <span class="mono font-bold text-indigo-700">${pr.v.n} = ${fmt(vrijG)}</span>. Op de grafiek hoort daar <span class="mono font-bold">${pr.h.n} = ${fmt(w, 3)}</span> bij${inBeeld ? '' : ' (buiten het venster)'}.</div>`;
+        const toevallig = vrij.fout && gelijk(pr.fout.l(vals), pr.fout.r(vals));
+        html += !vrij.fout
+            ? `<div>Elke regel klopt voor deze getallen: links = rechts.</div>`
+            : toevallig
+                ? `<div class="text-amber-700">Bij ${pr.v.n} = ${fmt(vrijG)} klopt de foute regel toevallig. Schuif aan ${pr.v.n}: bij andere getallen gaat het mis.</div>`
+                : `<div class="text-red-700">De foute regel klopt niet meer bij deze getallen: links en rechts zijn niet gelijk.</div>`;
+        if (klaar) {
+            html += pr.uit
+                ? `<div>De vrijgemaakte formule geeft <span class="mono font-bold text-emerald-700">${pr.h.n} ≈ ${fmt(uit, 3)}</span>. Dat is net iets anders, omdat het boek de getallen afrondt.</div>`
+                : `<div>De vrijgemaakte formule rekent het in één keer uit: <span class="mono font-bold text-emerald-700">${pr.h.n} = ${fmt(uit, 3)}</span>, precies de voet van de pijl.</div>`;
+        } else if (!vrij.fout) {
+            html += `<div class="text-slate-500">Werk de stappen af. De laatste regel is een formule die ${pr.h.n} direct uitrekent.</div>`;
+        }
+        $('vrij-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 3: GRONDTALLEN VERANDEREN (THEORIE B) ====================
+    // Opgave 60, Theorie B, de voorbeelden (p. 80) en de Terugblik (p. 86). orig = de formule uit het boek,
+    // nieuw = dezelfde formule met het nieuwe grondtal en de parameters p van de sliders.
+    const grondPresets = [
+        {
+            vraag: 'Opgave 60: schrijf N = 20 · 1,85^[t] in de vorm N = 20 · e^[ct].',
+            oud: 'N = 20 · 1,85^[t]',
+            orig: t => 20 * 1.85 ** t,
+            params: [{ n: 'c', min: 0, max: 1.5, step: 0.001, start: 1, exact: ln(1.85), dec: 3 }],
+            nieuw: (t, p) => 20 * Math.exp(p[0] * t),
+            vorm: p => `N = 20 · e^[${fmtF(p[0], 3)}t]`,
+            sleutel: p => `Jouw groeifactor per stap van t is ${fm(`e^[${fmt(p[0], 3)}] = ${fmt(Math.exp(p[0]), 3)}`)}. De grafieken vallen samen als dat de oude groeifactor 1,85 is.`,
+            berekening: `${fm('N = 20 · 1,85^[t] = 20 · (e^[c])^[t]')} met ${fm('e^[c] = 1,85')}.<br>Dus c = ln(1,85) ≈ 0,615 en ${fm('N = 20 · e^[0,615t]')}. De 20 blijft staan.`,
+            h: { n: 't', min: 0, max: 5, step: 1 }, v: { n: 'N', min: 0, max: 450, step: 50 },
+        },
+        {
+            vraag: 'Theorie B: schrijf N = 50 · e^[t] in de vorm N = b · 2^[ct].',
+            oud: 'N = 50 · e^[t]',
+            orig: t => 50 * Math.exp(t),
+            params: [{ n: 'c', min: 0, max: 2.5, step: 0.001, start: 1, exact: Math.log2(Math.E), dec: 3 }],
+            nieuw: (t, p) => 50 * 2 ** (p[0] * t),
+            vorm: p => `N = 50 · 2^[${fmtF(p[0], 3)}t]`,
+            sleutel: p => `Jouw groeifactor per stap van t is ${fm(`2^[${fmt(p[0], 3)}] = ${fmt(2 ** p[0], 3)}`)}. De grafieken vallen samen als dat e ≈ 2,718 is.`,
+            berekening: `${fm('N = 50 · e^[t] = 50 · (2^[c])^[t]')} met ${fm('2^[c] = e')}.<br>Dus c = ²log(e) ≈ 1,443 en ${fm('N = 50 · 2^[1,443t]')}. De beginwaarde b = 50 verandert niet.`,
+            h: { n: 't', min: 0, max: 4, step: 1 }, v: { n: 'N', min: 0, max: 3000, step: 500 },
+        },
+        {
+            vraag: 'Voorbeeld a: schrijf N = 75 · 1,94^[t] in de vorm N = b · 10^[ct]. Rond c af op drie decimalen.',
+            oud: 'N = 75 · 1,94^[t]',
+            orig: t => 75 * 1.94 ** t,
+            params: [{ n: 'c', min: 0, max: 0.6, step: 0.001, start: 0.15, exact: lg(1.94), dec: 3 }],
+            nieuw: (t, p) => 75 * 10 ** (p[0] * t),
+            vorm: p => `N = 75 · 10^[${fmtF(p[0], 3)}t]`,
+            sleutel: p => `Jouw groeifactor per stap van t is ${fm(`10^[${fmt(p[0], 3)}] = ${fmt(10 ** p[0], 3)}`)}. De grafieken vallen samen als dat 1,94 is.`,
+            berekening: `${fm('10^[c] = 1,94')} geeft c = log(1,94) ≈ 0,288.<br>Dus ${fm('N = 75 · 10^[0,288t]')}.`,
+            h: { n: 't', min: 0, max: 5, step: 1 }, v: { n: 'N', min: 0, max: 2200, step: 200 },
+        },
+        {
+            vraag: 'Terugblik: schrijf N = 50 · 1,75^[t] in de vorm N = b · 2^[ct].',
+            oud: 'N = 50 · 1,75^[t]',
+            orig: t => 50 * 1.75 ** t,
+            params: [{ n: 'c', min: 0, max: 1.5, step: 0.001, start: 0.4, exact: Math.log2(1.75), dec: 3 }],
+            nieuw: (t, p) => 50 * 2 ** (p[0] * t),
+            vorm: p => `N = 50 · 2^[${fmtF(p[0], 3)}t]`,
+            sleutel: p => `Jouw groeifactor per stap van t is ${fm(`2^[${fmt(p[0], 3)}] = ${fmt(2 ** p[0], 3)}`)}. De grafieken vallen samen als dat 1,75 is.`,
+            berekening: `Je gebruikt dat ${fm('2^[c] = 1,75')}, dus c = ²log(1,75) ≈ 0,807.<br>Zo krijg je ${fm('N = 50 · 2^[0,807t]')}.`,
+            h: { n: 't', min: 0, max: 5, step: 1 }, v: { n: 'N', min: 0, max: 900, step: 100 },
+        },
+        {
+            vraag: 'Theorie B: schrijf N = 25 · log(t) in de vorm N = a · ln(t).',
+            oud: 'N = 25 · log(t)',
+            orig: t => t > 0 ? 25 * lg(t) : NaN,
+            params: [{ n: 'a', min: 0, max: 30, step: 0.1, start: 20, exact: 25 / ln(10), dec: 1 }],
+            nieuw: (t, p) => t > 0 ? p[0] * ln(t) : NaN,
+            vorm: p => `N = ${fmtF(p[0], 1)} · ln(t)`,
+            sleutel: p => `Bij t = 10 geeft jouw formule ${fmt(p[0] * ln(10), 2)}. De oorspronkelijke geeft 25 · log(10) = 25. Voor élke t moet ${fm('a · ln(t) = 25 · log(t)')} gelden.`,
+            berekening: `${fm('log(t) = {ln(t)|ln(10)} = 0,434… · ln(t)')}.<br>Dus ${fm('N = 25 · 0,434… · ln(t) ≈ 10,9 · ln(t)')}.`,
+            h: { n: 't', min: 0, max: 20, step: 2 }, v: { n: 'N', min: -30, max: 40, step: 10 },
+        },
+        {
+            vraag: 'Voorbeeld b: schrijf N = 25 · ln(3t + 1) met een logaritme met grondtal 10. Rond zo nodig af op één decimaal.',
+            oud: 'N = 25 · ln(3t + 1)',
+            orig: t => 25 * ln(3 * t + 1),
+            params: [{ n: 'a', min: 0, max: 100, step: 0.1, start: 30, exact: 25 / lg(Math.E), dec: 1 }],
+            nieuw: (t, p) => p[0] * lg(3 * t + 1),
+            vorm: p => `N = ${fmtF(p[0], 1)} · log(3t + 1)`,
+            sleutel: p => `Bij t = 3 geeft jouw formule ${fmt(p[0] * lg(10), 2)}. De oorspronkelijke geeft 25 · ln(10) = ${fmt(25 * ln(10), 2)}.`,
+            berekening: `${fm('N = 25 · ln(3t + 1) = 25 · {log(3t + 1)|log(e)} = {25|log(e)} · log(3t + 1)')}.<br>Dus ${fm('N ≈ 57,6 · log(3t + 1)')}.`,
+            h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 90, step: 10 },
+        },
+        {
+            vraag: 'Terugblik: schrijf N = 1,85 + log(3t) in de vorm N = a + b · ln(t).',
+            oud: 'N = 1,85 + log(3t)',
+            orig: t => t > 0 ? 1.85 + lg(3 * t) : NaN,
+            params: [
+                { n: 'a', min: 0, max: 4, step: 0.01, start: 1.85, exact: 1.85 + lg(3), dec: 2 },
+                { n: 'b', min: 0, max: 1, step: 0.005, start: 0.6, exact: 1 / ln(10), dec: 3 },
+            ],
+            nieuw: (t, p) => t > 0 ? p[0] + p[1] * ln(t) : NaN,
+            vorm: p => `N = ${fmtF(p[0], 2)} + ${fmtF(p[1], 3)} · ln(t)`,
+            sleutel: p => `b bepaalt hoe snel de grafiek stijgt, a schuift hem omhoog. Bij t = 1 geeft jouw formule ${fmt(p[0], 2)}; de oorspronkelijke 1,85 + log(3) = ${fmt(1.85 + lg(3), 2)}.`,
+            berekening: `${fm('log(3t) = {ln(3t)|ln(10)} = {ln(3) + ln(t)|ln(10)}')}.<br>Dus ${fm('N = 1,85 + {ln(3)|ln(10)} + {1|ln(10)} · ln(t) ≈ 2,33 + 0,43 · ln(t)')}.`,
+            h: { n: 't', min: 0, max: 20, step: 2 }, v: { n: 'N', min: 0, max: 4, step: 0.5 },
+        },
+    ];
+    let grondIdx = 0, grondP = [], grondToon = false;
+
+    function setGrondPreset(i) {
+        grondIdx = i;
+        grondToon = false;
+        const pr = grondPresets[i];
+        grondP = pr.params.map(p => p.start);
+        [0, 1].forEach(j => {
+            const p = pr.params[j];
+            $(`grond-p${j}-paneel`).classList.toggle('hidden', !p);
+            if (!p) return;
+            const s = $(`grond-p${j}`);
+            s.min = p.min;
+            s.max = p.max;
+            s.step = p.step;
+            s.value = p.start;
+        });
+        $('grond-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Voorbeeld</span><span class="mono">${fm(pr.vraag)}</span>`;
+        $('grond-legenda-oud').innerHTML = `Oorspronkelijk: <span class="mono">${fm(pr.oud)}</span>`;
+        setActiveButton('grond-preset-', grondPresets.length, i);
+        renderGrond();
+    }
+
+    function setGrondParam(j, val) {
+        grondP[j] = parseFloat(val);
+        renderGrond();
+    }
+
+    function toonGrondBerekening() {
+        const pr = grondPresets[grondIdx];
+        grondP = pr.params.map(p => p.exact);
+        pr.params.forEach((p, j) => { $(`grond-p${j}`).value = p.exact; });
+        grondToon = true;
+        renderGrond();
+    }
+
+    /** Valt de nieuwe formule over de oude? Grootste verschil in beeld ≤ 1% van de hoogte van het venster (de band is ruim 2%). */
+    function grondSamen(pr, p) {
+        let max = 0;
+        for (let i = 0; i <= 80; i++) {
+            const t = pr.h.min + (pr.h.max - pr.h.min) * i / 80;
+            const a = pr.orig(t), b = pr.nieuw(t, p);
+            if (!isFinite(a) || !isFinite(b) || a < pr.v.min || a > pr.v.max) continue;
+            max = Math.max(max, Math.abs(a - b));
+        }
+        return max <= 0.01 * (pr.v.max - pr.v.min);
+    }
+
+    function renderGrond() {
+        const pr = grondPresets[grondIdx];
+        const p = grondP;
+        const samen = grondSamen(pr, p);
+        drawGraph('canvas-grond', {
+            xMin: pr.h.min, xMax: pr.h.max, yMin: pr.v.min, yMax: pr.v.max, xStep: pr.h.step, yStep: pr.v.step,
+            xLabel: pr.h.n, yLabel: pr.v.n, pad: { l: 50 },
+            curves: [
+                { f: pr.orig, color: '#cbd5e1', width: 12 },
+                { f: t => pr.nieuw(t, p), color: samen ? C.emerald : C.indigo, width: 3 },
+            ],
+        });
+        pr.params.forEach((q, j) => {
+            $(`grond-p${j}-naam`).innerText = `${q.n} (nieuw)`;
+            $(`grond-p${j}-val`).innerText = `${q.n} = ${fmtF(p[j], q.dec)}`;
+        });
+        $('grond-pil').innerHTML = fm(pr.vorm(p));
+        $('grond-status').innerHTML = samen
+            ? '<span class="text-emerald-700">✓ Valt er precies overheen! Het is dezelfde formule, met een ander grondtal.</span>'
+            : '<span class="text-slate-500">Nog niet: de lijn ligt niet overal in de band. Schuif verder.</span>';
+        let html = `<div>${pr.sleutel(p)}</div>`;
+        if (samen || grondToon) {
+            html += `<div class="pt-2 mt-2 border-t border-indigo-200 font-bold text-indigo-900">Zo reken je het uit</div><div class="mono leading-relaxed">${pr.berekening}</div>`;
+        }
+        $('grond-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 4: NAAR DE LOG-VORM EN TERUG (THEORIE C EN D) ====================
+    // De lijn op de logaritmische as heeft een helling en een startgetal; die stuur je met de sliders.
+    // Modus C: ᵍlog(N) = a·t + b ⇔ N = g^b · (g^a)^t.   Modus D: ᵍlog(N) = a + b·ᵍlog(t) ⇔ N = g^a · t^b.
+    // yLog / xLog = venster op de log-as in exponenten van het grondtal (2 → 10², …). Bij D begint
+    // xLog bij 0 (t = 1), zodat de verticale as aan de rand staat en het startgetal erop ligt.
+    const logPresets = [
+        // Theorie C: log(N) = 0,2t + 2,5 ⇔ N ≈ 316 · 1,585^t
+        { modus: 'C', basis: '10', hel: 0.2, start: 2.5, helR: [-0.5, 0.5, 0.005], startR: [0, 5, 0.01],
+          h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 35000, step: 5000 }, yLog: [1, 5] },
+        // Voorbeeld a: 2 · ln(N) = 5 − 0,37t → ln(N) = 2,5 − 0,185t ⇔ N ≈ 12,2 · 0,83^t
+        { modus: 'C', basis: 'e', hel: -0.185, start: 2.5, helR: [-1, 1, 0.005], startR: [0, 6, 0.01],
+          h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 14, step: 2 }, yLog: [-1, 3] },
+        // Voorbeeld b: N = 280e^(0,14t) ⇔ ln(N) ≈ 0,14t + 5,63
+        { modus: 'C', basis: 'e', hel: 0.14, start: 5.63, helR: [-1, 1, 0.005], startR: [0, 8, 0.01],
+          h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 1200, step: 200 }, yLog: [5, 8] },
+        // Terugblik: ln(N) = 0,45t + 4,3 ⇔ N ≈ 73,7 · 1,568^t
+        { modus: 'C', basis: 'e', hel: 0.45, start: 4.3, helR: [-1, 1, 0.005], startR: [0, 8, 0.01],
+          h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 7000, step: 1000 }, yLog: [4, 9] },
+        // Theorie D: N = 224t^3,6 ⇔ log(N) ≈ 2,35 + 3,6 · log(t)
+        { modus: 'D', basis: '10', hel: 3.6, start: 2.35, helR: [-2, 4, 0.05], startR: [0, 4, 0.01],
+          h: { n: 't', min: 0, max: 10, step: 1 }, v: { n: 'N', min: 0, max: 900000, step: 100000 }, xLog: [0, 1.5], yLog: [2, 8] },
+        // Terugblik: y = 50x^2,1 ⇔ ln(y) ≈ 3,91 + 2,1 · ln(x)
+        { modus: 'D', basis: 'e', hel: 2.1, start: 3.91, helR: [-2, 4, 0.05], startR: [0, 6, 0.01],
+          h: { n: 'x', min: 0, max: 5, step: 1 }, v: { n: 'y', min: 0, max: 1500, step: 250 }, xLog: [0, 2], yLog: [3, 9] },
+        // Terugblik: ²log(y) = 3 · ²log(x) + 5 ⇔ y = 32x³
+        { modus: 'D', basis: '2', hel: 3, start: 5, helR: [-2, 4, 0.05], startR: [0, 8, 0.05],
+          h: { n: 'x', min: 0, max: 4, step: 1 }, v: { n: 'y', min: 0, max: 2100, step: 300 }, xLog: [0, 2.5], yLog: [4, 13] },
+    ];
+    let logIdx = 0, logHel = 0.2, logStart = 2.5;
+
+    function setLogPreset(i) {
+        logIdx = i;
+        const pr = logPresets[i];
+        logHel = pr.hel;
+        logStart = pr.start;
+        [['log-hel', pr.helR, pr.hel], ['log-start', pr.startR, pr.start]].forEach(([id, [min, max, step], v]) => {
+            const s = $(id);
+            s.min = min;
+            s.max = max;
+            s.step = step;
+            s.value = v;
+        });
+        setActiveButton('log-preset-', logPresets.length, i);
+        renderLog();
+    }
+
+    function setLogParam(welke, val) {
+        if (welke === 'hel') logHel = parseFloat(val);
+        else logStart = parseFloat(val);
+        renderLog();
+    }
+
+    function renderLog() {
+        const pr = logPresets[logIdx];
+        const B = BASIS[pr.basis], G = B.v, L = B.log, h = pr.h.n, v = pr.v.n;
+        const a = logHel, b = logStart;
+        const C_ = pr.modus === 'C';
+        const N = C_ ? (t => G ** (a * t + b)) : (t => t > 0 ? G ** b * t ** a : NaN);
+        const beginwaarde = G ** b, factor = G ** a;
+
+        // Punten op gehele t (bij D vanaf 1, want log(0) bestaat niet)
+        const ts = [];
+        for (let t = C_ ? pr.h.min : 1; t <= pr.h.max + 1e-9; t += 1) ts.push(t);
+
+        drawGraph('canvas-log-lin', {
+            xMin: pr.h.min, xMax: pr.h.max, yMin: pr.v.min, yMax: pr.v.max, xStep: pr.h.step, yStep: pr.v.step,
+            xLabel: h, yLabel: v, pad: { l: 58 },
+            curves: [{ f: N, color: C.indigo, width: 3 }],
+            points: [
+                ...ts.map(t => ({ x: t, y: N(t), color: C.indigo, r: 4 })),
+                C_ ? { x: 0, y: beginwaarde, color: C.amber, r: 6.5 } : { x: 1, y: beginwaarde, color: C.amber, r: 6.5 },
+            ],
+        });
+
+        // Rechts: de log-as. Bij C staat t gewoon op de horizontale as, bij D ook ᵍlog(t).
+        const xMin = C_ ? pr.h.min : pr.xLog[0], xMax = C_ ? pr.h.max : pr.xLog[1];
+        const lijn = C_ ? (x => a * x + b) : (x => b + a * x);
+        const g = drawGraph('canvas-log-log', {
+            xMin, xMax, yMin: pr.yLog[0], yMax: pr.yLog[1], xStep: 1, yStep: 1,
+            xLabel: h, yLabel: v, pad: { l: 44 },
+            yTick: machtTick(pr.basis), xTick: C_ ? (x => fmt(x)) : machtTick(pr.basis),
+            curves: [{ f: lijn, color: C.indigo, width: 3 }],
+            points: [
+                ...ts.map(t => ({ x: C_ ? t : logB(pr.basis, t), y: logB(pr.basis, N(t)), color: C.indigo, r: 4 })),
+                { x: 0, y: b, color: C.amber, r: 6.5 },
+            ],
+        });
+        // Hellingsdriehoek: één stap opzij, a (of b) omhoog
+        const { ctx, mapX, mapY } = g;
+        const x0 = C_ ? pr.h.min + 1 : 0, y0 = lijn(x0), y1 = lijn(x0 + 1);
+        ctx.save();
+        ctx.strokeStyle = C.rose;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([5, 3]);
+        strokeLine(ctx, mapX(x0), mapY(y0), mapX(x0 + 1), mapY(y0));
+        ctx.setLineDash([]);
+        strokeLine(ctx, mapX(x0 + 1), mapY(y0), mapX(x0 + 1), mapY(y1));
+        ctx.restore();
+        tekst(ctx, `${a >= 0 ? '+' : '−'}${fmt(Math.abs(a), 3)}`, mapX(x0 + 1) + 6, (mapY(y0) + mapY(y1)) / 2 + 4, C.rose);
+        tekst(ctx, `startgetal ${fmt(b, 2)}`, mapX(0) + 10, mapY(b) + (a >= 0 ? 18 : -10), '#b45309');
+
+        // Pillen met beide vormen
+        const aT = fmt(a, 3), bT = fmt(b, 2);
+        $('log-pil-log').innerHTML = C_
+            ? fm(`${L}(${v}) = ${aT}${h}${plusMin(b, 2)}`)
+            : fm(`${L}(${v}) = ${bT}${plusMin(a, 2)} · ${L}(${h})`);
+        $('log-pil-exp-titel').innerText = C_ ? 'Exponentiële vorm' : 'Machtsvorm';
+        $('log-pil-exp').innerHTML = C_
+            ? fm(`${v} ≈ ${fmtS(beginwaarde)} · ${fmt(factor, 3)}^[${h}]`)
+            : fm(`${v} ≈ ${fmtS(beginwaarde)}${h}^[${fmt(a, 2)}]`);
+        $('log-log-titel').innerText = C_ ? 'Logaritmische verticale as' : 'Beide assen logaritmisch';
+        $('log-legenda-punten').innerText = C_ ? `Punten bij ${h} = 0, 1, 2, …` : `Punten bij ${h} = 1, 2, 3, …`;
+
+        // Sliders: letters zoals in het boek, kleur naar de rol (helling rose, startgetal amber)
+        $('log-hel-naam').innerText = C_ ? 'a = helling' : 'b = helling (de exponent)';
+        $('log-start-naam').innerText = C_ ? 'b = startgetal' : 'a = startgetal';
+        $('log-hel-val').innerText = `${C_ ? 'a' : 'b'} = ${fmt(a, 3)}`;
+        $('log-start-val').innerText = `${C_ ? 'b' : 'a'} = ${fmt(b, 2)}`;
+        $('log-hel-uitleg').innerHTML = C_
+            ? `groeifactor = ${fm(`${B.g}^[${aT}]`)} ≈ ${fmt(factor, 3)}`
+            : `exponent van ${h}: ${fmt(a, 2)}`;
+        $('log-start-uitleg').innerHTML = C_
+            ? `beginwaarde = ${fm(`${B.g}^[${bT}]`)} ≈ ${fmtS(beginwaarde)}`
+            : `coëfficiënt = ${fm(`${B.g}^[${bT}]`)} ≈ ${fmtS(beginwaarde)}`;
+
+        let html;
+        if (C_) {
+            html = `<div class="font-bold text-indigo-900">Van de lijn naar de formule</div>
+                <div class="mono">${fm(`${L}(${v}) = ${aT}${h}${plusMin(b, 2)}`)} geeft ${fm(`${v} = ${B.g}^[${aT}${h}${plusMin(b, 2)}] = ${B.g}^[${bT}] · (${B.g}^[${fmtB(a, 3)}])^[${h}]`)}</div>
+                <div class="mono">${fm(`${v} ≈ ${fmtS(beginwaarde)} · ${fmt(factor, 3)}^[${h}]`)}</div>
+                <div><span class="font-bold text-rose-700">Helling ${aT}:</span> één stap verder in ${h} gaat de lijn ${fmt(Math.abs(a), 3)} ${a >= 0 ? 'omhoog' : 'omlaag'}. Op de gewone as is dat keer ${fm(`${B.g}^[${fmtB(a, 3)}]`)} ≈ ${fmt(factor, 3)}: de groeifactor.</div>
+                <div><span class="font-bold text-amber-800">Startgetal ${bT}:</span> bij ${h} = 0 is ${L}(${v}) = ${bT}, dus ${v} = ${fm(`${B.g}^[${bT}]`)} ≈ ${fmtS(beginwaarde)}: de beginwaarde.</div>
+                <div class="text-slate-500">Rechts liggen de punten op gelijke afstanden boven elkaar. Links worden de sprongen steeds ${a >= 0 ? 'groter' : 'kleiner'}. Keer een vast getal is op een log-as plus een vast getal.</div>`;
+        } else {
+            html = `<div class="font-bold text-indigo-900">Van de lijn naar de formule</div>
+                <div class="mono">${fm(`${L}(${v}) = ${bT}${plusMin(a, 2)} · ${L}(${h}) = ${L}(${B.g}^[${bT}]) + ${L}(${h}^[${fmt(a, 2)}]) = ${L}(${B.g}^[${bT}] · ${h}^[${fmt(a, 2)}])`)}</div>
+                <div class="mono">${fm(`${v} = ${B.g}^[${bT}] · ${h}^[${fmt(a, 2)}] ≈ ${fmtS(beginwaarde)}${h}^[${fmt(a, 2)}]`)}</div>
+                <div><span class="font-bold text-rose-700">Helling ${fmt(a, 2)}:</span> één stap opzij op de log-as is ${h} keer ${B.g}. Dan gaat ${v} keer ${fm(`${B.g}^[${fmt(a, 2)}]`)}: de helling is de exponent.</div>
+                <div><span class="font-bold text-amber-800">Startgetal ${bT}:</span> bij ${h} = 1 is ${L}(${h}) = 0, dus ${L}(${v}) = ${bT} en ${v} = ${fm(`${B.g}^[${bT}]`)} ≈ ${fmtS(beginwaarde)}: de coëfficiënt.</div>
+                <div class="text-slate-500">Een machtsformule wordt pas een rechte lijn als beide assen logaritmisch zijn.</div>`;
+        }
+        $('log-uitleg').innerHTML = html;
+    }
+
+    // Herleidingsladders van Theorie C en D (p. 81–84) en de Terugblik (p. 86).
+    // x = de variabele van de slider, waarden(x) = alle variabelen bij die keuze.
+    const omPresets = [
+        {
+            vraag: 'Schrijf log(N) = 0,2t + 2,5 in de vorm N = b · g^[t].',
+            x: { n: 't', min: 0, max: 10, step: 0.5, start: 3 },
+            waarden: t => ({ t, N: 10 ** (0.2 * t + 2.5) }),
+            rows: [
+                { e: 'log(N) = 0,2t + 2,5', l: v => lg(v.N), r: v => 0.2 * v.t + 2.5, u: 'Gebruik ᵍlog(x) = y geeft x = g^[y].', k: 'emerald' },
+                { e: 'N = 10^[0,2t + 2,5]', l: v => v.N, r: v => 10 ** (0.2 * v.t + 2.5), u: 'Gebruik a^[p + q] = a^[p] · a^[q].', k: 'amber' },
+                { e: 'N = 10^[0,2t] · 10^[2,5]', l: v => v.N, r: v => 10 ** (0.2 * v.t) * 10 ** 2.5, u: 'Gebruik a^[pq] = (a^[p])^[q].', k: 'amber' },
+                { e: 'N = 10^[2,5] · (10^[0,2])^[t]', l: v => v.N, r: v => 10 ** 2.5 * (10 ** 0.2) ** v.t, u: 'Bereken 10^[2,5] en 10^[0,2].', k: 'orange' },
+                { e: 'N ≈ 316 · 1,585^[t]', l: v => v.N, r: v => 316 * 1.585 ** v.t, afgerond: true },
+            ],
+            fout: { bij: 4, e: 'N = 2,5 · 1,585^[t]', l: v => v.N, r: v => 2.5 * 1.585 ** v.t, u: 'Fout: 2,5 is niet de beginwaarde. Bij t = 0 is log(N) = 2,5, dus N = 10^[2,5] ≈ 316.' },
+        },
+        {
+            vraag: 'Schrijf N = 316 · 1,585^[t] in de vorm log(N) = at + b.',
+            x: { n: 't', min: 0, max: 10, step: 0.5, start: 3 },
+            waarden: t => ({ t, N: 316 * 1.585 ** t }),
+            rows: [
+                { e: 'N = 316 · 1,585^[t]', l: v => v.N, r: v => 316 * 1.585 ** v.t, u: 'Neem van beide leden de log.', k: 'emerald' },
+                { e: 'log(N) = log(316 · 1,585^[t])', l: v => lg(v.N), r: v => lg(316 * 1.585 ** v.t), u: 'Gebruik log(ab) = log(a) + log(b).', k: 'sky' },
+                { e: 'log(N) = log(316) + log(1,585^[t])', l: v => lg(v.N), r: v => lg(316) + lg(1.585 ** v.t), u: 'Gebruik log(a^[p]) = p · log(a).', k: 'sky' },
+                { e: 'log(N) = t · log(1,585) + log(316)', l: v => lg(v.N), r: v => v.t * lg(1.585) + lg(316), u: 'Bereken log(1,585) en log(316).', k: 'orange' },
+                { e: 'log(N) ≈ 0,2t + 2,5', l: v => lg(v.N), r: v => 0.2 * v.t + 2.5, afgerond: true },
+            ],
+            fout: { bij: 2, e: 'log(N) = log(316) · log(1,585^[t])', l: v => lg(v.N), r: v => lg(316) * lg(1.585 ** v.t), u: 'Fout: de log van een product is een som: log(ab) = log(a) + log(b).' },
+        },
+        {
+            vraag: 'Voorbeeld a: schrijf 2 · ln(N) = 5 − 0,37t in de vorm N = b · g^[t]. Rond b af op één decimaal en g op twee decimalen.',
+            x: { n: 't', min: 0, max: 10, step: 0.5, start: 3 },
+            waarden: t => ({ t, N: Math.exp(2.5 - 0.185 * t) }),
+            rows: [
+                { e: '2 · ln(N) = 5 − 0,37t', l: v => 2 * ln(v.N), r: v => 5 - 0.37 * v.t, u: 'Deel beide leden door 2.', k: 'slate' },
+                { e: 'ln(N) = 2,5 − 0,185t', l: v => ln(v.N), r: v => 2.5 - 0.185 * v.t, u: 'Gebruik ln(x) = y geeft x = e^[y].', k: 'emerald' },
+                { e: 'N = e^[2,5 − 0,185t]', l: v => v.N, r: v => Math.exp(2.5 - 0.185 * v.t), u: 'Gebruik a^[p + q] = a^[p] · a^[q].', k: 'amber' },
+                { e: 'N = e^[2,5] · e^[−0,185t]', l: v => v.N, r: v => Math.exp(2.5) * Math.exp(-0.185 * v.t), u: 'Gebruik a^[pq] = (a^[p])^[q].', k: 'amber' },
+                { e: 'N = e^[2,5] · (e^[−0,185])^[t]', l: v => v.N, r: v => Math.exp(2.5) * Math.exp(-0.185) ** v.t, u: 'Bereken e^[2,5] en e^[−0,185].', k: 'orange' },
+                { e: 'N ≈ 12,2 · 0,83^[t]', l: v => v.N, r: v => 12.2 * 0.83 ** v.t, afgerond: true },
+            ],
+            fout: { bij: 1, e: 'ln(N) = 2,5 − 0,37t', l: v => ln(v.N), r: v => 2.5 - 0.37 * v.t, u: 'Fout: deel álle termen door 2. Ook 0,37t wordt 0,185t.' },
+        },
+        {
+            vraag: 'Voorbeeld b: schrijf N = 280e^[0,14t] in de vorm ln(N) = at + b. Rond zo nodig af op twee decimalen.',
+            x: { n: 't', min: 0, max: 10, step: 0.5, start: 3 },
+            waarden: t => ({ t, N: 280 * Math.exp(0.14 * t) }),
+            rows: [
+                { e: 'N = 280e^[0,14t]', l: v => v.N, r: v => 280 * Math.exp(0.14 * v.t), u: 'Neem van beide leden de ln.', k: 'emerald' },
+                { e: 'ln(N) = ln(280e^[0,14t])', l: v => ln(v.N), r: v => ln(280 * Math.exp(0.14 * v.t)), u: 'Gebruik ln(ab) = ln(a) + ln(b).', k: 'sky' },
+                { e: 'ln(N) = ln(280) + ln(e^[0,14t])', l: v => ln(v.N), r: v => ln(280) + ln(Math.exp(0.14 * v.t)), u: 'Gebruik ln(e^[a]) = a.', k: 'emerald' },
+                { e: 'ln(N) = 0,14t + ln(280)', l: v => ln(v.N), r: v => 0.14 * v.t + ln(280), u: 'Bereken ln(280).', k: 'orange' },
+                { e: 'ln(N) ≈ 0,14t + 5,63', l: v => ln(v.N), r: v => 0.14 * v.t + 5.63, afgerond: true },
+            ],
+        },
+        {
+            vraag: 'Schrijf N = 224t^[3,6] in de vorm log(N) = a + b · log(t).',
+            x: { n: 't', min: 0.5, max: 10, step: 0.5, start: 2 },
+            waarden: t => ({ t, N: 224 * t ** 3.6 }),
+            rows: [
+                { e: 'N = 224t^[3,6]', l: v => v.N, r: v => 224 * v.t ** 3.6, u: 'Neem van beide leden de log.', k: 'emerald' },
+                { e: 'log(N) = log(224t^[3,6])', l: v => lg(v.N), r: v => lg(224 * v.t ** 3.6), u: 'Gebruik log(ab) = log(a) + log(b).', k: 'sky' },
+                { e: 'log(N) = log(224) + log(t^[3,6])', l: v => lg(v.N), r: v => lg(224) + lg(v.t ** 3.6), u: 'Gebruik log(a^[p]) = p · log(a).', k: 'sky' },
+                { e: 'log(N) = log(224) + 3,6 · log(t)', l: v => lg(v.N), r: v => lg(224) + 3.6 * lg(v.t), u: 'Bereken log(224).', k: 'orange' },
+                { e: 'log(N) ≈ 2,35 + 3,6 · log(t)', l: v => lg(v.N), r: v => 2.35 + 3.6 * lg(v.t), afgerond: true },
+            ],
+            fout: { bij: 3, e: 'log(N) = log(224) + (log(t))^[3,6]', l: v => lg(v.N), r: v => lg(224) + lg(v.t) ** 3.6, u: 'Fout: log(a^[p]) = p · log(a). De exponent komt vóór de log, niet erboven.' },
+        },
+        {
+            vraag: 'Schrijf log(N) = 2,35 + 3,6 · log(t) in de vorm N = at^[b].',
+            x: { n: 't', min: 0.5, max: 10, step: 0.5, start: 2 },
+            waarden: t => ({ t, N: 10 ** 2.35 * t ** 3.6 }),
+            rows: [
+                { e: 'log(N) = 2,35 + 3,6 · log(t)', l: v => lg(v.N), r: v => 2.35 + 3.6 * lg(v.t), u: 'Gebruik a = log(10^[a]) en p · log(a) = log(a^[p]).', k: 'sky' },
+                { e: 'log(N) = log(10^[2,35]) + log(t^[3,6])', l: v => lg(v.N), r: v => lg(10 ** 2.35) + lg(v.t ** 3.6), u: 'Gebruik log(a) + log(b) = log(ab).', k: 'sky' },
+                { e: 'log(N) = log(10^[2,35] · t^[3,6])', l: v => lg(v.N), r: v => lg(10 ** 2.35 * v.t ** 3.6), u: 'Gebruik log(A) = log(B) geeft A = B.', k: 'sky' },
+                { e: 'N = 10^[2,35] · t^[3,6]', l: v => v.N, r: v => 10 ** 2.35 * v.t ** 3.6, u: 'Bereken 10^[2,35].', k: 'orange' },
+                { e: 'N ≈ 224t^[3,6]', l: v => v.N, r: v => 224 * v.t ** 3.6, afgerond: true },
+            ],
+            fout: { bij: 3, e: 'N = 2,35 · t^[3,6]', l: v => v.N, r: v => 2.35 * v.t ** 3.6, u: 'Fout: 2,35 is log(224), niet de coëfficiënt zelf. Schrijf eerst 2,35 = log(10^[2,35]).' },
+        },
+        {
+            vraag: 'Terugblik: schrijf ²log(y) = 3 · ²log(x) + 5 in de vorm y = ax^[b].',
+            x: { n: 'x', min: 0.5, max: 4, step: 0.25, start: 2 },
+            waarden: x => ({ x, y: 32 * x ** 3 }),
+            rows: [
+                { e: '²log(y) = 3 · ²log(x) + 5', l: v => Math.log2(v.y), r: v => 3 * Math.log2(v.x) + 5, u: 'Gebruik 3 · ²log(x) = ²log(x³) en 5 = ²log(2^[5]) = ²log(32).', k: 'sky' },
+                { e: '²log(y) = ²log(x³) + ²log(32)', l: v => Math.log2(v.y), r: v => Math.log2(v.x ** 3) + Math.log2(32), u: 'Gebruik ²log(a) + ²log(b) = ²log(ab).', k: 'sky' },
+                { e: '²log(y) = ²log(32x³)', l: v => Math.log2(v.y), r: v => Math.log2(32 * v.x ** 3), u: 'Gebruik ²log(A) = ²log(B) geeft A = B.', k: 'sky' },
+                { e: 'y = 32x³', l: v => v.y, r: v => 32 * v.x ** 3 },
+            ],
+            fout: { bij: 3, e: 'y = 5x³', l: v => v.y, r: v => 5 * v.x ** 3, u: 'Fout: 5 is ²log(32). Het losse getal moet eerst een log worden: 5 = ²log(2^[5]).' },
+        },
+    ];
+    let omX = 3;
+    const om = maakLadder(omPresets, animeer => renderOm(animeer));
+
+    function setOmPreset(i) {
+        om.kies(i);
+        const pr = omPresets[i];
+        const s = $('om-slider');
+        s.min = pr.x.min;
+        s.max = pr.x.max;
+        s.step = pr.x.step;
+        s.value = pr.x.start;
+        omX = pr.x.start;
+        $('om-vraag').innerHTML = `<span class="text-xs font-bold uppercase tracking-wider text-slate-400 mr-2">Voorbeeld</span><span class="mono">${fm(pr.vraag)}</span>`;
+        $('btn-om-fout').classList.toggle('invisible', !pr.fout);
+        setActiveButton('om-preset-', omPresets.length, i);
+        renderOm(true);
+    }
+
+    function setOmT(val) {
+        omX = parseFloat(val);
+        renderOm();
+    }
+
+    function renderOm(animeer = false) {
+        const pr = om.pr();
+        const vals = pr.waarden(omX);
+        const [xn, yn] = Object.keys(vals);
+        $('om-ladder').innerHTML = ladderHTML(om.lijst(), vals, om.klaar(), animeer);
+        $('om-teller').innerText = om.teller();
+        $('btn-om-fout').innerText = om.fout ? '✓ Goede uitwerking' : '⚠ Klassieke fout';
+        $('om-label').innerText = `${xn} = ${fmt(omX)}`;
+        let html = `<div class="font-bold text-indigo-900">Invulcontrole</div>
+            <div>Je kiest <span class="mono font-bold text-indigo-700">${xn} = ${fmt(omX)}</span>. Dan is <span class="mono font-bold">${yn} = ${fmt(vals[yn], 3)}</span>.</div>`;
+        if (om.fout && gelijk(pr.fout.l(vals), pr.fout.r(vals))) {
+            html += `<div class="text-amber-700">Bij ${xn} = ${fmt(omX)} klopt de foute regel toevallig. Schuif aan ${xn}: bij andere getallen gaat het mis.</div>`;
+        } else if (om.fout) {
+            html += `<div class="text-red-700">De foute regel klopt niet meer: links en rechts zijn niet gelijk. Schuif aan ${xn}: het blijft mis.</div>`;
+        } else {
+            html += `<div>Elke regel klopt voor dit getal: links = rechts. Bij ≈ rondt het boek af.</div>`;
+            if (om.klaar()) html += `<div class="text-emerald-700 font-semibold">Klaar: de laatste regel heeft de gevraagde vorm.</div>`;
+        }
+        $('om-uitleg').innerHTML = html;
+    }
+
+    // ==================== TAB 5: OEFENOPDRACHTEN ====================
+    //   fields:     { inputId: antwoord | [antwoord, alternatief] }  — numeriek, Nederlandse notatie mag
+    //   choice:     'B'                                              — meerkeuze, radio name = sleutel
+    //   check:      () => true/false                                 — eigen controle (bv. grafiek-matcher)
+    //   tol:        toegestane afwijking, standaard 0,01 (ruimer bij 'afronden op 1 decimaal' of aflezen)
+    //   hint:       wijst naar de aanpak en de plek in de les — NIET het antwoord
+    //   goed:       korte bevestiging bij een goed antwoord (optioneel)
+    //   uitwerking: volledige berekening (HTML); verschijnt na goed antwoord of na 2 fouten
+    // Afgeronde antwoorden staan erin als [afgerond, onafgerond] met een kleine tol: zo telt
+    // zowel "6,3" als het GR-getal "6,3096", maar niet een verkeerd afgeronde "6,4".
+    const A71_S = Math.exp(1.6 + 0.61 * ln(320 / 2.54)) * 2.54;      // 240,38 cm
+    const A71_G = Math.exp((ln(200 / 2.54) - 1.6) / 0.61) * 2.54;    // 236,71 cm
+    const exercises = {
+        q1: {
+            // log(N) = 2t − 3 → 2t = log(N) + 3 → t = ½ · log(N) + 1½
+            fields: { 'q1-1': 0.5, 'q1-2': 1.5 },
+            tol: 0.001,
+            hint: 'Hier zit t niet in de log. Zet de term met t apart en deel beide leden door 2 (tab 2).',
+            uitwerking: `${fm('log(N) = 2t − 3')}<br>${fm('2t = log(N) + 3')}<br>${fm('t = ½ · log(N) + 1½')}<br>Je hebt hier geen omkeerregel nodig, want t staat niet in de log.`,
+        },
+        q2: {
+            // log(t) = 0,2N + 0,8 → t = 10^0,8 · (10^0,2)^N
+            fields: { 'q2-a': [6.3, 10 ** 0.8], 'q2-b': [1.585, 10 ** 0.2] },
+            tol: 0.0006,
+            hint: 'Zet de log-term apart, deel door 5 en maak de log weg met de omkeerregel. Splits daarna de exponent met de machtsregels (tab 2, Theorie A).',
+            uitwerking: `${fm('N = 5 · log(t) − 4')}<br>${fm('5 · log(t) = N + 4')}<br>${fm('log(t) = 0,2N + 0,8')}<br>${fm('t = 10^[0,2N + 0,8] = 10^[0,8] · (10^[0,2])^[N]')}<br>${fm('t ≈ 6,3 · 1,585^[N]')}`,
+        },
+        q3: {
+            // 1,75^t = 0,05N → t · log(1,75) = log(0,05N) → t = 4,11 · log(0,05N)
+            fields: { 'q3-a': [4.1, 1 / lg(1.75)], 'q3-b': 0.05 },
+            tol: 0.0006,
+            hint: 'Werk zoals het Voorbeeld in tab 2: deel eerst door 20, neem dan van beide leden de log en haal t naar voren.',
+            uitwerking: `${fm('1,75^[t] = 0,05N')}<br>${fm('log(1,75^[t]) = log(0,05N)')}<br>${fm('t · log(1,75) = log(0,05N)')}<br>${fm('t = {1|log(1,75)} · log(0,05N) ≈ 4,1 · log(0,05N)')}<br>Dus a ≈ 4,1 en b = 0,05.`,
+        },
+        q4: {
+            // a: 0 = 25 − k · log(15) → k = 25 / log(15); b: 45 s = 0,75 min
+            fields: { 'q4-k': [21.26, 25 / lg(15)], 'q4-T': [5.7, 20 - 10 ** (24.25 / 21)] },
+            tol: 0.0006,
+            hint: 'a: op t = 0 heeft de melk de temperatuur van de koelkast. b: t is in minuten (Let op in tab 2).',
+            uitwerking: `a. Bij t = 0 is T = 5: ${fm('0 = 25 − k · log(15)')}, dus ${fm('k = {25|log(15)} ≈ 21,26')}.<br>
+                b. 45 seconden is t = 0,75: ${fm('0,75 = 25 − 21 · log(20 − T)')}, dus ${fm('log(20 − T) = {24,25|21}')}.<br>
+                ${fm('20 − T = 10^[{24,25|21}] ≈ 14,28')}, dus T ≈ 5,7 °C.<br>
+                Wie t = 45 invult, vindt T ≈ 19,9 °C: dat is de temperatuur na 45 minuten.`,
+        },
+        q5: {
+            // 2^c = 1,18 → c = ²log(1,18) ≈ 0,239
+            fields: { 'q5-b': 250, 'q5-c': [0.239, Math.log2(1.18)] },
+            tol: 0.0006,
+            hint: 'Het grondtal verandert, de beginwaarde niet. Zoek c met 2ᶜ = 1,18 (tab 3).',
+            uitwerking: `${fm('N = 250 · 1,18^[t] = 250 · (2^[c])^[t]')} met ${fm('2^[c] = 1,18')}.<br>
+                ${fm('c = ²log(1,18) = {log(1,18)|log(2)} ≈ 0,239')}, dus ${fm('N = 250 · 2^[0,239t]')}.<br>
+                Controle: ${fm('2^[0,239] ≈ 1,18')}.`,
+        },
+        q6: {
+            // 2,5 · ln(3t) = 2,5 · ln(3) + 2,5 · ln(10) · log(t)
+            fields: { 'q6-a': [19.40, 16.65 + 2.5 * ln(3)], 'q6-b': [5.76, 2.5 * ln(10)] },
+            tol: 0.0006,
+            hint: 'Splits eerst ln(3t) = ln(3) + ln(t) en schrijf ln(t) met grondtal 10: ln(t) = log(t) / log(e) (tab 3).',
+            uitwerking: `${fm('N = 16,65 + 2,5 · ln(3t) = 16,65 + 2,5 · ln(3) + 2,5 · ln(t)')}<br>
+                ${fm('ln(t) = {log(t)|log(e)} ≈ 2,3026 · log(t)')}<br>
+                ${fm('N ≈ 16,65 + 2,747 + 5,756 · log(t) ≈ 19,40 + 5,76 · log(t)')}`,
+        },
+        q7: {
+            // a: h = 130 → W ≈ 26,3; c: e^c = 1,0186 → c = ln(1,0186) ≈ 0,0184
+            fields: { 'q7-W': [26, 2.4 * 1.0186 ** 130], 'q7-b': 2.4, 'q7-c': [0.0184, ln(1.0186)] },
+            tol: 0.00005,
+            hint: 'a: h is in cm (Let op in tab 2), en rond af op gehele kg. c: het grondtal 1,0186 wordt e. De 2,4 blijft staan (tab 3).',
+            uitwerking: `a. 1,30 meter is h = 130: ${fm('W = 2,4 · 1,0186^[130] ≈ 26,3')}, dus Robert weegt ongeveer 26 kg. Met h = 1,30 kom je op 2,5 kg uit: het gewicht van een baby.<br>
+                c. ${fm('e^[c] = 1,0186')} geeft c = ln(1,0186) ≈ 0,0184. Dus ${fm('W = 2,4 · e^[0,0184h]')}: b = 2,4 blijft staan.`,
+        },
+        q8: {
+            // 0,4N = e^5,16 · (e^0,45)^t → N = 2,5 · e^5,16 · 1,568^t
+            fields: { 'q8-b': [435, 2.5 * Math.exp(5.16)], 'q8-g': [1.568, Math.exp(0.45)] },
+            tol: 0.0006,
+            hint: 'Maak eerst de ln weg met de omkeerregel en deel daarna door 0,4. Splits de exponent zoals in Theorie C (tab 4).',
+            uitwerking: `${fm('ln(0,4N) = 0,45t + 5,16')}<br>${fm('0,4N = e^[0,45t + 5,16] = e^[5,16] · (e^[0,45])^[t]')}<br>
+                ${fm('N = 2,5 · e^[5,16] · (e^[0,45])^[t] ≈ 435 · 1,568^[t]')}<br>
+                Vergeet je de 0,4, dan vind je b ≈ 174.`,
+        },
+        q9: {
+            // log(N) = log(280) + 0,15t · log(e)
+            fields: { 'q9-a': [0.065, 0.15 * lg(Math.E)], 'q9-b': [2.45, lg(280)] },
+            tol: 0.0006,
+            hint: 'Neem van beide leden de log (niet de ln). Gebruik log(ab) = log(a) + log(b) en log(eᵖ) = p · log(e) (tab 4).',
+            uitwerking: `${fm('log(N) = log(280e^[0,15t]) = log(280) + log(e^[0,15t])')}<br>
+                ${fm('log(N) = log(280) + 0,15t · log(e) ≈ 2,447 + 0,0651t')}<br>
+                Dus ${fm('log(N) = 0,065t + 2,45')}.`,
+        },
+        q10: {
+            choice: 'B',
+            hint: 'Maak van 2,35 eerst een log: 2,35 = log(10^2,35). Gebruik daarna log(A) = log(B) geeft A = B (tab 4, Let op).',
+            uitwerking: `${fm('log(N) = log(10^[2,35]) + log(t^[3,6]) = log(10^[2,35] · t^[3,6])')}, dus ${fm('N = 10^[2,35] · t^[3,6] ≈ 224 · t^[3,6]')}: <strong>B</strong>.<br>
+                A neemt 2,35 over, maar 2,35 is log(224). C is een exponentiële formule: die hoort bij log(N) = at + b, met t niet in een log. D maakt van een som van logs een som, maar log(A) + log(B) = log(AB): een product.`,
+        },
+        q11: {
+            fields: { 'q11-S': [240, A71_S], 'q11-G': [237, A71_G] },
+            tol: 0.6,
+            hint: 'Reken eerst om naar inch (÷ 2,54), vul in en reken het antwoord terug naar cm (Let op in tab 2).',
+            uitwerking: `c. G = 320 cm = ${fm('{320|2,54}')} ≈ 125,98 inch. ${fm('ln(S) = 1,6 + 0,61 · ln(125,98) ≈ 4,550')}, dus S ≈ e<sup>4,550</sup> ≈ 94,64 inch ≈ 240 cm.<br>
+                d. S = 200 cm ≈ 78,74 inch. ${fm('ln(G) = {ln(78,74) − 1,6|0,61} ≈ 4,535')}, dus G ≈ e<sup>4,535</sup> ≈ 93,19 inch ≈ 237 cm.<br>
+                Wie in centimeters invult, vindt bij c S ≈ 167: de formule rekent alleen met inch.`,
+        },
+        q12: {
+            // Figuur 13.23: punten (30, 10^2,3) … (90, 10^4,7) → a = 0,040, b = 1,10
+            check: () => {
+                const a = parseNum($('q12-a').value), b = parseNum($('q12-b').value);
+                if (!isFinite(a) || !isFinite(b)) return false;
+                return [30, 60, 90].every(l => Math.abs(a * l + b - (0.04 * l + 1.1)) <= 0.06);
+            },
+            hint: 'Op de log-as lees je log(s) af: bij 10³ is log(s) = 3. De helling a is het verschil in log(s) gedeeld door het verschil in l (tab 4).',
+            uitwerking: `Bij l = 30 ligt het punt iets onder het midden tussen 10² en 10³: log(s) ≈ 2,3. Bij l = 90 is log(s) ≈ 4,7.<br>
+                ${fm('a = {4,7 − 2,3|90 − 30} = 0,040')} en ${fm('b = 2,3 − 0,040 · 30 = 1,10')}. Dus ${fm('log(s) = 0,040l + 1,10')}.<br>
+                Met Theorie C: ${fm('s = 10^[1,10] · (10^[0,040])^[l] ≈ 12,6 · 1,096^[l]')} (opgave A67e). Per jaar ouder komen er 9,6% meer sterfgevallen bij.`,
+        },
+    };
+
+    const solved = new Set();
+    const attempts = {};
+
+    function updateScore() {
+        $('global-score').innerText = `${solved.size} / ${Object.keys(exercises).length}`;
+    }
+
+    function showUitwerking(q) {
+        const box = $('sol-' + q);
+        box.innerHTML = exercises[q].uitwerking;
+        box.classList.remove('hidden');
+        $('solbtn-' + q).classList.add('hidden');
+    }
+
+    function checkExercise(q) {
+        const ex = exercises[q];
+        const fb = $('fb-' + q);
+        let ok;
+        if (ex.check) {
+            ok = ex.check();
+        } else if (ex.choice) {
+            const sel = document.querySelector(`input[name="${q}"]:checked`);
+            ok = !!sel && sel.value === ex.choice;
+        } else {
+            ok = true;
+            Object.entries(ex.fields).forEach(([id, target]) => {
+                const input = $(id);
+                const fieldOk = [].concat(target).some(t => approx(parseNum(input.value), t, ex.tol ?? 0.01));
+                input.classList.toggle('border-emerald-400', fieldOk);
+                input.classList.toggle('border-rose-400', !fieldOk);
+                ok = ok && fieldOk;
+            });
+        }
+        attempts[q] = (attempts[q] || 0) + 1;
+        if (ok) {
+            solved.add(q);
+            fb.className = 'text-xs font-bold text-emerald-600 text-right';
+            fb.innerText = '✓ ' + (ex.goed || 'Goed!');
+            showUitwerking(q);
+        } else {
+            fb.className = 'text-xs font-bold text-rose-600 text-right';
+            fb.innerText = '✗ ' + ex.hint;
+            if (attempts[q] >= 2 && $('sol-' + q).classList.contains('hidden')) {
+                $('solbtn-' + q).classList.remove('hidden');
+            }
+        }
+        updateScore();
+    }
+
+    // Figuur 13.23: logaritmische verticale as, punten afgelezen in het boek.
+    // l = 0: 10^3,4 · 10: 10^1,8 · 15: 10^2 · 20: 10^2,4 · 30 t/m 90 op log(s) = 0,040l + 1,10.
+    function drawQ12() {
+        const a = parseNum($('q12-a').value), b = parseNum($('q12-b').value);
+        const losse = [[0, 3.4], [10, 1.8], [15, 2], [20, 2.4]];
+        const lijn = [30, 40, 50, 60, 70, 80, 90].map(l => [l, 0.04 * l + 1.1]);
+        drawGraph('canvas-q12', {
+            xMin: 0, xMax: 100, yMin: 0, yMax: 5, xStep: 10, yStep: 1,
+            xLabel: 'l', yLabel: 's', xCaption: 'leeftijd in jaren',
+            xTick: v => v === 100 ? '' : fmt(v), yTick: machtTick('10'),
+            curves: [
+                { f: l => 0.04 * l + 1.1, color: C.rose, width: 2.5, domain: [30, 90] },
+                ...(isFinite(a) && isFinite(b) ? [{ f: l => a * l + b, color: C.indigo, width: 3 }] : []),
+            ],
+            points: [...losse, ...lijn].map(([x, y]) => ({ x, y, color: C.rose, r: 4.5 })),
+        });
+        $('q12-live').innerHTML = isFinite(a) && isFinite(b) ? fm(`log(s) = ${fmt(a, 3)} · l${plusMin(b, 2)}`) : '';
+    }
+
+    function renderOpdrachten() {
+        drawQ12();
+    }
+
+    // ==================== START ====================
+    document.querySelectorAll('[data-f]').forEach(el => { el.innerHTML = fm(el.dataset.f); });
+    document.querySelectorAll('[data-q] input[type="text"]').forEach(input => {
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkExercise(input.closest('[data-q]').dataset.q);
+        });
+    });
+    setRegel(0);
+    setVrijPreset(0);
+    setGrondPreset(0);
+    setLogPreset(0);
+    setOmPreset(0);
+    const startTab = location.hash.slice(1);
+    switchTab(tabRenderers[startTab] ? startTab : 'tab-basis');
+    updateScore();
+</script>
+</body>
+</html>
